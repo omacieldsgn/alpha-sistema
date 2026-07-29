@@ -2120,6 +2120,492 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   .custos-header { grid-template-columns: 1fr; }
   .projeto-header .meta-list { grid-template-columns: 1fr; }
 }
+
+/* ============================================================================
+   VIEW: AGENDA
+   ============================================================================ */
+.agenda-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.agenda-header-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-2);
+}
+
+.agenda-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+.agenda-nav-group {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.agenda-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 1.125rem;
+  transition: background 120ms var(--ease);
+}
+.agenda-nav-btn:hover {
+  background: var(--surface-2);
+}
+
+.agenda-btn-hoje {
+  padding: 0 var(--sp-3);
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 120ms var(--ease);
+}
+.agenda-btn-hoje:hover {
+  background: var(--surface-2);
+}
+
+.agenda-period-label {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.agenda-view-selector {
+  display: flex;
+  gap: var(--sp-1);
+  background: var(--surface-2);
+  padding: 3px;
+  border-radius: var(--radius-md);
+}
+
+.agenda-view-btn {
+  padding: var(--sp-2) var(--sp-4);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  transition: background 120ms var(--ease), color 120ms var(--ease);
+}
+.agenda-view-btn:hover {
+  color: var(--ink);
+}
+.agenda-view-btn.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Área do Calendário */
+.agenda-body {
+  min-height: 400px;
+  position: relative;
+}
+
+/* Vista DIA e SEMANA */
+.agenda-grid-container {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  overflow: auto;
+  max-height: 700px;
+  position: relative;
+}
+
+.agenda-grid {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  position: relative;
+}
+
+.agenda-grid.week {
+  grid-template-columns: 60px repeat(7, 1fr);
+  min-width: 800px;
+}
+
+.agenda-grid-header {
+  display: contents;
+}
+
+.agenda-grid-header-cell {
+  background: var(--surface);
+  padding: var(--sp-3) var(--sp-2);
+  text-align: center;
+  border-bottom: 2px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+.agenda-grid-header-cell.today-highlight {
+  background: color-mix(in oklch, var(--accent) 6%, var(--surface));
+  color: var(--accent);
+}
+
+.agenda-grid-header-cell:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.agenda-grid-time-label {
+  grid-column: 1;
+  text-align: right;
+  padding-right: var(--sp-2);
+  font-size: 0.75rem;
+  color: var(--ink-subtle);
+  border-right: 1px solid var(--border);
+  align-self: center;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.agenda-grid-day-column {
+  position: relative;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  height: 1280px; /* 32 slots * 40px */
+}
+.agenda-grid-day-column.today-highlight {
+  background: color-mix(in oklch, var(--accent) 4%, var(--surface));
+}
+
+/* Linhas de fundo do grid de horários */
+.agenda-grid-lines {
+  position: absolute;
+  top: 45px; /* Offset do header */
+  left: 60px;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+}
+.agenda-grid-line {
+  height: 40px;
+  border-bottom: 1px solid var(--border);
+  box-sizing: border-box;
+}
+
+/* Evento no Grid (absoluto) */
+.agenda-event-card {
+  position: absolute;
+  left: var(--sp-2);
+  right: var(--sp-2);
+  padding: 6px var(--sp-3);
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklch, var(--brand) 8%, var(--surface));
+  border-left: 3px solid var(--brand);
+  color: var(--ink);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 2px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 120ms var(--ease), border-color 120ms var(--ease), background-color 120ms var(--ease);
+}
+.agenda-event-card:hover {
+  border-left-color: var(--accent);
+  background: color-mix(in oklch, var(--brand) 12%, var(--surface-2));
+  transform: translateY(-1px);
+}
+
+.agenda-event-card .titulo {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.agenda-event-card .horario {
+  font-size: 0.6875rem;
+  color: var(--ink-muted);
+}
+.agenda-event-card .local {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* Vista MÊS */
+.agenda-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(100px, 1fr);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.agenda-month-header-cell {
+  background: var(--surface-2);
+  padding: var(--sp-2);
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  border-bottom: 1px solid var(--border);
+}
+.agenda-month-header-cell:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.agenda-month-cell {
+  border-bottom: 1px solid var(--border);
+  padding: var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 100px;
+  background: var(--surface);
+  position: relative;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.agenda-month-cell:not(:nth-child(7n)) {
+  border-right: 1px solid var(--border);
+}
+.agenda-month-cell.today-highlight {
+  background: color-mix(in oklch, var(--accent) 4%, var(--surface));
+}
+.agenda-month-cell.other-month {
+  opacity: 0.4;
+  background: var(--bg);
+}
+
+.agenda-month-cell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.agenda-month-day-number {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+.agenda-month-cell.today-highlight .agenda-month-day-number {
+  background: var(--accent);
+  color: var(--brand-ink);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.agenda-month-event-tag {
+  background: color-mix(in oklch, var(--brand) 8%, var(--surface));
+  border-left: 2px solid var(--brand);
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: var(--ink);
+  cursor: pointer;
+}
+.agenda-month-event-tag:hover {
+  border-left-color: var(--accent);
+  background: color-mix(in oklch, var(--brand) 12%, var(--surface-2));
+}
+
+.agenda-month-more {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--accent);
+  padding-left: 4px;
+}
+
+/* Vista LISTA (Agenda) */
+.agenda-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.agenda-list-day-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.agenda-list-day-header {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--ink);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+
+.agenda-list-events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.agenda-list-event-item {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  align-items: center;
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 120ms var(--ease), box-shadow 120ms var(--ease);
+}
+.agenda-list-event-item:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.agenda-list-event-time {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
+.agenda-list-event-details .titulo {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+.agenda-list-event-details .meta {
+  font-size: 0.75rem;
+  color: var(--ink-subtle);
+}
+
+/* Conexão / Rodapé */
+.agenda-connection-footer {
+  margin-top: var(--sp-4);
+  border-top: 1px solid var(--border);
+  padding-top: var(--sp-4);
+}
+
+.agenda-connection-alert {
+  background: color-mix(in oklch, var(--status-em-andamento) 8%, var(--surface));
+  border: 1px solid color-mix(in oklch, var(--status-em-andamento) 30%, var(--border));
+  padding: var(--sp-4);
+  border-radius: var(--radius-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+}
+
+.agenda-connection-alert-text {
+  font-size: 0.875rem;
+  color: var(--ink);
+}
+
+/* Modais */
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-4);
+}
+
+.modal-form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.modal-field label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.modal-field input,
+.modal-field textarea {
+  padding: 10px var(--sp-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.875rem;
+  color: var(--ink);
+  transition: border-color 120ms var(--ease);
+}
+.modal-field input:focus,
+.modal-field textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+@media (max-width: 1024px) {
+  .agenda-grid.week {
+    /* 3 colunas visíveis com scroll */
+    min-width: 600px;
+  }
+}
+
+@media (max-width: 768px) {
+  .agenda-grid.week {
+    display: none;
+  }
+  .agenda-view-selector button[data-view="semana"],
+  .agenda-view-selector button[data-view="mes"] {
+    display: none;
+  }
+  #modal-compromisso .modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    border-radius: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  #modal-compromisso .modal-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+}
 </style>
 </head>
 <body>
@@ -2165,8 +2651,8 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       <button class="nav-item" data-view="novo-projeto">
         <span class="dot"></span> Novo projeto
       </button>
-      <button class="nav-item" data-view="reagendamento">
-        <span class="dot"></span> Reagendar Agenda
+      <button class="nav-item" data-view="agenda">
+        <span class="dot"></span> Agenda
       </button>
       <button class="nav-item" data-view="custos">
         <span class="dot"></span> Custos
@@ -2348,107 +2834,44 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
     </section>
 
     <!-- =========================================================================
-         VIEW: REAGENDAMENTO
+         VIEW: AGENDA
          ========================================================================= -->
-    <section class="view" id="view-reagendamento">
-      <header class="page-header">
-        <div>
-          <div class="eyebrow t-micro">Assistente de reagendamento</div>
-          <h1 class="t-hero">O sistema não decide.<br>Ele te mostra as opções.</h1>
-          <p class="lede">Um imprevisto mudou o desenho da sua agenda. Aqui está o impacto em cascata e as saídas possíveis. Nada é gravado no seu Google Agenda até você aprovar.</p>
-        </div>
-      </header>
-
-      <!-- Trigger -->
-      <div class="trigger-card">
-        <div class="icon">!</div>
-        <div>
-          <div class="titulo">Fernanda Ávila adiou a entrega da chave para 4 de agosto</div>
-          <div class="desc">Motivo informado: reforma elétrica atrasada. Isso empurra a medição técnica em 3 dias úteis, e a cascata afeta 3 outros compromissos que dependiam do galpão livre.</div>
-        </div>
-      </div>
-
-      <!-- Diff antes/depois -->
-      <div class="diff-grid">
-        <div class="diff-col">
-          <h4>Agenda atual</h4>
-          <div class="stack">
-            <div class="agenda-item"><div class="data">30 jul</div><div><div class="titulo">Medição técnica · Ávila</div><div class="cliente">BH · 09:00–11:00</div></div></div>
-            <div class="agenda-item"><div class="data">01 ago</div><div><div class="titulo">Início corte · Ávila</div><div class="cliente">Galpão · dia todo</div></div></div>
-            <div class="agenda-item"><div class="data">05 ago</div><div><div class="titulo">Visita técnica · Ribeiro</div><div class="cliente">Nova Lima · 14:00</div></div></div>
-            <div class="agenda-item"><div class="data">08 ago</div><div><div class="titulo">Instalação · Costa (final)</div><div class="cliente">Contagem · manhã</div></div></div>
-            <div class="agenda-item"><div class="data">12 ago</div><div><div class="titulo">Início montagem · Ávila</div><div class="cliente">BH</div></div></div>
+    <section class="view" id="view-agenda">
+      <div class="agenda-layout">
+        <!-- Header controls (Seção A) -->
+        <div class="agenda-header-controls">
+          <div class="agenda-header-left">
+            <h1 class="t-hero" style="margin-bottom:0;">Agenda</h1>
+            
+            <div class="agenda-nav-group">
+              <button class="agenda-nav-btn" onclick="navegarPeriodo(-1)" aria-label="Período anterior">‹</button>
+              <button class="agenda-btn-hoje" onclick="navegarHoje()">Hoje</button>
+              <button class="agenda-nav-btn" onclick="navegarPeriodo(1)" aria-label="Próximo período">›</button>
+            </div>
+            
+            <div class="agenda-period-label" id="agenda-periodo-titulo">Carregando...</div>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: var(--sp-3);">
+            <div class="agenda-view-selector">
+              <button class="agenda-view-btn" id="btn-view-dia" data-view="dia" onclick="mudarAgendaVista('dia')">Dia</button>
+              <button class="agenda-view-btn" id="btn-view-semana" data-view="semana" onclick="mudarAgendaVista('semana')">Semana</button>
+              <button class="agenda-view-btn" id="btn-view-mes" data-view="mes" onclick="mudarAgendaVista('mes')">Mês</button>
+              <button class="agenda-view-btn" id="btn-view-lista" data-view="lista" onclick="mudarAgendaVista('lista')">Lista</button>
+            </div>
+            
+            <button class="btn btn-primary" id="agenda-novo-compromisso-btn" onclick="abrirCriarCompromisso()">+ Novo compromisso</button>
           </div>
         </div>
 
-        <div class="diff-arrow">→</div>
-
-        <div class="diff-col proposta">
-          <h4>Proposta com o atraso</h4>
-          <div class="stack">
-            <div class="agenda-item moved"><div class="data">04 ago</div><div><div class="titulo">Medição técnica · Ávila</div><div class="cliente">BH · 09:00–11:00</div><div class="diff-label">Adiada 3 dias úteis</div></div></div>
-            <div class="agenda-item moved"><div class="data">06 ago</div><div><div class="titulo">Início corte · Ávila</div><div class="cliente">Galpão · dia todo</div><div class="diff-label">Adiada 3 dias</div></div></div>
-            <div class="agenda-item conflict"><div class="data">05 ago</div><div><div class="titulo">Visita técnica · Ribeiro</div><div class="cliente">Nova Lima · 14:00</div><div class="diff-label" style="color: var(--status-atrasado);">Conflita com corte Ávila</div></div></div>
-            <div class="agenda-item"><div class="data">08 ago</div><div><div class="titulo">Instalação · Costa (final)</div><div class="cliente">Contagem · manhã</div></div></div>
-            <div class="agenda-item moved"><div class="data">15 ago</div><div><div class="titulo">Início montagem · Ávila</div><div class="cliente">BH</div><div class="diff-label">Adiada 3 dias</div></div></div>
-          </div>
+        <!-- Área do calendário (Seção B) -->
+        <div class="agenda-body" id="agenda-calendario-container">
+          <!-- Renderizado dinamicamente pelo JS -->
         </div>
-      </div>
 
-      <!-- Painel de decisão do conflito -->
-      <div class="conflict-panel">
-        <div class="conflict-header">
-          <div class="icon">?</div>
-          <div>
-            <div class="t-micro">Conflito 1 de 1</div>
-          </div>
-        </div>
-        <div class="conflict-question">A visita ao Ribeiro (05 ago) colide com o corte do Ávila. Como resolver?</div>
-
-        <div class="opcoes">
-          <button class="opcao" onclick="selecionarOpcao(this)">
-            <div>
-              <div class="titulo">Adiar visita Ribeiro para 07 ago (tarde)</div>
-              <div class="impacto">Ribeiro tem disponibilidade confirmada. Cronograma dele não é impactado, projeto ainda não iniciado.</div>
-            </div>
-            <div class="radio"></div>
-          </button>
-          <button class="opcao selecionada" onclick="selecionarOpcao(this)">
-            <div>
-              <div class="titulo">Manter visita Ribeiro em 05 ago, terceirizar corte Ávila</div>
-              <div class="impacto">Custo adicional estimado: R$ 380. Terceirizado disponível (Marcenaria Central). Mantém prazo do Ávila.</div>
-            </div>
-            <div class="radio"></div>
-          </button>
-          <button class="opcao" onclick="selecionarOpcao(this)">
-            <div>
-              <div class="titulo">Comprimir prazo do corte para 04 ago (dia da medição)</div>
-              <div class="impacto">Alto risco. Requer hora extra e a chapa precisa chegar até 03 ago (fornecedor confirmou dia 05). Não recomendado.</div>
-            </div>
-            <div class="radio"></div>
-          </button>
-          <button class="opcao" onclick="selecionarOpcao(this)">
-            <div>
-              <div class="titulo">Decidir depois — deixar como pendência</div>
-              <div class="impacto">O conflito fica sinalizado no Painel, mas o resto do reagendamento pode ser aprovado agora.</div>
-            </div>
-            <div class="radio"></div>
-          </button>
-        </div>
-      </div>
-
-      <!-- Barra de confirmação -->
-      <div class="confirm-bar">
-        <div class="info">
-          <div class="icon-check">✓</div>
-          <div>
-            <div style="font-weight: 500; font-size: 0.9375rem;">4 mudanças no Google Agenda + 1 decisão de conflito</div>
-            <div style="font-size: 0.8125rem; color: var(--ink-muted);">Nada é gravado até você confirmar.</div>
-          </div>
-        </div>
-        <div class="actions">
-          <button class="btn btn-secondary" onclick="cancelarReagendamento()">Cancelar</button>
-          <button class="btn btn-primary" onclick="confirmarReagendamento()">Confirmar e sincronizar</button>
+        <!-- Estado de conexão (Seção C) -->
+        <div class="agenda-connection-footer" id="agenda-status-footer">
+          <!-- Renderizado dinamicamente pelo JS -->
         </div>
       </div>
     </section>
@@ -2845,6 +3268,59 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="fecharModal()">Não modificar</button>
       <button class="btn btn-primary" id="modal-confirm-btn" onclick="executarModificacoes()">Confirmar e sincronizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de compromisso (Criar / Editar / Visualizar) -->
+<div class="modal-backdrop" id="modal-compromisso">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-compromisso-title">
+    <div class="modal-header">
+      <div class="icon">📅</div>
+      <div>
+        <h3 id="modal-compromisso-title">Compromisso</h3>
+        <p id="modal-compromisso-subtitle">Preencha os detalhes do compromisso</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="form-compromisso" onsubmit="event.preventDefault();">
+        <input type="hidden" id="comp-id">
+        <div class="modal-form-grid">
+          <div class="modal-field">
+            <label for="comp-titulo">Título *</label>
+            <input type="text" id="comp-titulo" required placeholder="Título do compromisso">
+          </div>
+          
+          <div class="modal-form-row-2">
+            <div class="modal-field">
+              <label for="comp-inicio">Início *</label>
+              <input type="datetime-local" id="comp-inicio" required>
+            </div>
+            <div class="modal-field">
+              <label for="comp-fim">Fim *</label>
+              <input type="datetime-local" id="comp-fim" required>
+            </div>
+          </div>
+          
+          <div class="modal-field">
+            <label for="comp-local">Local</label>
+            <input type="text" id="comp-local" placeholder="Ex: Galpão, Belo Horizonte">
+          </div>
+          
+          <div class="modal-field">
+            <label for="comp-descricao">Descrição</label>
+            <textarea id="comp-descricao" rows="3" placeholder="Detalhes do compromisso..."></textarea>
+          </div>
+          
+          <div class="modal-field">
+            <label for="comp-convidados">Convidados (emails separados por vírgula)</label>
+            <input type="text" id="comp-convidados" placeholder="exemplo1@email.com, exemplo2@email.com">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer" id="modal-compromisso-footer">
+      <!-- Botões dinâmicos com base no modo -->
     </div>
   </div>
 </div>
@@ -3654,25 +4130,718 @@ function resetWizard() {
 }
 
 /* ============================================================================
-   UPGRADE do reagendamento existente — quando Google conectado, usa API real
+   NOVA SEÇÃO: SISTEMA DE GERENCIAMENTO DE AGENDA (GOOGLE CALENDAR)
    ============================================================================ */
-const _originalConfirmar = window.confirmarReagendamento;
-function confirmarReagendamentoIntegrado() {
+let agendaVistaAtiva = 'semana'; // 'dia', 'semana', 'mes', 'lista'
+let agendaDataFoco = new Date();
+let eventosCache = [];
+let cacheInicio = null;
+let cacheFim = null;
+
+// Normaliza datas para input datetime-local
+function formatarDataParaInput(date) {
+  if (!date) return '';
+  const d = new Date(date);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+async function buscarEventosPeriodo(inicio, fim) {
+  if (!googleAccessToken) return [];
+  
+  // Cache check
+  if (cacheInicio && cacheFim && inicio.getTime() === cacheInicio.getTime() && fim.getTime() === cacheFim.getTime()) {
+    return eventosCache;
+  }
+  
+  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events` +
+    `?timeMin=${inicio.toISOString()}&timeMax=${fim.toISOString()}` +
+    `&maxResults=250&singleEvents=true&orderBy=startTime`;
+    
+  try {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${googleAccessToken}` } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    eventosCache = data.items || [];
+    cacheInicio = inicio;
+    cacheFim = fim;
+    return eventosCache;
+  } catch (e) {
+    console.error(e);
+    showToast('Erro ao carregar compromissos do Google Agenda.');
+    return [];
+  }
+}
+
+function calcularPeriodoFoco() {
+  let inicio, fim;
+  const foco = new Date(agendaDataFoco);
+  
+  if (agendaVistaAtiva === 'dia') {
+    inicio = new Date(foco.setHours(0, 0, 0, 0));
+    fim = new Date(foco.setHours(23, 59, 59, 999));
+  } else if (agendaVistaAtiva === 'semana') {
+    const dia = foco.getDay();
+    const diff = foco.getDate() - dia + (dia === 0 ? -6 : 1); // Monday
+    inicio = new Date(foco.setDate(diff));
+    inicio.setHours(0, 0, 0, 0);
+    fim = new Date(inicio);
+    fim.setDate(inicio.getDate() + 6);
+    fim.setHours(23, 59, 59, 999);
+  } else if (agendaVistaAtiva === 'mes') {
+    const primeiro = new Date(foco.getFullYear(), foco.getMonth(), 1);
+    const diaPrimeiro = primeiro.getDay();
+    const diffPrimeiro = diaPrimeiro === 0 ? -6 : 1 - diaPrimeiro;
+    inicio = new Date(primeiro);
+    inicio.setDate(primeiro.getDate() + diffPrimeiro);
+    inicio.setHours(0, 0, 0, 0);
+    
+    const ultimo = new Date(foco.getFullYear(), foco.getMonth() + 1, 0);
+    const diaUltimo = ultimo.getDay();
+    const diffUltimo = diaUltimo === 0 ? 0 : 7 - diaUltimo;
+    fim = new Date(ultimo);
+    fim.setDate(ultimo.getDate() + diffUltimo);
+    fim.setHours(23, 59, 59, 999);
+  } else {
+    // Lista: 30 dias a partir do foco
+    inicio = new Date(foco.setHours(0, 0, 0, 0));
+    fim = new Date(foco);
+    fim.setDate(foco.getDate() + 30);
+    fim.setHours(23, 59, 59, 999);
+  }
+  return { inicio, fim };
+}
+
+function atualizarTituloPeriodo(inicio, fim) {
+  const el = document.getElementById('agenda-periodo-titulo');
+  if (!el) return;
+  
+  const opcoesMes = { month: 'long', year: 'numeric' };
+  const opcoesDia = { day: 'numeric', month: 'short' };
+  
+  if (agendaVistaAtiva === 'dia') {
+    el.textContent = agendaDataFoco.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+  } else if (agendaVistaAtiva === 'semana') {
+    el.textContent = `${inicio.toLocaleDateString('pt-BR', opcoesDia)} – ${fim.toLocaleDateString('pt-BR', opcoesDia)} ${fim.getFullYear()}`;
+  } else if (agendaVistaAtiva === 'mes') {
+    el.textContent = agendaDataFoco.toLocaleDateString('pt-BR', opcoesMes);
+  } else {
+    el.textContent = `Próximos 30 dias (de ${inicio.toLocaleDateString('pt-BR', opcoesDia)})`;
+  }
+}
+
+async function inicializarAgenda() {
+  // Ajusta botões do visualizador ativos
+  document.querySelectorAll('.agenda-view-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === agendaVistaAtiva);
+  });
+  
+  await renderizarAgenda();
+}
+
+async function renderizarAgenda() {
+  const container = document.getElementById('agenda-calendario-container');
+  const footer = document.getElementById('agenda-status-footer');
+  if (!container) return;
+  
+  // Render C: Conexão / Rodapé
   if (!googleAccessToken) {
-    // Mesmo fluxo mockado de antes
-    showToast('Google Agenda não conectado. Agenda modificada localmente.');
-    setTimeout(() => switchView('painel'), 1400);
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:300px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);">
+        <p style="color:var(--ink-muted);text-align:center;">Conecte sua conta do Google Agenda para visualizar os compromissos.</p>
+      </div>
+    `;
+    footer.innerHTML = `
+      <div class="agenda-connection-alert">
+        <div class="agenda-connection-alert-text">
+          Você não está conectado ao Google Agenda. Compromissos não podem ser criados ou visualizados.
+        </div>
+        <button class="btn btn-primary" onclick="switchView('integracao-agenda')">Conectar agora</button>
+      </div>
+    `;
+    document.getElementById('agenda-periodo-titulo').textContent = 'Sem Conexão';
     return;
   }
-  // Prepara mudanças de exemplo (viriam do motor de reagendamento real)
-  modalPendingChanges = [
-    { eventId: 'DEMO_1', titulo: 'Medição técnica · Ávila', antes: '30 jul 09:00', depois: '04 ago 09:00', changes: {} },
-    { eventId: 'DEMO_2', titulo: 'Início corte · Ávila', antes: '01 ago', depois: '06 ago', changes: {} },
-    { eventId: 'DEMO_3', titulo: 'Início montagem · Ávila', antes: '12 ago', depois: '15 ago', changes: {} }
-  ];
+  
+  // Renderizar o email conectado se disponível
+  const timestamp = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  footer.innerHTML = `
+    <div style="font-size:0.8125rem;color:var(--ink-subtle);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-2);">
+      <span>Sincronizado com ${googleUserEmail || 'Google Agenda'} · Última atualização às ${timestamp}</span>
+      <button class="btn btn-ghost" style="padding:4px 8px;font-size:0.75rem;" onclick="limparCacheERenderizar()">Atualizar</button>
+    </div>
+  `;
+
+  // Obter período e buscar eventos
+  const { inicio, fim } = calcularPeriodoFoco();
+  atualizarTituloPeriodo(inicio, fim);
+  
+  container.innerHTML = '<div style="padding:var(--sp-6);text-align:center;color:var(--ink-muted);">Carregando compromissos...</div>';
+  const eventos = await buscarEventosPeriodo(inicio, fim);
+  
+  if (agendaVistaAtiva === 'dia') {
+    renderizarVistaDia(eventos, inicio);
+  } else if (agendaVistaAtiva === 'semana') {
+    renderizarVistaSemana(eventos, inicio);
+  } else if (agendaVistaAtiva === 'mes') {
+    renderizarVistaMes(eventos, inicio, fim);
+  } else {
+    renderizarVistaLista(eventos);
+  }
+}
+
+function limparCacheERenderizar() {
+  cacheInicio = null;
+  cacheFim = null;
+  renderizarAgenda();
+}
+
+function navegarPeriodo(direcao) {
+  if (agendaVistaAtiva === 'dia') {
+    agendaDataFoco.setDate(agendaDataFoco.getDate() + direcao);
+  } else if (agendaVistaAtiva === 'semana') {
+    agendaDataFoco.setDate(agendaDataFoco.getDate() + (direcao * 7));
+  } else if (agendaVistaAtiva === 'mes') {
+    agendaDataFoco.setMonth(agendaDataFoco.getMonth() + direcao);
+  } else {
+    agendaDataFoco.setDate(agendaDataFoco.getDate() + (direcao * 30));
+  }
+  renderizarAgenda();
+}
+
+function navegarHoje() {
+  agendaDataFoco = new Date();
+  renderizarAgenda();
+}
+
+function mudarAgendaVista(vista) {
+  agendaVistaAtiva = vista;
+  document.querySelectorAll('.agenda-view-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === vista);
+  });
+  renderizarAgenda();
+}
+
+function calcularPosicaoEvento(ev) {
+  if (!ev.start || (!ev.start.dateTime && !ev.start.date)) return null;
+  const dStart = new Date(ev.start.dateTime || (ev.start.date + 'T06:00:00'));
+  const dEnd = new Date(ev.end.dateTime || (ev.end.date + 'T22:00:00'));
+  
+  const startMin = dStart.getHours() * 60 + dStart.getMinutes();
+  const endMin = dEnd.getHours() * 60 + dEnd.getMinutes();
+  
+  const minDiaInicio = 6 * 60; // 06:00
+  const minDiaFim = 22 * 60; // 22:00
+  const totalMin = minDiaFim - minDiaInicio; // 960 min
+  
+  if (startMin >= minDiaFim || endMin <= minDiaInicio) return null;
+  
+  const topMin = Math.max(startMin - minDiaInicio, 0);
+  const duracaoMin = Math.min(endMin, minDiaFim) - (startMin < minDiaInicio ? minDiaInicio : startMin);
+  
+  const topPct = (topMin / totalMin) * 100;
+  const heightPct = Math.max((duracaoMin / totalMin) * 100, 3.5); // Garante altura mínima
+  
+  return { top: topPct, height: heightPct };
+}
+
+function formatarHoraRange(ev) {
+  if (!ev.start) return 'Dia inteiro';
+  if (ev.start.date) return 'Dia inteiro';
+  const ini = new Date(ev.start.dateTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const fim = new Date(ev.end.dateTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return `${ini} – ${fim}`;
+}
+
+// Render Vistas individuais
+function renderizarVistaDia(eventos, inicioDia) {
+  const container = document.getElementById('agenda-calendario-container');
+  
+  // Filtra eventos do dia
+  const doDia = eventos.filter(ev => {
+    const dateStr = ev.start.dateTime || ev.start.date;
+    const d = new Date(dateStr);
+    return d.toDateString() === inicioDia.toDateString();
+  });
+  
+  let slotsHtml = '';
+  for (let h = 6; h < 22; h++) {
+    slotsHtml += `<div class="agenda-grid-time-label">${String(h).padStart(2, '0')}:00</div>`;
+    slotsHtml += `<div class="agenda-grid-time-label">${String(h).padStart(2, '0')}:30</div>`;
+  }
+  
+  let cardsHtml = '';
+  doDia.forEach(ev => {
+    const pos = calcularPosicaoEvento(ev);
+    if (!pos) return;
+    cardsHtml += `
+      <div class="agenda-event-card" style="top:${pos.top}%;height:${pos.height}%" onclick="abrirVisualizarCompromisso('${ev.id}')">
+        <div class="titulo">${ev.summary || '(sem título)'}</div>
+        <div class="horario">${formatarHoraRange(ev)}</div>
+        ${ev.location ? `<div class="local">${ev.location}</div>` : ''}
+      </div>
+    `;
+  });
+  
+  let gridLines = '';
+  for (let i = 0; i < 32; i++) {
+    gridLines += `<div class="agenda-grid-line"></div>`;
+  }
+  
+  container.innerHTML = `
+    <div class="agenda-grid-container">
+      <div class="agenda-grid">
+        <div class="agenda-grid-header">
+          <div class="agenda-grid-header-cell" style="grid-column: 1;">Horário</div>
+          <div class="agenda-grid-header-cell ${inicioDia.toDateString() === new Date().toDateString() ? 'today-highlight' : ''}" style="grid-column: 2;">
+            ${inicioDia.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric' })}
+          </div>
+        </div>
+        
+        <div style="grid-column:1; display:contents;">
+          ${slotsHtml}
+        </div>
+        
+        <div class="agenda-grid-day-column ${inicioDia.toDateString() === new Date().toDateString() ? 'today-highlight' : ''}" style="grid-column:2;" onclick="cliqueGridCelular(event, '${inicioDia.toISOString()}')">
+          ${cardsHtml}
+        </div>
+        
+        <div class="agenda-grid-lines">
+          ${gridLines}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderizarVistaSemana(eventos, inicioSemana) {
+  const container = document.getElementById('agenda-calendario-container');
+  
+  let headerHtml = `<div class="agenda-grid-header-cell" style="grid-column: 1;">Horário</div>`;
+  let columnsHtml = '';
+  
+  const diasDaSemana = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(inicioSemana);
+    d.setDate(inicioSemana.getDate() + i);
+    diasDaSemana.push(d);
+  }
+  
+  diasDaSemana.forEach((dia, idx) => {
+    const isHoje = dia.toDateString() === new Date().toDateString();
+    headerHtml += `
+      <div class="agenda-grid-header-cell ${isHoje ? 'today-highlight' : ''}" style="grid-column: ${idx + 2};">
+        <div>${dia.toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase()}</div>
+        <div style="font-size:1.125rem; margin-top:2px;">${dia.getDate()}</div>
+      </div>
+    `;
+  });
+  
+  let slotsHtml = '';
+  for (let h = 6; h < 22; h++) {
+    slotsHtml += `<div class="agenda-grid-time-label">${String(h).padStart(2, '0')}:00</div>`;
+    slotsHtml += `<div class="agenda-grid-time-label">${String(h).padStart(2, '0')}:30</div>`;
+  }
+  
+  diasDaSemana.forEach((dia, idx) => {
+    const isHoje = dia.toDateString() === new Date().toDateString();
+    const doDia = eventos.filter(ev => {
+      const d = new Date(ev.start.dateTime || ev.start.date);
+      return d.toDateString() === dia.toDateString();
+    });
+    
+    let cardsHtml = '';
+    doDia.forEach(ev => {
+      const pos = calcularPosicaoEvento(ev);
+      if (!pos) return;
+      cardsHtml += `
+        <div class="agenda-event-card" style="top:${pos.top}%;height:${pos.height}%" onclick="abrirVisualizarCompromisso('${ev.id}')">
+          <div class="titulo">${ev.summary || '(sem título)'}</div>
+          <div class="horario">${formatarHoraRange(ev)}</div>
+          ${ev.location ? `<div class="local">${ev.location}</div>` : ''}
+        </div>
+      `;
+    });
+    
+    columnsHtml += `
+      <div class="agenda-grid-day-column ${isHoje ? 'today-highlight' : ''}" style="grid-column: ${idx + 2};" onclick="cliqueGridCelular(event, '${dia.toISOString()}')">
+        ${cardsHtml}
+      </div>
+    `;
+  });
+  
+  let gridLines = '';
+  for (let i = 0; i < 32; i++) {
+    gridLines += `<div class="agenda-grid-line"></div>`;
+  }
+  
+  container.innerHTML = `
+    <div class="agenda-grid-container">
+      <div class="agenda-grid week">
+        <div class="agenda-grid-header">
+          ${headerHtml}
+        </div>
+        
+        <div style="grid-column:1; display:contents;">
+          ${slotsHtml}
+        </div>
+        
+        ${columnsHtml}
+        
+        <div class="agenda-grid-lines" style="top:57px;">
+          ${gridLines}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderizarVistaMes(eventos, inicioGrid, fimGrid) {
+  const container = document.getElementById('agenda-calendario-container');
+  
+  let headerHtml = '';
+  const nomesDias = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
+  nomesDias.forEach(nome => {
+    headerHtml += `<div class="agenda-month-header-cell">${nome}</div>`;
+  });
+  
+  let cellsHtml = '';
+  const d = new Date(inicioGrid);
+  
+  while (d <= fimGrid) {
+    const currentDay = new Date(d);
+    const isHoje = currentDay.toDateString() === new Date().toDateString();
+    const isOutroMes = currentDay.getMonth() !== agendaDataFoco.getMonth();
+    
+    const doDia = eventos.filter(ev => {
+      const dev = new Date(ev.start.dateTime || ev.start.date);
+      return dev.toDateString() === currentDay.toDateString();
+    });
+    
+    let evTags = '';
+    const maxVisiveis = 3;
+    doDia.slice(0, maxVisiveis).forEach(ev => {
+      evTags += `
+        <div class="agenda-month-event-tag" onclick="event.stopPropagation(); abrirVisualizarCompromisso('${ev.id}')">
+          ${ev.summary || '(sem título)'}
+        </div>
+      `;
+    });
+    if (doDia.length > maxVisiveis) {
+      evTags += `<div class="agenda-month-more">+${doDia.length - maxVisiveis} mais</div>`;
+    }
+    
+    cellsHtml += `
+      <div class="agenda-month-cell ${isHoje ? 'today-highlight' : ''} ${isOutroMes ? 'other-month' : ''}" onclick="cliqueCelularMes('${currentDay.toISOString()}')">
+        <div class="agenda-month-cell-header">
+          <span class="agenda-month-day-number">${currentDay.getDate()}</span>
+        </div>
+        ${evTags}
+      </div>
+    `;
+    
+    d.setDate(d.getDate() + 1);
+  }
+  
+  container.innerHTML = `
+    <div class="agenda-month-grid">
+      ${headerHtml}
+      ${cellsHtml}
+    </div>
+  `;
+}
+
+function renderizarVistaLista(eventos) {
+  const container = document.getElementById('agenda-calendario-container');
+  
+  if (eventos.length === 0) {
+    container.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:250px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);gap:var(--sp-4);">
+        <p style="color:var(--ink-muted);">Nenhum compromisso agendado para o período.</p>
+        <button class="btn btn-primary" onclick="abrirCriarCompromisso()">+ Novo compromisso</button>
+      </div>
+    `;
+    return;
+  }
+  
+  // Agrupa por dia
+  const grupos = {};
+  eventos.forEach(ev => {
+    const dataStr = ev.start.dateTime || ev.start.date;
+    const d = new Date(dataStr).toDateString();
+    if (!grupos[d]) grupos[d] = [];
+    grupos[d].push(ev);
+  });
+  
+  let listHtml = '';
+  Object.keys(grupos).forEach(key => {
+    const dia = new Date(key);
+    const labelDia = dia.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+    
+    let evItems = '';
+    grupos[key].forEach(ev => {
+      evItems += `
+        <div class="agenda-list-event-item" onclick="abrirVisualizarCompromisso('${ev.id}')">
+          <div class="agenda-list-event-time">${formatarHoraRange(ev)}</div>
+          <div class="agenda-list-event-details">
+            <div class="titulo">${ev.summary || '(sem título)'}</div>
+            ${ev.location ? `<div class="meta">📍 ${ev.location}</div>` : ''}
+          </div>
+        </div>
+      `;
+    });
+    
+    listHtml += `
+      <div class="agenda-list-day-group">
+        <div class="agenda-list-day-header">${labelDia.charAt(0).toUpperCase() + labelDia.slice(1)}</div>
+        <div class="agenda-list-events">
+          ${evItems}
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = `<div class="agenda-list-view">${listHtml}</div>`;
+}
+
+function cliqueGridCelular(e, dataIso) {
+  // Se clicou direto no card, não abre criação
+  if (e.target.closest('.agenda-event-card')) return;
+  
+  const d = new Date(dataIso);
+  // Calcula hora com base no clique
+  const rect = e.currentTarget.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  const pct = y / rect.height;
+  const totalMinutos = (22 - 6) * 60; // 960 min
+  const clickMinuto = Math.floor(pct * totalMinutos);
+  const totalSlot = 6 * 60 + clickMinuto; // min de início do dia
+  
+  // Arredonda para 30 minutos
+  const slotArredondado = Math.floor(totalSlot / 30) * 30;
+  
+  d.setHours(Math.floor(slotArredondado / 60));
+  d.setMinutes(slotArredondado % 60);
+  d.setSeconds(0);
+  
+  const dFim = new Date(d);
+  dFim.setMinutes(d.getMinutes() + 60);
+  
+  abrirCriarCompromisso(d, dFim);
+}
+
+function cliqueCelularMes(dataIso) {
+  const d = new Date(dataIso);
+  d.setHours(9, 0, 0);
+  const dFim = new Date(d);
+  dFim.setHours(10, 0, 0);
+  abrirCriarCompromisso(d, dFim);
+}
+
+// Modal CRUD Compromisso
+function abrirModalCompromisso() {
+  const modal = document.getElementById('modal-compromisso');
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharModalCompromisso() {
+  const modal = document.getElementById('modal-compromisso');
+  modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function abrirCriarCompromisso(inicio, fim) {
+  const ini = inicio ? new Date(inicio) : new Date();
+  if (!inicio) {
+    ini.setHours(new Date().getHours() + 1, 0, 0, 0);
+  }
+  const termin = fim ? new Date(fim) : new Date(ini);
+  if (!fim) {
+    termin.setHours(ini.getHours() + 1);
+  }
+  
+  document.getElementById('modal-compromisso-title').textContent = 'Novo compromisso';
+  document.getElementById('modal-compromisso-subtitle').textContent = 'Preencha os detalhes para agendar no Google Agenda';
+  
+  // Reseta campos
+  document.getElementById('comp-id').value = '';
+  document.getElementById('comp-titulo').value = '';
+  document.getElementById('comp-titulo').readOnly = false;
+  document.getElementById('comp-inicio').value = formatarDataParaInput(ini);
+  document.getElementById('comp-inicio').readOnly = false;
+  document.getElementById('comp-fim').value = formatarDataParaInput(termin);
+  document.getElementById('comp-fim').readOnly = false;
+  document.getElementById('comp-local').value = '';
+  document.getElementById('comp-local').readOnly = false;
+  document.getElementById('comp-descricao').value = '';
+  document.getElementById('comp-descricao').readOnly = false;
+  document.getElementById('comp-convidados').value = '';
+  document.getElementById('comp-convidados').readOnly = false;
+  
+  document.getElementById('modal-compromisso-footer').innerHTML = `
+    <button class="btn btn-secondary" onclick="fecharModalCompromisso()">Cancelar</button>
+    <button class="btn btn-primary" onclick="prepararCriarCompromisso()">Criar compromisso</button>
+  `;
+  abrirModalCompromisso();
+}
+
+function abrirVisualizarCompromisso(id) {
+  const ev = eventosCache.find(x => x.id === id);
+  if (!ev) return;
+  
+  document.getElementById('modal-compromisso-title').textContent = 'Visualizar compromisso';
+  document.getElementById('modal-compromisso-subtitle').textContent = 'Detalhes do evento salvo no Google Agenda';
+  
+  document.getElementById('comp-id').value = ev.id;
+  document.getElementById('comp-titulo').value = ev.summary || '';
+  document.getElementById('comp-titulo').readOnly = true;
+  document.getElementById('comp-inicio').value = formatarDataParaInput(ev.start.dateTime || ev.start.date);
+  document.getElementById('comp-inicio').readOnly = true;
+  document.getElementById('comp-fim').value = formatarDataParaInput(ev.end.dateTime || ev.end.date);
+  document.getElementById('comp-fim').readOnly = true;
+  document.getElementById('comp-local').value = ev.location || '';
+  document.getElementById('comp-local').readOnly = true;
+  document.getElementById('comp-descricao').value = ev.description || '';
+  document.getElementById('comp-descricao').readOnly = true;
+  
+  const emails = ev.attendees ? ev.attendees.map(a => a.email).join(', ') : '';
+  document.getElementById('comp-convidados').value = emails;
+  document.getElementById('comp-convidados').readOnly = true;
+  
+  document.getElementById('modal-compromisso-footer').innerHTML = `
+    <button class="btn btn-secondary" onclick="fecharModalCompromisso()">Fechar</button>
+    <button class="btn btn-primary" onclick="abrirEditarCompromisso('${ev.id}')">Editar</button>
+  `;
+  abrirModalCompromisso();
+}
+
+function abrirEditarCompromisso(id) {
+  const ev = eventosCache.find(x => x.id === id);
+  if (!ev) return;
+  
+  document.getElementById('modal-compromisso-title').textContent = 'Editar compromisso';
+  document.getElementById('modal-compromisso-subtitle').textContent = 'Ajuste os dados do compromisso';
+  
+  document.getElementById('comp-titulo').readOnly = false;
+  document.getElementById('comp-inicio').readOnly = false;
+  document.getElementById('comp-fim').readOnly = false;
+  document.getElementById('comp-local').readOnly = false;
+  document.getElementById('comp-descricao').readOnly = false;
+  document.getElementById('comp-convidados').readOnly = false;
+  
+  document.getElementById('modal-compromisso-footer').innerHTML = `
+    <button class="btn btn-secondary" style="margin-right: auto; background: var(--status-atrasado); color: var(--brand-ink);" onclick="prepararDeletarCompromisso('${ev.id}')">Excluir</button>
+    <button class="btn btn-secondary" onclick="fecharModalCompromisso()">Cancelar</button>
+    <button class="btn btn-primary" onclick="prepararSalvarCompromisso()">Salvar alterações</button>
+  `;
+}
+
+// Fluxo de confirmação
+function prepararCriarCompromisso() {
+  const titulo = document.getElementById('comp-titulo').value.trim();
+  const inicio = document.getElementById('comp-inicio').value;
+  const fim = document.getElementById('comp-fim').value;
+  const local = document.getElementById('comp-local').value.trim();
+  const descricao = document.getElementById('comp-descricao').value.trim();
+  const convidadosStr = document.getElementById('comp-convidados').value.trim();
+  
+  if (!titulo || !inicio || !fim) {
+    showToast('Por favor, preencha todos os campos obrigatórios.');
+    return;
+  }
+  
+  const payload = {
+    summary: titulo,
+    location: local,
+    description: descricao,
+    start: { dateTime: new Date(inicio).toISOString(), timeZone: 'America/Sao_Paulo' },
+    end: { dateTime: new Date(fim).toISOString(), timeZone: 'America/Sao_Paulo' }
+  };
+  
+  if (convidadosStr) {
+    payload.attendees = convidadosStr.split(',').map(email => ({ email: email.trim() }));
+  }
+  
+  fecharModalCompromisso();
+  
+  modalPendingChanges = [{
+    action: 'create',
+    titulo: titulo,
+    antes: '(não existe)',
+    depois: new Date(inicio).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+    payload: payload
+  }];
+  
   abrirModalSync();
 }
-window.confirmarReagendamento = confirmarReagendamentoIntegrado;
+
+function prepararSalvarCompromisso() {
+  const id = document.getElementById('comp-id').value;
+  const titulo = document.getElementById('comp-titulo').value.trim();
+  const inicio = document.getElementById('comp-inicio').value;
+  const fim = document.getElementById('comp-fim').value;
+  const local = document.getElementById('comp-local').value.trim();
+  const descricao = document.getElementById('comp-descricao').value.trim();
+  const convidadosStr = document.getElementById('comp-convidados').value.trim();
+  
+  const original = eventosCache.find(x => x.id === id);
+  if (!original) return;
+  
+  if (!titulo || !inicio || !fim) {
+    showToast('Por favor, preencha todos os campos obrigatórios.');
+    return;
+  }
+  
+  const payload = {
+    summary: titulo,
+    location: local,
+    description: descricao,
+    start: { dateTime: new Date(inicio).toISOString(), timeZone: 'America/Sao_Paulo' },
+    end: { dateTime: new Date(fim).toISOString(), timeZone: 'America/Sao_Paulo' }
+  };
+  
+  if (convidadosStr) {
+    payload.attendees = convidadosStr.split(',').map(email => ({ email: email.trim() }));
+  } else {
+    payload.attendees = [];
+  }
+  
+  fecharModalCompromisso();
+  
+  const antesStr = new Date(original.start.dateTime || original.start.date).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  const depoisStr = new Date(inicio).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  
+  modalPendingChanges = [{
+    action: 'update',
+    eventId: id,
+    titulo: `${original.summary} → ${titulo}`,
+    antes: antesStr,
+    depois: depoisStr,
+    payload: payload
+  }];
+  
+  abrirModalSync();
+}
+
+function prepararDeletarCompromisso(id) {
+  const original = eventosCache.find(x => x.id === id);
+  if (!original) return;
+  
+  fecharModalCompromisso();
+  
+  const antesStr = new Date(original.start.dateTime || original.start.date).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  
+  modalPendingChanges = [{
+    action: 'delete',
+    eventId: id,
+    titulo: original.summary,
+    antes: antesStr,
+    depois: '(excluído)'
+  }];
+  
+  abrirModalSync();
+}
 
 /* Attach input listeners uma vez que o DOM está pronto */
 function bindWizardInputs() {
@@ -3851,7 +5020,7 @@ const viewLabels = {
   'painel': 'Painel',
   'projetos': 'Projetos',
   'projeto-detalhe': 'Detalhe do Projeto',
-  'reagendamento': 'Reagendar Agenda',
+  'agenda': 'Agenda',
   'custos': 'Custos',
   'chao': 'Chão de Fábrica'
 };
@@ -3886,6 +5055,10 @@ function switchView(name, opts = {}) {
   currentView = name;
   updateBackButton();
   closeDrawer();
+
+  if (name === 'agenda') {
+    inicializarAgenda();
+  }
 
   // Browser history integration — so device back button works
   if (!viaBack && !skipHistory) {
@@ -4019,19 +5192,6 @@ function abrirProjeto(id) {
   switchView('projeto-detalhe');
 }
 
-function selecionarOpcao(el) {
-  document.querySelectorAll('.opcao').forEach(o => o.classList.remove('selecionada'));
-  el.classList.add('selecionada');
-}
-
-function confirmarReagendamento() {
-  showToast('Agenda atualizada. 4 eventos sincronizados no Google Agenda.');
-  setTimeout(() => switchView('painel'), 1400);
-}
-
-function cancelarReagendamento() {
-  showToast('Reagendamento cancelado. Agenda mantida como está.');
-}
 
 function concluirEtapa(btn, nome) {
   btn.textContent = 'Registrada ✓';
