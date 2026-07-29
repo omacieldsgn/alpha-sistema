@@ -3581,6 +3581,60 @@ async function salvarProjetoNoBanco(projeto) {
 let googleTokenClient = null;
 let googleAccessToken = null;
 let googleUserEmail = null;
+let googleTokenExpiry = null;   // timestamp em ms de quando o token expira
+const GOOGLE_SESSION_KEY = 'alpha-google-session-v1';  // chave do localStorage
+
+function salvarSessaoGoogle() {
+  if (googleAccessToken && googleUserEmail && googleTokenExpiry) {
+    const session = {
+      token: googleAccessToken,
+      email: googleUserEmail,
+      expiry: googleTokenExpiry,
+      savedAt: Date.now()
+    };
+    localStorage.setItem(GOOGLE_SESSION_KEY, JSON.stringify(session));
+  }
+}
+
+function limparSessaoGoogle() {
+  localStorage.removeItem(GOOGLE_SESSION_KEY);
+}
+
+async function restaurarSessaoGoogle() {
+  try {
+    const raw = localStorage.getItem(GOOGLE_SESSION_KEY);
+    if (!raw) return false;
+    const session = JSON.parse(raw);
+    if (!session || !session.token) return false;
+
+    const now = Date.now();
+    const margin = 5 * 60 * 1000; // 5 min em ms
+    if (session.expiry - now < margin) {
+      limparSessaoGoogle();
+      return false;
+    }
+
+    const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${session.token}` }
+    });
+    if (res.status === 200) {
+      const u = await res.json();
+      googleAccessToken = session.token;
+      googleUserEmail = u.email || session.email;
+      googleTokenExpiry = session.expiry;
+      atualizarStatusGoogle();
+      carregarEventos();
+      return true;
+    } else {
+      limparSessaoGoogle();
+      return false;
+    }
+  } catch (e) {
+    console.error('[Google] Erro ao restaurar sessão:', e);
+    limparSessaoGoogle();
+    return false;
+  }
+}
 
 function initGoogleAuth() {
   const cfg = getConfig();
@@ -3602,6 +3656,8 @@ function initGoogleAuth() {
           return;
         }
         googleAccessToken = response.access_token;
+        const expiresIn = response.expires_in;
+        googleTokenExpiry = Date.now() + (expiresIn || 3600) * 1000;
         atualizarStatusGoogle();
         // Busca email do usuário
         fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -3611,11 +3667,14 @@ function initGoogleAuth() {
         .then(u => {
           googleUserEmail = u.email;
           atualizarStatusGoogle();
+          salvarSessaoGoogle();
+          showToast("Google Agenda conectado. Sessão salva.");
           carregarEventos();
         });
       }
     });
     console.info('[Google] Token client inicializado');
+    restaurarSessaoGoogle();
   } catch (e) {
     console.error('[Google] Erro ao inicializar:', e);
   }
@@ -3642,6 +3701,8 @@ function desconectarGoogleAgenda() {
   }
   googleAccessToken = null;
   googleUserEmail = null;
+  googleTokenExpiry = null;
+  limparSessaoGoogle();
   atualizarStatusGoogle();
   showToast('Desconectado do Google Agenda.');
 }
@@ -3659,7 +3720,8 @@ function atualizarStatusGoogle() {
   if (googleAccessToken && googleUserEmail) {
     statusEl.className = 'integration-status connected';
     titleEl.textContent = 'Conectado';
-    detailEl.textContent = googleUserEmail;
+    const minRestantes = googleTokenExpiry ? Math.round((googleTokenExpiry - Date.now()) / 60000) : 0;
+    detailEl.innerHTML = `${googleUserEmail} · <span style="font-size: 0.6875rem; color: var(--ink-subtle);">sessão válida por ~${minRestantes} min</span>`;
     btnEl.textContent = 'Desconectar';
     btnEl.className = 'btn btn-secondary';
     btnEl.onclick = desconectarGoogleAgenda;
@@ -3676,6 +3738,25 @@ function atualizarStatusGoogle() {
     if (demoContainer) demoContainer.style.display = 'none';
   }
 }
+
+// Timer de verificação automática a cada 5 minutos (300000ms)
+setInterval(() => {
+  if (!googleAccessToken) return;
+  const now = Date.now();
+  const tempoRestante = googleTokenExpiry - now;
+  const cincoMinutos = 5 * 60 * 1000;
+
+  if (tempoRestante <= 0) {
+    googleAccessToken = null;
+    googleUserEmail = null;
+    googleTokenExpiry = null;
+    limparSessaoGoogle();
+    atualizarStatusGoogle();
+    showToast('Sessão do Google Agenda expirou.');
+  } else if (tempoRestante < cincoMinutos) {
+    showToast('Sessão do Google Agenda expira em menos de 5 minutos. Reconecte para não perder a sincronização.');
+  }
+}, 300000);
 
 async function carregarEventos() {
   if (!googleAccessToken) return;
