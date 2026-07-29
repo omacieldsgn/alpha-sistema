@@ -548,6 +548,133 @@ p { text-wrap: pretty; }
 .projeto-row .prazo.atrasado { color: var(--status-atrasado); font-weight: 500; }
 
 /* ============================================================================
+   VIEW: PROJETOS — Grid de blocos
+   ============================================================================ */
+.projetos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--sp-5);
+  margin-top: var(--sp-2);
+}
+
+.projeto-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: border-color 160ms var(--ease), transform 160ms var(--ease), box-shadow 160ms var(--ease);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.projeto-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.projeto-card .card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+.projeto-card .card-codigo {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-subtle);
+}
+.projeto-card .card-cliente {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-top: 2px;
+}
+.projeto-card .card-endereco {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+.projeto-card .card-financeiro {
+  display: flex;
+  gap: var(--sp-4);
+  padding: var(--sp-3) 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.projeto-card .card-financeiro-item label {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 2px;
+}
+.projeto-card .card-financeiro-item span {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.projeto-card .card-progresso-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--sp-2);
+}
+.projeto-card .card-progresso-label .pct {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+.projeto-card .card-prazo {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+}
+.projeto-card .card-prazo.atrasado { color: var(--status-atrasado); font-weight: 600; }
+.projeto-card .card-arrow {
+  font-size: 1rem;
+  color: var(--ink-subtle);
+  margin-top: auto;
+  align-self: flex-end;
+  transition: transform 160ms var(--ease), color 160ms var(--ease);
+}
+.projeto-card:hover .card-arrow { transform: translateX(4px); color: var(--accent); }
+
+/* ============================================================================
+   VIEW: DETALHE DO PROJETO — header dinâmico
+   ============================================================================ */
+.detalhe-meta-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--sp-6);
+  align-items: end;
+  margin-bottom: var(--sp-7);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border);
+}
+.detalhe-meta-grid .meta-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-4) var(--sp-5);
+}
+.detalhe-meta-grid .meta-list dt {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+.detalhe-meta-grid .meta-list dd { font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
+
+/* ============================================================================
    VIEW: PROJETO DETALHE — Motor de liberação
    ============================================================================ */
 .projeto-header {
@@ -2023,7 +2150,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   <aside class="sidebar">
     <div class="brand-mark">
       <!-- Símbolo isolado da marca — arquivo SVG externo -->
-      <img src="SIMBOLO SISTEMA .svg" alt="Alpha Móveis" style="width: 100%; height: auto; display: block; object-fit: contain;">
+      <img src="SIMBOLO SISTEMA .svg" alt="Alpha Móveis" style="width: 100%; height: auto; display: block; object-fit: contain; max-width: 180px; margin: 0 auto;">
     </div>
 
     <nav class="nav">
@@ -2092,7 +2219,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       <header class="page-header">
         <div>
           <div class="eyebrow t-micro">Painel do gestor</div>
-          <h1 class="t-hero">Boa tarde, Wagner.</h1>
+          <h1 class="t-hero">Boa tarde, Jhonata.</h1>
           <p class="lede">Três projetos ativos, um pedindo sua atenção agora. A margem consolidada do mês está saudável, mas o Ávila precisa de decisão sobre reagendamento.</p>
         </div>
         <div class="stack stack-2" style="align-items: flex-end;">
@@ -2175,12 +2302,34 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
     <!-- =========================================================================
          VIEW: PROJETOS
          ========================================================================= -->
+    <!-- =========================================================================
+         VIEW: LISTA DE PROJETOS (blocos)
+         ========================================================================= -->
     <section class="view" id="view-projetos">
       <header class="page-header">
         <div>
-          <div class="eyebrow t-micro">Projeto · P-2026-014</div>
-          <h1 class="t-hero">Ávila, Fernanda</h1>
-          <p class="lede">Móveis planejados para apartamento em Belo Horizonte. Contrato de R$ 72.686,00 dividido em 12 ambientes.</p>
+          <div class="eyebrow t-micro">Gestão de projetos</div>
+          <h1 class="t-hero">Projetos</h1>
+          <p class="lede">Acompanhe o andamento de cada projeto em produção.</p>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="switchView('novo-projeto')">+ Novo projeto</button>
+        </div>
+      </header>
+      <div class="projetos-grid" id="projetos-grid">
+        <!-- populado por JS -->
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VIEW: DETALHE DO PROJETO
+         ========================================================================= -->
+    <section class="view" id="view-projeto-detalhe">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow t-micro" id="detalhe-eyebrow">Projeto</div>
+          <h1 class="t-hero" id="detalhe-nome"></h1>
+          <p class="lede" id="detalhe-lede"></p>
         </div>
         <div>
           <button class="btn btn-secondary">Ver contrato</button>
@@ -2188,18 +2337,8 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         </div>
       </header>
 
-      <div class="projeto-header">
-        <dl class="meta-list">
-          <div><dt>Valor total</dt><dd>R$ 72.686,00</dd></div>
-          <div><dt>Recebido</dt><dd>R$ 36.343,00 <span style="color: var(--ink-subtle); font-size: 0.75rem;">(50% — fechamento)</span></dd></div>
-          <div><dt>Prazo contratual</dt><dd>15 set 2026</dd></div>
-          <div><dt>Ambientes</dt><dd>12 · 42 etapas</dd></div>
-        </dl>
-        <div class="stack stack-2" style="align-items: flex-end;">
-          <div class="t-micro">Progresso</div>
-          <div class="t-hero" style="font-size: 3rem;">28%</div>
-          <div class="progresso-bar" style="width: 200px;"><div class="progresso-fill" style="width: 28%;"></div></div>
-        </div>
+      <div class="projeto-header" id="detalhe-meta">
+        <!-- populado por JS -->
       </div>
 
       <!-- Ambientes com motor de liberação -->
@@ -2723,7 +2862,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       <img src="SIMBOLO SISTEMA .svg" alt="Alpha Móveis" style="width: 80px; height: auto; object-fit: contain;">
     </div>
     <div class="welcome-content">
-      <div class="welcome-greeting" id="welcome-greeting">Bom dia, Wagner!</div>
+      <div class="welcome-greeting" id="welcome-greeting">Bom dia, Jhonata!</div>
       <div class="welcome-message" id="welcome-message">O galpão está pronto para produzir. Vamos lá?</div>
       <div class="welcome-time" id="welcome-time">Segunda, 27 de julho · 14:32</div>
     </div>
@@ -3543,6 +3682,50 @@ function bindWizardInputs() {
   if (cep) cep.addEventListener('input', buscarCEP);
 }
 
+function renderProjetosLista() {
+  const container = document.getElementById('projetos-grid');
+  if (!container) return;
+  container.innerHTML = projetos.map(p => {
+    const dias = diasAte(p.prazo);
+    const prazoStr = dias > 0 ? `Prazo: ${fmtDate(p.prazo)} · ${dias}d restantes` : `ATRASADO ${Math.abs(dias)}d`;
+    const prazoCls = dias < 0 ? 'atrasado' : '';
+    const recPct = p.recebido && p.valor ? Math.round((p.recebido / p.valor) * 100) : 0;
+    const statusLabel = p.status === 'instalacao' ? 'Instalação' : p.status === 'ativo' ? 'Em produção' : p.status;
+    const statusColor = p.status === 'instalacao' ? 'var(--status-liberado)' : p.status === 'ativo' ? 'var(--status-em-andamento)' : 'var(--ink-subtle)';
+    return `
+      <button class="projeto-card" onclick="abrirProjeto('${p.id}')">
+        <div class="card-top">
+          <div>
+            <div class="card-codigo">${p.codigo || 'Projeto'}</div>
+            <div class="card-cliente">${p.cliente}</div>
+            <div class="card-endereco">${p.endereco}</div>
+          </div>
+          <span style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:${statusColor};padding:3px 8px;border-radius:10px;background:color-mix(in oklch,${statusColor} 12%,var(--surface));flex-shrink:0">${statusLabel}</span>
+        </div>
+        <div class="card-financeiro">
+          <div class="card-financeiro-item">
+            <label>Valor</label>
+            <span>${fmtBRL(p.valor)}</span>
+          </div>
+          <div class="card-financeiro-item">
+            <label>Recebido</label>
+            <span>${fmtBRL(p.recebido)} <span style="color:var(--ink-subtle);font-size:0.75rem;">(${recPct}%)</span></span>
+          </div>
+        </div>
+        <div>
+          <div class="card-progresso-label">
+            <span class="t-micro" style="color:var(--ink-subtle);">Progresso</span>
+            <span class="pct">${p.progresso}%</span>
+          </div>
+          <div class="progresso-bar"><div class="progresso-fill" style="width:${p.progresso}%"></div></div>
+          <div class="card-prazo ${prazoCls}" style="margin-top:var(--sp-2);">${prazoStr}</div>
+        </div>
+        <span class="card-arrow">→</span>
+      </button>
+    `;
+  }).join('');
+}
+
 /* ============================================================================
    BOOT
    ============================================================================ */
@@ -3554,49 +3737,25 @@ window.addEventListener('load', () => {
   inicializarWelcome();
 });
 
-function renderProjetosLista() {
-  const container = document.getElementById('projetos-lista');
-  container.innerHTML = projetos.map(p => {
-    const dias = diasAte(p.prazo);
-    const prazoStr = dias > 0 ? `${fmtDate(p.prazo)} · ${dias}d` : `atrasado ${Math.abs(dias)}d`;
-    const cls = dias < 0 ? 'atrasado' : '';
-    return `
-      <button class="projeto-row" onclick="abrirProjeto('${p.id}')">
-        <div>
-          <div class="nome">${p.cliente}</div>
-          <div class="cliente">${p.endereco} · ${fmtBRL(p.valor)}</div>
-        </div>
-        <div class="progresso">
-          <span class="t-small t-num">${p.progresso}%</span>
-          <div class="progresso-bar"><div class="progresso-fill" style="width: ${p.progresso}%"></div></div>
-        </div>
-        <div class="prazo ${cls}">${prazoStr}</div>
-        <div style="color: var(--ink-subtle);">→</div>
-      </button>
-    `;
-  }).join('');
-}
+/* Renderiza ambientes de um projeto específico no container dado */
+function renderAmbientesForProjeto(projeto, container) {
+  const statusMap = {
+    'concluido': { tag: 'tag--concluido', label: 'Concluída' },
+    'liberado': { tag: 'tag--liberado', label: 'Liberada' },
+    'andamento': { tag: 'tag--andamento', label: 'Em andamento' },
+    'atrasado': { tag: 'tag--atrasado', label: 'Atrasada' },
+    'bloqueado': { tag: 'tag--bloqueado', label: 'Aguarda dependência' }
+  };
 
-/* Renderiza os ambientes com motor de liberação visual */
-function renderAmbientes() {
-  const projeto = projetos[0];
-  const container = document.getElementById('ambientes-lista');
   container.innerHTML = projeto.ambientes.map(amb => {
     const etapasHtml = amb.etapas.map((et, i) => {
-      const statusMap = {
-        'concluido': { tag: 'tag--concluido', label: 'Concluída' },
-        'liberado': { tag: 'tag--liberado', label: 'Liberada' },
-        'andamento': { tag: 'tag--andamento', label: 'Em andamento' },
-        'atrasado': { tag: 'tag--atrasado', label: 'Atrasada' },
-        'bloqueado': { tag: 'tag--bloqueado', label: 'Aguarda dependência' }
-      };
-      const s = statusMap[et.status];
+      const s = statusMap[et.status] || { tag: '', label: et.status };
       const conector = i > 0 ? `<div class="etapa-conector ${amb.etapas[i-1].status === 'concluido' ? 'done' : ''}">
         <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
           <polyline points="4,32 12,8 20,32 28,8 36,32" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" fill="none"/>
         </svg>
       </div>` : '';
-      const dep = et.dependeDe.length > 0 ? `<div class="depende">Depende: ${et.dependeDe.join(', ')}</div>` : '';
+      const dep = et.dependeDe && et.dependeDe.length > 0 ? `<div class="depende">Depende: ${et.dependeDe.join(', ')}</div>` : '';
       return `${conector}
         <div class="etapa-node" data-status="${et.status}">
           <div class="nome">${et.nome}</div>
@@ -3619,7 +3778,13 @@ function renderAmbientes() {
   }).join('');
 }
 
-/* Renderiza tabela de custos por camada */
+
+/* Renderiza os ambientes com motor de liberação visual (compat. legado) */
+function renderAmbientes() {
+  // Mantém compatibilidade — não faz nada pois agora é chamado dinamicamente
+}
+
+
 let camadaAtiva = 'materiais';
 function renderCustos() {
   const projeto = projetos[0];
@@ -3685,6 +3850,7 @@ function renderChao() {
 const viewLabels = {
   'painel': 'Painel',
   'projetos': 'Projetos',
+  'projeto-detalhe': 'Detalhe do Projeto',
   'reagendamento': 'Reagendar Agenda',
   'custos': 'Custos',
   'chao': 'Chão de Fábrica'
@@ -3810,7 +3976,48 @@ function toggleTheme() {
   }
 }
 
-function abrirProjeto(id) { switchView('projetos'); }
+function abrirProjeto(id) {
+  const p = projetos.find(x => x.id === id);
+  if (!p) return;
+
+  // Preenche cabeçalho da view de detalhe
+  document.getElementById('detalhe-eyebrow').textContent = p.codigo ? `Projeto · ${p.codigo}` : 'Projeto';
+  document.getElementById('detalhe-nome').textContent = p.cliente;
+  document.getElementById('detalhe-lede').textContent = `${p.endereco} · ${fmtBRL(p.valor)}`;
+
+  // Preenche meta-grid com dados financeiros e progresso
+  const dias = diasAte(p.prazo);
+  const prazoStr = dias > 0 ? `${fmtDate(p.prazo)} (${dias}d)` : `${fmtDate(p.prazo)} — ATRASADO ${Math.abs(dias)}d`;
+  const nAmbientes = p.ambientes ? p.ambientes.length : '—';
+  const nEtapas = p.ambientes ? p.ambientes.reduce((s, a) => s + a.etapas.length, 0) : '—';
+  const recPct = p.recebido && p.valor ? Math.round((p.recebido / p.valor) * 100) : 0;
+
+  document.getElementById('detalhe-meta').innerHTML = `
+    <div class="detalhe-meta-grid">
+      <dl class="meta-list">
+        <div><dt>Valor total</dt><dd>${fmtBRL(p.valor)}</dd></div>
+        <div><dt>Recebido</dt><dd>${fmtBRL(p.recebido)} <span style="color:var(--ink-subtle);font-size:0.75rem;">(${recPct}%)</span></dd></div>
+        <div><dt>Prazo</dt><dd>${prazoStr}</dd></div>
+        <div><dt>Ambientes</dt><dd>${nAmbientes} · ${nEtapas} etapas</dd></div>
+      </dl>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:var(--sp-2);">
+        <div class="t-micro" style="color:var(--ink-subtle);">Progresso geral</div>
+        <div style="font-family:var(--font-display);font-size:3rem;font-weight:400;letter-spacing:-0.025em;line-height:1;">${p.progresso}%</div>
+        <div class="progresso-bar" style="width:200px;"><div class="progresso-fill" style="width:${p.progresso}%;"></div></div>
+      </div>
+    </div>
+  `;
+
+  // Renderiza ambientes se o projeto tiver
+  const ambContainer = document.getElementById('ambientes-lista');
+  if (p.ambientes && p.ambientes.length > 0) {
+    renderAmbientesForProjeto(p, ambContainer);
+  } else {
+    ambContainer.innerHTML = '<p style="color:var(--ink-muted);padding:var(--sp-5) 0;">Nenhum ambiente cadastrado para este projeto ainda.</p>';
+  }
+
+  switchView('projeto-detalhe');
+}
 
 function selecionarOpcao(el) {
   document.querySelectorAll('.opcao').forEach(o => o.classList.remove('selecionada'));
@@ -3856,10 +4063,10 @@ updateRelogio();
    WELCOME SCREEN — Mensagens baseadas no horário
    ============================================================================ */
 const welcomeMessages = {
-  madrugada: { greeting: 'Oi, madrugada!', messages: ['Você não dorme? A dedicação é admirável.', 'O sistema também está acordado pra você.', 'Essa produção não vai fazer sozinha, né?', 'Noite criativa é sempre bem-vinda aqui.'] },
-  manhã: { greeting: 'Bom dia, Wagner!', messages: ['O galpão está pronto para produzir. Vamos lá?', 'Café coado, sistema acordado. É hora!', 'Novo dia, novos móveis. Bora começar?', 'O turno da manhã agradece sua presença.'] },
-  tarde: { greeting: 'Boa tarde, Wagner!', messages: ['A tarde está rendendo bem. Segue firme!', 'Metade do caminho já percorrido. Vamos terminar forte!', 'Tempo de acelerar a produção, amigo.', 'O ritmo da tarde é nosso agora.'] },
-  noite: { greeting: 'Boa noite, Wagner!', messages: ['A noite é pra quem quer terminar certo.', 'Luz acesa no galpão, você por aqui. Perfeito!', 'Reta final do dia. Vamos fechar bem?', 'Aqui no sistema, a noite também é produtiva.'] }
+  madrugada: { greeting: 'Oi, Jhonata!', messages: ['Você não dorme? A dedicação é admirável.', 'O sistema também está acordado pra você.', 'Essa produção não vai fazer sozinha, né?', 'Noite criativa é sempre bem-vinda aqui.'] },
+  manhã: { greeting: 'Bom dia, Jhonata!', messages: ['O galpão está pronto para produzir. Vamos lá?', 'Café coado, sistema acordado. É hora!', 'Novo dia, novos móveis. Bora começar?', 'O turno da manhã agradece sua presença.'] },
+  tarde: { greeting: 'Boa tarde, Jhonata!', messages: ['A tarde está rendendo bem. Segue firme!', 'Metade do caminho já percorrido. Vamos terminar forte!', 'Tempo de acelerar a produção, amigo.', 'O ritmo da tarde é nosso agora.'] },
+  noite: { greeting: 'Boa noite, Jhonata!', messages: ['A noite é pra quem quer terminar certo.', 'Luz acesa no galpão, você por aqui. Perfeito!', 'Reta final do dia. Vamos fechar bem?', 'Aqui no sistema, a noite também é produtiva.'] }
 };
 
 function getTimeOfDay() { const h = new Date().getHours(); if (h >= 0 && h < 6) return 'madrugada'; if (h >= 6 && h < 12) return 'manhã'; if (h >= 12 && h < 18) return 'tarde'; return 'noite'; }
