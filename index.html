@@ -3800,26 +3800,61 @@ async function executarModificacoes() {
     return;
   }
   const btn = document.getElementById('modal-confirm-btn');
+  const originalLabel = btn.textContent;
   btn.textContent = 'Sincronizando…';
   btn.disabled = true;
-
+  
   let ok = 0, fail = 0;
   for (const change of modalPendingChanges) {
     try {
-      const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${change.eventId}`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(change.changes)
-      });
-      if (res.ok) ok++; else fail++;
-    } catch { fail++; }
+      let url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
+      let method = 'POST';
+      
+      if (change.action === 'update') {
+        url += `/${change.eventId}`;
+        method = 'PATCH';
+      } else if (change.action === 'delete') {
+        url += `/${change.eventId}`;
+        method = 'DELETE';
+      }
+      
+      const options = {
+        method: method,
+        headers: { Authorization: `Bearer ${googleAccessToken}` }
+      };
+      
+      if (change.action !== 'delete') {
+        options.headers['Content-Type'] = 'application/json';
+        options.body = JSON.stringify(change.payload);
+      }
+      
+      const res = await fetch(url, options);
+      if (res.ok) ok++; else {
+        console.error('Erro na resposta da API do Google:', await res.text());
+        fail++;
+      }
+    } catch (e) {
+      console.error(e);
+      fail++;
+    }
   }
-
-  btn.textContent = 'Confirmar e sincronizar';
+  
+  btn.textContent = originalLabel;
   btn.disabled = false;
   fecharModal();
-  showToast(`${ok} evento(s) atualizado(s) no Google Agenda${fail > 0 ? ` · ${fail} falha(s)` : ''}`);
-  if (googleAccessToken) carregarEventos();
+  
+  let msg = '';
+  if (modalPendingChanges[0] && modalPendingChanges[0].action === 'create') {
+    msg = ok > 0 ? 'Compromisso criado com sucesso!' : 'Falha ao criar compromisso.';
+  } else if (modalPendingChanges[0] && modalPendingChanges[0].action === 'update') {
+    msg = ok > 0 ? 'Compromisso atualizado com sucesso!' : 'Falha ao atualizar compromisso.';
+  } else {
+    msg = ok > 0 ? 'Compromisso excluído com sucesso!' : 'Falha ao excluir compromisso.';
+  }
+  
+  showToast(msg);
+  limparCacheERenderizar();
+  if (googleAccessToken) carregarEventos(); // Atualiza a barra lateral também se conectada
 }
 
 /* ============================================================================
