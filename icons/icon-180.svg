@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Camada_1" data-name="Camada 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 180 180">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #a78159;
+      }
+
+      .cls-2 {
+        filter: url(#drop-shadow-1);
+      }
+
+      .cls-3 {
+        fill: url(#Gradiente_sem_nome_51);
+        stroke: url(#Gradiente_sem_nome_42);
+        stroke-miterlimit: 10;
+      }
+    </style>
+    <linearGradient id="Gradiente_sem_nome_51" data-name="Gradiente sem nome 51" x1="9.25" y1="170.75" x2="170.75" y2="9.25" gradientUnits="userSpaceOnUse">
+      <stop offset=".28" stop-color="#191715"/>
+      <stop offset=".69" stop-color="#352f2d"/>
+    </linearGradient>
+    <linearGradient id="Gradiente_sem_nome_42" data-name="Gradiente sem nome 42" x1="-.5" y1="90" x2="180.5" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset=".26" stop-color="#6d6250"/>
+      <stop offset=".68" stop-color="#d8ccb9"/>
+    </linearGradient>
+    <filter id="drop-shadow-1" x="36.24" y="35.04" width="111.6" height="108" filterUnits="userSpaceOnUse">
+      <feOffset dx="2" dy="-1"/>
+      <feGaussianBlur result="blur" stdDeviation="2"/>
+      <feFlood flood-color="#1d1d1b" flood-opacity=".3"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect class="cls-3" width="180" height="180" rx="31.57" ry="31.57"/>
+  <g id="Camada_1-2" data-name="Camada 1-2" class="cls-2">
+    <path class="cls-1" d="M139.64,42.17l-34.52,59.8-15.12-12.68h0l-15.12,12.68-34.53-59.8v9.69l.1.16h-.1v85.23l33.22-27.87,16.43,28.44h0l16.43-28.44,33.22,27.87V52.03h-.1l.1-.16v-9.69h0ZM45.19,126.87V60.24l25.91,44.88s-25.91,21.75-25.91,21.75ZM89.99,128.15l-12.66-21.92,12.66-10.62,12.66,10.62s-12.66,21.92-12.66,21.92ZM134.79,126.87l-25.91-21.75,25.91-44.88v66.63Z"/>
+  </g>
+</svg>
