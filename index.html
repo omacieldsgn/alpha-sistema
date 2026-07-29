@@ -1,0 +1,3893 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Alpha · Sistema Interno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,360&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- External libraries -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+  window.createSupabaseClient = createClient;
+</script>
+<style>
+/* ===========================================================================
+   ALPHA MÓVEIS PLANEJADOS — SISTEMA INTERNO
+   Design System v1.0 — 27 jul 2026
+   =========================================================================== */
+
+/* Modo Gestor (default, claro, institucional) */
+:root {
+  --bg: #F7F4EE;
+  --surface: #F5F1EA;
+  --surface-2: #E8E3D5;
+  --ink: #211D19;
+  --ink-muted: #6B655D;
+  --ink-subtle: #A69F94;
+  --border: #D9CDBA;
+  --border-strong: #A9825A;
+  --brand: #6D6250;
+  --brand-ink: #F7F4EE;
+  --accent: #A9825A;
+  --accent-ink: #211D19;
+  --surface-warm: #D9CDBA;
+  --surface-warm-ink: #211D19;
+  --deep: #2F332B;
+
+  --status-liberado: #2F332B;
+  --status-em-andamento: #A9825A;
+  --status-bloqueado: #8B857D;
+  --status-atrasado: #8B3A2E;
+  --status-concluido: #6D6250;
+  --status-critico: #3D2A24;
+
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px; --sp-9: 96px;
+
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 20px;
+
+  --shadow-sm: 0 1px 2px rgb(33 29 25 / 0.04);
+  --shadow-md: 0 4px 12px rgb(33 29 25 / 0.06);
+  --shadow-lg: 0 12px 32px rgb(33 29 25 / 0.08);
+
+  --ease: cubic-bezier(0.25, 1, 0.5, 1);
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-ui: 'Archivo', system-ui, -apple-system, sans-serif;
+
+  /* Z-index scale */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal-backdrop: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+}
+
+/* Modo Chão de Fábrica (dark) */
+[data-mode="chao"] {
+  --bg: #0F0D0B;
+  --surface: #1B1917;
+  --surface-2: #2A2622;
+  --ink: #F7F4EE;
+  --ink-muted: #D9CDBA;
+  --ink-subtle: #A9825A;
+  --border: #2A2622;
+  --border-strong: #3D3833;
+  --brand: #A9825A;
+  --brand-ink: #211D19;
+  --accent: #D9CDBA;
+  --accent-ink: #211D19;
+  --surface-warm: #2A2622;
+  --surface-warm-ink: #F7F4EE;
+  --deep: #F7F4EE;
+}
+
+/* Tema escuro (design system) */
+[data-theme="dark"] {
+  --bg: #0F0D0B;
+  --surface: #1B1917;
+  --surface-2: #2A2622;
+  --ink: #F7F4EE;
+  --ink-muted: #D9CDBA;
+  --ink-subtle: #A9825A;
+  --border: #2A2622;
+  --border-strong: #3D3833;
+  --brand: #A9825A;
+  --brand-ink: #211D19;
+  --accent: #D9CDBA;
+  --accent-ink: #211D19;
+  --surface-warm: #2A2622;
+  --surface-warm-ink: #F7F4EE;
+  --deep: #F7F4EE;
+}
+
+/* Reset ------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--bg);
+  font-feature-settings: 'ss01', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+input, select, textarea { font: inherit; color: inherit; }
+h1, h2, h3, h4, h5 { font-weight: inherit; text-wrap: balance; }
+p { text-wrap: pretty; }
+
+/* Tipografia -------------------------------------------------------------- */
+.t-hero {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 340;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+.t-h1 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 360;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.t-h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 340;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+.t-h3 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.t-body { font-size: 0.9375rem; line-height: 1.55; }
+.t-small { font-size: 0.8125rem; font-weight: 500; line-height: 1.45; }
+.t-micro {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.t-num { font-variant-numeric: tabular-nums; }
+.t-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* Layout base ------------------------------------------------------------- */
+.app {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+  transition: background 240ms var(--ease);
+}
+[data-mode="chao"] .app { grid-template-columns: 1fr; }
+[data-mode="chao"] .sidebar { display: none; }
+
+/* Sidebar ----------------------------------------------------------------- */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: var(--sp-6) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.brand-mark {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-2);
+}
+.brand-mark img, .brand-mark svg { flex: 0 0 auto; }
+.brand-mark .wordmark {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.brand-mark .sub {
+  font-size: 0.625rem;
+  color: var(--ink-subtle);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: block;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.nav-label {
+  padding: 0 var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--radius-md);
+  color: var(--ink-muted);
+  text-align: left;
+  width: 100%;
+  transition: background 120ms var(--ease), color 120ms var(--ease);
+}
+.nav-item:hover { background: var(--surface-2); color: var(--ink); }
+.nav-item[aria-current="page"] {
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 500;
+}
+.nav-item .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ink-subtle);
+  flex: 0 0 auto;
+}
+.nav-item[aria-current="page"] .dot { background: var(--accent); }
+
+.nav-item .badge {
+  margin-left: auto;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: var(--status-atrasado);
+  color: var(--brand-ink);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border);
+}
+.mode-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: background 120ms var(--ease);
+}
+.mode-switch:hover { background: var(--surface-warm); color: var(--ink); }
+.mode-switch strong { color: var(--ink); font-weight: 500; }
+
+.theme-switch {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: background 120ms var(--ease), color 120ms var(--ease);
+  margin-top: var(--sp-2);
+}
+.theme-switch:hover { background: var(--surface-warm); color: var(--ink); }
+.theme-switch svg { width: 18px; height: 18px; }
+
+/* Main -------------------------------------------------------------------- */
+.main {
+  padding: var(--sp-7) var(--sp-8);
+  max-width: 1400px;
+}
+.view { display: none; }
+.view.active { display: block; animation: fadeIn 280ms var(--ease); }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  margin-bottom: var(--sp-7);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border);
+}
+.page-header .eyebrow {
+  color: var(--ink-subtle);
+  margin-bottom: var(--sp-2);
+}
+.page-header .lede {
+  color: var(--ink-muted);
+  max-width: 60ch;
+  margin-top: var(--sp-3);
+}
+
+/* Cards ------------------------------------------------------------------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-5);
+}
+.card-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+.card-title h3 { font-size: 1rem; font-weight: 600; }
+.card-title .meta { color: var(--ink-subtle); }
+
+/* Buttons ----------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: transform 120ms var(--ease), background 120ms var(--ease), border-color 120ms var(--ease);
+  white-space: nowrap;
+}
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn:active { transform: translateY(1px); }
+
+.btn-primary { background: var(--brand); color: var(--brand-ink); }
+.btn-primary:hover { background: var(--deep); }
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--ink);
+}
+.btn-secondary:hover { background: var(--surface-2); border-color: var(--ink-muted); }
+
+.btn-ghost { color: var(--ink-muted); padding: 8px 12px; }
+.btn-ghost:hover { color: var(--ink); background: var(--surface-2); }
+
+[data-mode="chao"] .btn { padding: 14px 20px; font-size: 1rem; }
+
+/* Tags de status ---------------------------------------------------------- */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.tag::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ink-subtle);
+}
+.tag--liberado::before { background: var(--status-liberado); }
+.tag--andamento::before { background: var(--status-em-andamento); }
+.tag--bloqueado::before { background: var(--status-bloqueado); }
+.tag--atrasado::before { background: var(--status-atrasado); }
+.tag--concluido::before { background: var(--status-concluido); }
+
+/* ============================================================================
+   VIEW: PAINEL DO GESTOR
+   ============================================================================ */
+.painel-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--sp-5);
+  margin-bottom: var(--sp-7);
+}
+@media (max-width: 1100px) {
+  .painel-grid { grid-template-columns: 1fr; }
+}
+
+/* Termômetro — hero KPI */
+.termometro {
+  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-warm) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
+  position: relative;
+  overflow: hidden;
+}
+.termometro::after {
+  content: '';
+  position: absolute;
+  right: -40px; bottom: -60px;
+  width: 260px; height: 260px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%236D6250' stroke-width='1'><polyline points='10,80 30,20 50,80 70,20 90,80'/></svg>");
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.06;
+  pointer-events: none;
+}
+.termometro .eyebrow { margin-bottom: var(--sp-3); }
+.termometro .hero-number {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.termometro .hero-desc {
+  color: var(--ink-muted);
+  margin-top: var(--sp-3);
+  max-width: 44ch;
+}
+.termometro-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-5);
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 1;
+}
+.kpi .label {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--sp-2);
+}
+.kpi .value {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.kpi .trend {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-top: 6px;
+}
+.kpi .trend.up { color: var(--status-liberado); }
+.kpi .trend.down { color: var(--status-atrasado); }
+
+/* Alertas */
+.alertas-list { display: flex; flex-direction: column; gap: var(--sp-3); }
+.alerta {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+.alerta:last-child { border-bottom: none; }
+.alerta-bar {
+  width: 3px;
+  align-self: stretch;
+  border-radius: 2px;
+  background: var(--status-atrasado);
+  flex: 0 0 auto;
+}
+.alerta-bar.warn { background: var(--status-em-andamento); }
+.alerta-bar.info { background: var(--accent); }
+.alerta-body { flex: 1; }
+.alerta-title { font-weight: 500; margin-bottom: 2px; font-size: 0.875rem; }
+.alerta-desc { font-size: 0.8125rem; color: var(--ink-muted); }
+.alerta-cta { color: var(--accent); font-size: 0.75rem; margin-top: var(--sp-2); font-weight: 500; }
+
+/* Projetos ativos — lista */
+.projetos-lista { display: flex; flex-direction: column; gap: var(--sp-3); }
+.projeto-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: var(--sp-5);
+  align-items: center;
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color 120ms var(--ease), transform 120ms var(--ease);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+.projeto-row:hover {
+  border-color: var(--border-strong);
+  transform: translateX(2px);
+}
+.projeto-row .nome {
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.projeto-row .cliente { font-size: 0.8125rem; color: var(--ink-muted); }
+.projeto-row .progresso {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 100px;
+}
+.progresso-bar {
+  width: 100px;
+  height: 4px;
+  background: var(--surface-2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.progresso-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 240ms var(--ease);
+}
+.projeto-row .prazo { font-size: 0.8125rem; color: var(--ink-muted); text-align: right; min-width: 90px; }
+.projeto-row .prazo.atrasado { color: var(--status-atrasado); font-weight: 500; }
+
+/* ============================================================================
+   VIEW: PROJETO DETALHE — Motor de liberação
+   ============================================================================ */
+.projeto-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--sp-6);
+  align-items: end;
+  margin-bottom: var(--sp-7);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border);
+}
+.projeto-header .meta-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-4) var(--sp-5);
+}
+.projeto-header .meta-list dt {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+.projeto-header .meta-list dd { font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
+
+.ambiente {
+  margin-bottom: var(--sp-6);
+}
+.ambiente-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--border);
+}
+.ambiente-header h3 { font-family: var(--font-display); font-size: 1.375rem; font-weight: 400; letter-spacing: -0.015em; }
+.ambiente-header .percentual { font-size: 0.8125rem; color: var(--ink-subtle); font-variant-numeric: tabular-nums; }
+
+/* Motor de liberação — cadeia de etapas com o mark angular como conector */
+.etapas-cadeia {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  align-items: stretch;
+}
+.etapa-node {
+  flex: 1 1 180px;
+  min-width: 160px;
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  position: relative;
+  transition: transform 120ms var(--ease), border-color 120ms var(--ease);
+}
+.etapa-node[data-status="liberado"] {
+  border-color: var(--status-liberado);
+  background: color-mix(in oklch, var(--status-liberado) 4%, var(--surface));
+}
+.etapa-node[data-status="andamento"] {
+  border-color: var(--status-em-andamento);
+  background: color-mix(in oklch, var(--status-em-andamento) 6%, var(--surface));
+}
+.etapa-node[data-status="bloqueado"] { opacity: 0.65; }
+.etapa-node[data-status="atrasado"] {
+  border-color: var(--status-atrasado);
+  background: color-mix(in oklch, var(--status-atrasado) 5%, var(--surface));
+}
+.etapa-conector {
+  flex: 0 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-subtle);
+}
+.etapa-conector.done { color: var(--accent); }
+.etapa-node .nome { font-weight: 500; font-size: 0.9375rem; margin-bottom: var(--sp-2); }
+.etapa-node .responsavel { font-size: 0.75rem; color: var(--ink-muted); margin-bottom: var(--sp-3); }
+.etapa-node .tag { margin-top: var(--sp-2); }
+.etapa-node .depende {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  margin-top: var(--sp-2);
+  font-style: italic;
+}
+
+/* ============================================================================
+   VIEW: REAGENDAMENTO ASSISTENTE
+   ============================================================================ */
+.trigger-card {
+  background: color-mix(in oklch, var(--status-atrasado) 8%, var(--surface));
+  border: 1px solid color-mix(in oklch, var(--status-atrasado) 30%, var(--border));
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5);
+  margin-bottom: var(--sp-6);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+}
+.trigger-card .icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--status-atrasado);
+  color: var(--brand-ink);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  flex: 0 0 auto;
+}
+.trigger-card .titulo { font-weight: 500; margin-bottom: var(--sp-2); }
+.trigger-card .desc { font-size: 0.875rem; color: var(--ink-muted); }
+
+.diff-grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--sp-5);
+  margin-bottom: var(--sp-7);
+  align-items: stretch;
+}
+@media (max-width: 900px) {
+  .diff-grid { grid-template-columns: 1fr; }
+  .diff-arrow { display: none; }
+}
+.diff-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5);
+}
+.diff-col.proposta {
+  border-color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 4%, var(--surface));
+}
+.diff-col h4 {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--border);
+}
+.diff-col.proposta h4 { color: var(--accent); border-bottom-color: color-mix(in oklch, var(--accent) 30%, var(--border)); }
+
+.diff-arrow {
+  align-self: center;
+  color: var(--ink-subtle);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+}
+
+.agenda-item {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: var(--sp-3);
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--border);
+  align-items: baseline;
+}
+.agenda-item:last-child { border-bottom: none; }
+.agenda-item .data {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.agenda-item .titulo { font-size: 0.875rem; font-weight: 500; }
+.agenda-item .cliente { font-size: 0.75rem; color: var(--ink-muted); }
+.agenda-item.moved { background: color-mix(in oklch, var(--accent) 8%, transparent); margin: 0 calc(var(--sp-3) * -1); padding-left: var(--sp-3); padding-right: var(--sp-3); border-radius: var(--radius-sm); }
+.agenda-item.moved .data { color: var(--accent); }
+.agenda-item.moved .diff-label { font-size: 0.6875rem; color: var(--accent); font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+.agenda-item.conflict { background: color-mix(in oklch, var(--status-atrasado) 8%, transparent); margin: 0 calc(var(--sp-3) * -1); padding-left: var(--sp-3); padding-right: var(--sp-3); border-radius: var(--radius-sm); }
+.agenda-item.conflict .data { color: var(--status-atrasado); }
+
+/* Painel de decisão do conflito */
+.conflict-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
+  margin-bottom: var(--sp-6);
+}
+.conflict-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--border);
+}
+.conflict-header .icon {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: color-mix(in oklch, var(--status-atrasado) 20%, transparent);
+  color: var(--status-atrasado);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+.conflict-question { font-family: var(--font-display); font-size: 1.375rem; letter-spacing: -0.015em; margin-bottom: var(--sp-5); }
+.opcoes { display: grid; gap: var(--sp-3); }
+.opcao {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 120ms var(--ease), background 120ms var(--ease);
+}
+.opcao:hover { border-color: var(--accent); background: color-mix(in oklch, var(--accent) 4%, var(--surface)); }
+.opcao .titulo { font-weight: 500; margin-bottom: 4px; }
+.opcao .impacto { font-size: 0.8125rem; color: var(--ink-muted); }
+.opcao .radio {
+  width: 20px; height: 20px;
+  border: 2px solid var(--border-strong);
+  border-radius: 50%;
+  flex: 0 0 auto;
+  transition: border-color 120ms var(--ease);
+  position: relative;
+}
+.opcao:hover .radio { border-color: var(--accent); }
+.opcao.selecionada { border-color: var(--accent); background: color-mix(in oklch, var(--accent) 6%, var(--surface)); }
+.opcao.selecionada .radio { border-color: var(--accent); background: var(--accent); }
+.opcao.selecionada .radio::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--brand-ink);
+}
+
+.confirm-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-4) var(--sp-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  box-shadow: var(--shadow-md);
+  margin-top: var(--sp-6);
+}
+.confirm-bar .info {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.confirm-bar .icon-check {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--status-liberado);
+  color: var(--brand-ink);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+}
+.confirm-bar .actions { display: flex; gap: var(--sp-3); }
+
+/* ============================================================================
+   VIEW: CUSTOS
+   ============================================================================ */
+.custos-header {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
+}
+@media (max-width: 900px) { .custos-header { grid-template-columns: repeat(2, 1fr); } }
+
+.camada-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-5);
+  position: relative;
+  overflow: hidden;
+}
+.camada-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px;
+  height: 100%;
+  background: var(--accent);
+}
+.camada-card[data-camada="materiais"]::before { background: var(--accent); }
+.camada-card[data-camada="mao-obra"]::before { background: var(--brand); }
+.camada-card[data-camada="indiretos"]::before { background: var(--surface-warm); }
+.camada-card[data-camada="retrabalho"]::before { background: var(--status-atrasado); }
+
+.camada-card .label {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--sp-3);
+}
+.camada-card .valor {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.camada-card .pct { font-size: 0.75rem; color: var(--ink-muted); margin-top: var(--sp-2); }
+
+.margem-hero {
+  background: var(--deep);
+  color: var(--brand-ink);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-6);
+}
+[data-mode="chao"] .margem-hero { background: var(--surface); }
+.margem-hero .item .lbl {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--sp-3);
+}
+[data-mode="chao"] .margem-hero .item .lbl { color: var(--ink-muted); }
+.margem-hero .item .num {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand-ink);
+}
+[data-mode="chao"] .margem-hero .item .num { color: var(--ink); }
+.margem-hero .item .desc { font-size: 0.8125rem; color: var(--ink-subtle); margin-top: var(--sp-2); }
+[data-mode="chao"] .margem-hero .item .desc { color: var(--ink-muted); }
+
+/* Tabela de itens de custo */
+.custo-tabela {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.custo-tabela-header, .custo-tabela-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr auto;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  align-items: center;
+}
+.custo-tabela-header {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.custo-tabela-row { border-bottom: 1px solid var(--border); }
+.custo-tabela-row:last-child { border-bottom: none; }
+.custo-tabela-row:hover { background: var(--surface-2); }
+.custo-tabela-row .item-nome { font-weight: 500; font-size: 0.9375rem; }
+.custo-tabela-row .item-desc { font-size: 0.75rem; color: var(--ink-subtle); margin-top: 2px; }
+.custo-tabela-row .ambiente-tag {
+  font-size: 0.6875rem;
+  color: var(--ink-muted);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  display: inline-block;
+}
+.custo-tabela-row .valor {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Tabs de camada ---------------------------------------------------------- */
+.tabs {
+  display: flex;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  padding: var(--sp-3) 0;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 120ms var(--ease), border-color 120ms var(--ease);
+}
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+/* ============================================================================
+   VIEW: CHÃO DE FÁBRICA (dark theme)
+   ============================================================================ */
+.chao-container {
+  padding: var(--sp-7);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.chao-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-6);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border);
+}
+.chao-header .titulo {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+.chao-header .relogio {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  letter-spacing: -0.025em;
+}
+
+.chao-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--sp-5);
+}
+.chao-etapa {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5);
+  cursor: pointer;
+  transition: transform 120ms var(--ease), border-color 120ms var(--ease);
+}
+.chao-etapa:hover, .chao-etapa:focus-visible {
+  border-color: var(--brand);
+  transform: translateY(-2px);
+  outline: none;
+}
+.chao-etapa .projeto-nome {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-bottom: var(--sp-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.chao-etapa .etapa-titulo {
+  font-family: var(--font-display);
+  font-size: 1.625rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--sp-3);
+  line-height: 1.15;
+}
+.chao-etapa .ambiente { font-size: 0.9375rem; color: var(--ink-muted); margin-bottom: var(--sp-4); }
+.chao-etapa .tempo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--border);
+}
+.chao-etapa .tempo-atual {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.chao-etapa .tempo-estimado {
+  font-size: 0.875rem;
+  color: var(--ink-subtle);
+}
+.chao-etapa .btn-concluir {
+  width: 100%;
+  margin-top: var(--sp-4);
+  padding: var(--sp-4);
+  background: var(--brand);
+  color: var(--brand-ink);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 1rem;
+}
+.chao-etapa .btn-concluir:hover { background: var(--accent); }
+
+/* Utilitários ------------------------------------------------------------- */
+.stack { display: flex; flex-direction: column; }
+.stack-1 { gap: var(--sp-1); } .stack-2 { gap: var(--sp-2); } .stack-3 { gap: var(--sp-3); }
+.stack-4 { gap: var(--sp-4); } .stack-5 { gap: var(--sp-5); } .stack-6 { gap: var(--sp-6); }
+
+/* Toast ------------------------------------------------------------------- */
+.toast {
+  position: fixed;
+  bottom: var(--sp-5);
+  left: 50%;
+  transform: translateX(-50%) translateY(120%);
+  background: var(--ink);
+  color: var(--bg);
+  padding: var(--sp-4) var(--sp-5);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-toast);
+  transition: transform 280ms var(--ease);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast .check {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--ink);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+/* ============================================================================
+   FORMULÁRIOS (inputs, selects, textareas)
+   ============================================================================ */
+.field { display: flex; flex-direction: column; gap: var(--sp-2); }
+.field-label {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+.field-label .req { color: var(--status-atrasado); margin-left: 2px; }
+.field-hint { font-size: 0.75rem; color: var(--ink-muted); }
+.field-error { font-size: 0.75rem; color: var(--status-atrasado); font-weight: 500; }
+
+.input, .select, .textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: border-color 120ms var(--ease), background 120ms var(--ease);
+  width: 100%;
+}
+.input:hover, .select:hover, .textarea:hover { border-color: var(--ink-muted); }
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 20%, transparent);
+}
+.input.error, .select.error, .textarea.error { border-color: var(--status-atrasado); }
+.textarea { resize: vertical; min-height: 80px; font-family: inherit; line-height: 1.5; }
+
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-4);
+}
+.field-row-3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 768px) {
+  .field-row, .field-row-3 { grid-template-columns: 1fr; }
+}
+
+/* ============================================================================
+   WIZARD (novo projeto — multi-step)
+   ============================================================================ */
+.wizard-steps {
+  display: flex;
+  gap: 0;
+  margin-bottom: var(--sp-6);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border);
+}
+.wizard-step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-3);
+  color: var(--ink-subtle);
+  position: relative;
+}
+.wizard-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 50%;
+  width: 20px;
+  height: 1px;
+  background: var(--border);
+}
+.wizard-step .num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+.wizard-step.active { color: var(--ink); }
+.wizard-step.active .num { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+.wizard-step.done { color: var(--ink-muted); }
+.wizard-step.done .num { border-color: var(--status-liberado); background: var(--status-liberado); color: var(--brand-ink); }
+.wizard-step .label { font-size: 0.8125rem; font-weight: 500; }
+@media (max-width: 768px) {
+  .wizard-step .label { display: none; }
+  .wizard-step { flex: 0 1 auto; justify-content: center; }
+  .wizard-step:not(:last-child)::after { width: 40px; }
+}
+
+.wizard-panel { display: none; }
+.wizard-panel.active { display: block; animation: fadeIn 240ms var(--ease); }
+.wizard-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--sp-2);
+}
+.wizard-desc {
+  color: var(--ink-muted);
+  margin-bottom: var(--sp-6);
+  max-width: 60ch;
+}
+.wizard-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--border);
+}
+
+/* Ambiente input rows within wizard */
+.ambiente-input {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: var(--sp-3);
+  align-items: end;
+  padding: var(--sp-4);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--sp-3);
+}
+.ambiente-input .remover {
+  padding: 8px 12px;
+  color: var(--status-atrasado);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+}
+.ambiente-input .remover:hover { background: color-mix(in oklch, var(--status-atrasado) 10%, transparent); }
+@media (max-width: 768px) {
+  .ambiente-input { grid-template-columns: 1fr; }
+}
+
+.percentual-status {
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+.percentual-status.ok { background: color-mix(in oklch, var(--status-liberado) 8%, transparent); color: var(--status-liberado); }
+.percentual-status.warn { background: color-mix(in oklch, var(--status-atrasado) 8%, transparent); color: var(--status-atrasado); }
+
+/* Payment schedule builder */
+.parcela-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: var(--sp-3);
+  align-items: end;
+  padding: var(--sp-4);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--sp-3);
+}
+@media (max-width: 768px) { .parcela-row { grid-template-columns: 1fr; } }
+
+/* Review card (last wizard step) */
+.review-section {
+  padding: var(--sp-4) 0;
+  border-bottom: 1px solid var(--border);
+}
+.review-section:last-child { border-bottom: none; }
+.review-section h4 {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--sp-3);
+}
+.review-item {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: var(--sp-4);
+  padding: var(--sp-2) 0;
+  font-size: 0.9375rem;
+}
+.review-item dt { color: var(--ink-muted); }
+.review-item dd { color: var(--ink); font-weight: 500; }
+@media (max-width: 768px) {
+  .review-item { grid-template-columns: 1fr; gap: var(--sp-1); }
+}
+
+/* ============================================================================
+   MODAL (para confirmação de sync com Google Agenda)
+   ============================================================================ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(33 29 25 / 0.5);
+  z-index: var(--z-modal-backdrop);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-5);
+  opacity: 0;
+  transition: opacity 200ms var(--ease);
+}
+.modal-backdrop.open { display: flex; opacity: 1; }
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(8px);
+  transition: transform 200ms var(--ease);
+}
+.modal-backdrop.open .modal { transform: translateY(0); }
+.modal-header {
+  padding: var(--sp-5);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+}
+.modal-header .icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: color-mix(in oklch, var(--accent) 20%, transparent);
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  flex: 0 0 auto;
+}
+.modal-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  margin-bottom: var(--sp-2);
+}
+.modal-header p { font-size: 0.875rem; color: var(--ink-muted); }
+.modal-body { padding: var(--sp-5); }
+.modal-footer {
+  padding: var(--sp-4) var(--sp-5);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  background: var(--surface-2);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+@media (max-width: 768px) {
+  .modal-footer { flex-direction: column-reverse; }
+  .modal-footer .btn { width: 100%; justify-content: center; }
+}
+
+.modal-list { display: flex; flex-direction: column; gap: var(--sp-3); }
+.modal-list-item {
+  padding: var(--sp-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--accent);
+}
+.modal-list-item .titulo { font-size: 0.9375rem; font-weight: 500; margin-bottom: 4px; }
+.modal-list-item .change {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.modal-list-item .from { text-decoration: line-through; opacity: 0.7; }
+.modal-list-item .arrow { color: var(--ink-subtle); }
+.modal-list-item .to { color: var(--accent); font-weight: 500; }
+
+/* ============================================================================
+   INTEGRAÇÃO GOOGLE AGENDA
+   ============================================================================ */
+.integration-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
+  margin-bottom: var(--sp-5);
+}
+.integration-status {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--sp-5);
+}
+.integration-status.disconnected { background: color-mix(in oklch, var(--status-atrasado) 6%, transparent); }
+.integration-status.connected { background: color-mix(in oklch, var(--status-liberado) 6%, transparent); }
+.integration-status .indicator {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--status-atrasado);
+  flex: 0 0 auto;
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--status-atrasado) 20%, transparent);
+}
+.integration-status.connected .indicator {
+  background: var(--status-liberado);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--status-liberado) 20%, transparent);
+}
+.integration-status .info { flex: 1; }
+.integration-status .info strong { font-weight: 500; }
+.integration-status .info small { display: block; font-size: 0.8125rem; color: var(--ink-muted); margin-top: 2px; }
+
+.event-list { display: flex; flex-direction: column; gap: var(--sp-2); }
+.event-item {
+  display: grid;
+  grid-template-columns: 76px 1fr auto;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  align-items: center;
+}
+.event-item .data { font-size: 0.8125rem; font-weight: 500; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.event-item .titulo { font-size: 0.875rem; font-weight: 500; }
+.event-item .horario { font-size: 0.75rem; color: var(--ink-subtle); margin-top: 2px; }
+.event-item .btn-mini {
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--ink-muted);
+}
+.event-item .btn-mini:hover { color: var(--ink); border-color: var(--ink-muted); }
+
+.config-warning {
+  padding: var(--sp-4);
+  background: color-mix(in oklch, var(--status-em-andamento) 10%, transparent);
+  border: 1px solid color-mix(in oklch, var(--status-em-andamento) 30%, var(--border));
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  color: var(--ink);
+  margin-bottom: var(--sp-4);
+}
+.config-warning strong { display: block; margin-bottom: var(--sp-1); }
+
+/* Config screen credential fields */
+.credential-field {
+  padding: var(--sp-4);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--sp-4);
+}
+.credential-field .field-label { margin-bottom: var(--sp-2); }
+.credential-field .field-hint { margin-top: var(--sp-2); }
+.credential-field code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.8125rem;
+  background: var(--surface);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+/* ============================================================================
+   AUTH OVERLAY (tela de login)
+   ============================================================================ */
+.auth-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: var(--z-modal);
+  padding: var(--sp-6);
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+}
+.auth-overlay.visible { display: flex; }
+
+/* ============================================================================
+   WELCOME OVERLAY (tela de boas-vindas)
+   ============================================================================ */
+.welcome-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, var(--bg) 0%, var(--surface) 100%);
+  z-index: var(--z-modal);
+  padding: var(--sp-6);
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  animation: fadeIn 300ms var(--ease);
+}
+.welcome-overlay.visible { display: flex; }
+
+.welcome-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-8);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+.welcome-card::before {
+  content: '';
+  position: absolute;
+  right: -80px;
+  top: -80px;
+  width: 320px;
+  height: 320px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%236D6250' stroke-width='0.5'><polyline points='10,80 30,20 50,80 70,20 90,80'/></svg>");
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+.welcome-logo {
+  margin-bottom: var(--sp-6);
+  animation: slideDown 500ms var(--ease);
+}
+
+.welcome-content {
+  position: relative;
+  z-index: 1;
+  margin-bottom: var(--sp-6);
+}
+
+.welcome-greeting {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 340;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: var(--sp-2);
+  animation: slideUp 500ms var(--ease) 100ms backwards;
+}
+
+.welcome-message {
+  font-size: 1.125rem;
+  color: var(--ink-muted);
+  margin-bottom: var(--sp-5);
+  line-height: 1.5;
+  animation: slideUp 500ms var(--ease) 200ms backwards;
+}
+
+.welcome-time {
+  font-size: 0.875rem;
+  color: var(--ink-subtle);
+  font-weight: 500;
+  animation: slideUp 500ms var(--ease) 300ms backwards;
+}
+
+.welcome-card .btn {
+  width: 100%;
+  justify-content: center;
+  animation: slideUp 500ms var(--ease) 400ms backwards;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-7);
+  position: relative;
+  overflow: hidden;
+}
+.auth-card::before {
+  content: '';
+  position: absolute;
+  right: -60px; top: -60px;
+  width: 220px; height: 220px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%236D6250' stroke-width='1'><polyline points='10,80 30,20 50,80 70,20 90,80'/></svg>");
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.06;
+  pointer-events: none;
+}
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+}
+.auth-brand svg { flex: 0 0 auto; }
+.auth-brand .wordmark {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.auth-brand .sub {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: block;
+  margin-top: 2px;
+  line-height: 1;
+}
+.auth-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--sp-2);
+}
+.auth-desc {
+  color: var(--ink-muted);
+  margin-bottom: var(--sp-6);
+  font-size: 0.9375rem;
+}
+.auth-form { display: flex; flex-direction: column; gap: var(--sp-4); }
+.auth-toggle {
+  text-align: center;
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--border);
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+}
+.auth-toggle button {
+  color: var(--accent);
+  font-weight: 500;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.auth-toggle button:hover { color: var(--brand); text-decoration: underline; }
+.auth-error {
+  padding: var(--sp-3) var(--sp-4);
+  background: color-mix(in oklch, var(--status-atrasado) 8%, transparent);
+  border: 1px solid color-mix(in oklch, var(--status-atrasado) 30%, var(--border));
+  border-radius: var(--radius-md);
+  color: var(--status-atrasado);
+  font-size: 0.875rem;
+  display: none;
+}
+.auth-error.visible { display: block; }
+
+.auth-setup-hint {
+  padding: var(--sp-3) var(--sp-4);
+  background: color-mix(in oklch, var(--status-em-andamento) 8%, transparent);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  margin-bottom: var(--sp-4);
+}
+
+/* ============================================================================
+   USER BLOCK (sidebar footer)
+   ============================================================================ */
+.user-block {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--sp-3);
+}
+.user-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  flex: 0 0 auto;
+  letter-spacing: -0.02em;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.user-role {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+.logout-btn {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  transition: background 120ms var(--ease), color 120ms var(--ease);
+}
+.logout-btn:hover { background: var(--surface-2); color: var(--status-atrasado); }
+
+/* Marceneiro: hide gestor-only items */
+body[data-role="marceneiro"] .gestor-only { display: none !important; }
+
+/* ============================================================================
+   USUARIOS VIEW
+   ============================================================================ */
+.usuarios-list { display: flex; flex-direction: column; gap: var(--sp-3); }
+.usuario-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: var(--sp-4);
+  align-items: center;
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.usuario-row .avatar-lg {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+}
+.usuario-row .details .nome { font-weight: 500; margin-bottom: 2px; }
+.usuario-row .details .email { font-size: 0.8125rem; color: var(--ink-muted); }
+.role-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.role-badge.gestor { background: color-mix(in oklch, var(--brand) 15%, transparent); color: var(--brand); }
+.role-badge.marceneiro { background: color-mix(in oklch, var(--accent) 15%, transparent); color: var(--accent); }
+.role-badge.admin { background: color-mix(in oklch, var(--deep) 15%, transparent); color: var(--deep); }
+@media (max-width: 768px) {
+  .usuario-row { grid-template-columns: auto 1fr; gap: var(--sp-3); }
+  .usuario-row .role-badge, .usuario-row .btn-ghost { grid-column: 2; justify-self: start; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ============================================================================
+   MOBILE TOP BAR + DRAWER
+   ============================================================================ */
+.topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+.topbar .brand-mark { padding: 0; gap: var(--sp-2); }
+.topbar .brand-mark .wordmark { font-size: 1rem; }
+.topbar .brand-mark .sub { font-size: 0.5625rem; }
+
+.hamburger {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink);
+  transition: background 120ms var(--ease);
+}
+.hamburger:hover, .hamburger:focus-visible { background: var(--surface-2); outline: none; }
+.hamburger svg { display: block; }
+
+.drawer-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgb(33 29 25 / 0.4);
+  z-index: var(--z-modal-backdrop);
+  opacity: 0;
+  transition: opacity 240ms var(--ease);
+}
+.drawer-backdrop.open { opacity: 1; }
+
+/* ============================================================================
+   BACK BUTTON
+   ============================================================================ */
+.back-btn {
+  display: none;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 8px 14px 8px 10px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: var(--sp-5);
+  transition: transform 120ms var(--ease), background 120ms var(--ease), color 120ms var(--ease), border-color 120ms var(--ease);
+}
+.back-btn:hover, .back-btn:focus-visible {
+  background: var(--surface-2);
+  color: var(--ink);
+  border-color: var(--border-strong);
+  transform: translateX(-2px);
+  outline: none;
+}
+.back-btn.visible { display: inline-flex; }
+.back-btn svg { flex: 0 0 auto; }
+
+[data-mode="chao"] .back-btn {
+  padding: 12px 18px 12px 14px;
+  font-size: 0.9375rem;
+}
+
+/* ============================================================================
+   RESPONSIVE — tablet & mobile
+   ============================================================================ */
+
+/* Tablet (< 1024px) */
+@media (max-width: 1024px) {
+  .main { padding: var(--sp-6) var(--sp-6); }
+  .painel-grid { grid-template-columns: 1fr; }
+  .projeto-header { grid-template-columns: 1fr; gap: var(--sp-5); }
+  .projeto-header .stack { align-items: flex-start !important; }
+  .diff-grid { grid-template-columns: 1fr; gap: var(--sp-4); }
+  .diff-arrow { display: none; }
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+
+  /* Show topbar, transform sidebar into drawer */
+  .topbar { display: flex; }
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 100vh;
+    width: 280px;
+    z-index: var(--z-modal);
+    transform: translateX(-100%);
+    transition: transform 280ms var(--ease);
+    padding-top: var(--sp-5);
+  }
+  .sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
+  .sidebar .brand-mark { display: none; }
+  .drawer-backdrop { display: block; pointer-events: none; }
+  .drawer-backdrop.open { pointer-events: auto; }
+
+  .main { padding: var(--sp-5) var(--sp-4); }
+
+  /* Typography */
+  .t-hero { font-size: clamp(1.75rem, 7vw, 2.5rem); }
+  .t-h1 { font-size: 1.5rem; }
+  .t-h2 { font-size: 1.25rem; }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-4);
+    margin-bottom: var(--sp-5);
+    padding-bottom: var(--sp-4);
+  }
+  .page-header > div:last-child { align-self: stretch; }
+  .page-header .btn { width: auto; }
+
+  /* Termômetro */
+  .termometro { padding: var(--sp-5); }
+  .termometro .hero-number { font-size: 2rem; }
+  .termometro::after { width: 160px; height: 160px; right: -30px; bottom: -40px; }
+  .termometro-kpis {
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+    padding-top: var(--sp-4);
+    margin-top: var(--sp-4);
+  }
+  .kpi { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: var(--sp-3); }
+  .kpi .label { margin-bottom: 0; }
+  .kpi .value { font-size: 1.25rem; }
+  .kpi .trend { grid-column: 1 / -1; margin-top: 0; }
+
+  /* Projetos lista */
+  .projeto-row {
+    grid-template-columns: 1fr auto;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+  }
+  .projeto-row > div:nth-child(2) { grid-column: 1; }
+  .projeto-row .progresso { align-items: flex-start; }
+  .projeto-row .progresso-bar { width: 100%; max-width: 200px; }
+  .projeto-row > div:nth-child(4) { display: none; }
+
+  /* Projeto detalhe */
+  .projeto-header .meta-list { grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+
+  /* Motor de liberação — empilha vertical */
+  .etapas-cadeia { flex-direction: column; }
+  .etapa-node { flex: 1 1 auto; width: 100%; }
+  .etapa-conector {
+    flex: 0 0 auto;
+    width: 100%;
+    height: 28px;
+    transform: rotate(90deg);
+    padding: 0;
+  }
+
+  /* Reagendamento */
+  .trigger-card { padding: var(--sp-4); flex-direction: column; gap: var(--sp-3); }
+  .diff-col { padding: var(--sp-4); }
+  .conflict-panel { padding: var(--sp-4); }
+  .conflict-question { font-size: 1.125rem; }
+  .opcao {
+    grid-template-columns: 1fr;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+  }
+  .opcao .radio { order: -1; }
+
+  .confirm-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+  }
+  .confirm-bar .actions { flex-direction: column-reverse; }
+  .confirm-bar .actions .btn { width: 100%; justify-content: center; }
+
+  /* Custos */
+  .custos-header { grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+  .camada-card { padding: var(--sp-4); }
+  .camada-card .valor { font-size: 1.375rem; }
+  .margem-hero {
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+    padding: var(--sp-5);
+  }
+  .margem-hero .item .num { font-size: 1.5rem; }
+  .tabs { overflow-x: auto; white-space: nowrap; }
+  .tab { flex: 0 0 auto; }
+
+  .custo-tabela-header { display: none; }
+  .custo-tabela-row {
+    grid-template-columns: 1fr auto;
+    gap: var(--sp-2) var(--sp-3);
+    padding: var(--sp-4);
+    align-items: flex-start;
+  }
+  .custo-tabela-row > div:nth-child(1) { grid-column: 1 / -1; }
+  .custo-tabela-row > div:nth-child(2) { grid-column: 1; }
+  .custo-tabela-row > div:nth-child(3) { grid-column: 1; font-size: 0.75rem; }
+  .custo-tabela-row .valor { grid-column: 2; grid-row: 2 / span 2; align-self: center; font-size: 1rem; }
+
+  /* Chão de fábrica */
+  .chao-container { padding: var(--sp-5) var(--sp-4); }
+  .chao-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-4);
+  }
+  .chao-header .titulo { font-size: 1.75rem; }
+  .chao-header .relogio { font-size: 2.25rem; align-self: flex-end; }
+  .chao-grid { grid-template-columns: 1fr; gap: var(--sp-4); }
+  .chao-etapa { padding: var(--sp-5); }
+  .chao-etapa .etapa-titulo { font-size: 1.375rem; }
+
+  /* Botão back sticky no mobile */
+  .back-btn.visible { margin-bottom: var(--sp-4); }
+}
+
+/* Very small (< 380px) */
+@media (max-width: 380px) {
+  .main { padding: var(--sp-4) var(--sp-3); }
+  .custos-header { grid-template-columns: 1fr; }
+  .projeto-header .meta-list { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- =============================================================================
+     APP SHELL
+     ============================================================================= -->
+<div class="app" id="app">
+
+  <!-- Mobile top bar -->
+  <header class="topbar">
+    <div class="brand-mark">
+      <img src="SIMBOLO SISTEMA .svg" width="82" height="82" alt="Alpha Móveis" aria-hidden="true" style="flex: 0 0 auto; object-fit: contain;">
+    </div>
+    <button class="hamburger" onclick="toggleDrawer()" aria-label="Abrir menu">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="4" y1="7" x2="20" y2="7"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="17" x2="20" y2="17"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Drawer backdrop (mobile) -->
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="toggleDrawer()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand-mark">
+      <!-- Símbolo isolado da marca — arquivo SVG externo -->
+      <img src="SIMBOLO SISTEMA .svg" alt="Alpha Móveis" style="width: 100%; height: auto; display: block; object-fit: contain;">
+    </div>
+
+    <nav class="nav">
+      <div class="nav-label t-micro">Operação</div>
+      <button class="nav-item" data-view="painel" aria-current="page">
+        <span class="dot"></span> Painel
+      </button>
+      <button class="nav-item" data-view="projetos">
+        <span class="dot"></span> Projetos
+        <span class="badge">3</span>
+      </button>
+      <button class="nav-item" data-view="novo-projeto">
+        <span class="dot"></span> Novo projeto
+      </button>
+      <button class="nav-item" data-view="reagendamento">
+        <span class="dot"></span> Reagendar Agenda
+      </button>
+      <button class="nav-item" data-view="custos">
+        <span class="dot"></span> Custos
+      </button>
+
+      <div class="nav-label t-micro" style="margin-top: var(--sp-5);">Equipe</div>
+      <button class="nav-item" data-view="chao">
+        <span class="dot"></span> Chão de Fábrica
+      </button>
+
+      <div class="nav-label t-micro" style="margin-top: var(--sp-5);">Integrações</div>
+      <button class="nav-item" data-view="integracao-agenda">
+        <span class="dot"></span> Google Agenda
+      </button>
+      <button class="nav-item" data-view="configuracao">
+        <span class="dot"></span> Configuração
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="mode-switch" onclick="toggleMode()">
+        <span>Modo</span>
+        <strong id="mode-label">Gestor</strong>
+      </button>
+      <button class="theme-switch" onclick="toggleTheme()" aria-label="Alternar tema">
+        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Ícone de lua (dark mode) -->
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+        <span id="theme-label">Claro</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Back button (shown when view history has entries) -->
+    <button class="back-btn" id="back-btn" onclick="voltarView()" aria-label="Voltar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      <span id="back-btn-label">Voltar</span>
+    </button>
+
+    <!-- =========================================================================
+         VIEW: PAINEL
+         ========================================================================= -->
+    <section class="view active" id="view-painel">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow t-micro">Painel do gestor</div>
+          <h1 class="t-hero">Boa tarde, Wagner.</h1>
+          <p class="lede">Três projetos ativos, um pedindo sua atenção agora. A margem consolidada do mês está saudável, mas o Ávila precisa de decisão sobre reagendamento.</p>
+        </div>
+        <div class="stack stack-2" style="align-items: flex-end;">
+          <div class="t-micro">Hoje</div>
+          <div style="font-family: var(--font-display); font-size: 1.5rem;">27 jul, seg</div>
+        </div>
+      </header>
+
+      <div class="painel-grid">
+        <!-- Termômetro -->
+        <div class="termometro">
+          <div class="eyebrow t-micro">Termômetro operacional</div>
+          <div class="hero-number">R$ 41.320</div>
+          <p class="hero-desc">Margem consolidada dos projetos ativos, no ritmo atual de produção. Considera materiais lançados, mão de obra alocada e indiretos rateados de julho.</p>
+
+          <div class="termometro-kpis">
+            <div class="kpi">
+              <div class="label">Projetos ativos</div>
+              <div class="value">3</div>
+              <div class="trend up">+1 fechado esta semana</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Etapas em andamento</div>
+              <div class="value">7</div>
+              <div class="trend">2 aguardando material</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Margem média</div>
+              <div class="value">32%</div>
+              <div class="trend down">−4pp vs. junho</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertas -->
+        <div class="card">
+          <div class="card-title">
+            <h3>Precisa da sua atenção</h3>
+            <span class="meta t-small">3</span>
+          </div>
+          <div class="alertas-list">
+            <div class="alerta">
+              <div class="alerta-bar"></div>
+              <div class="alerta-body">
+                <div class="alerta-title">Ávila · Fernanda</div>
+                <div class="alerta-desc">Cliente adiou entrega da chave em 3 dias. Motor de reagendamento sugere ajuste em 4 compromissos.</div>
+                <button class="alerta-cta" onclick="switchView('reagendamento')">Ver proposta →</button>
+              </div>
+            </div>
+            <div class="alerta">
+              <div class="alerta-bar warn"></div>
+              <div class="alerta-body">
+                <div class="alerta-title">MDF Guararapes em falta</div>
+                <div class="alerta-desc">3 etapas da cozinha Ávila estão bloqueadas aguardando chapa Areia Guararapes. Fornecedor Madema informou 4 dias.</div>
+                <button class="alerta-cta">Ver solicitação de compra →</button>
+              </div>
+            </div>
+            <div class="alerta">
+              <div class="alerta-bar info"></div>
+              <div class="alerta-body">
+                <div class="alerta-title">Feedback da equipe</div>
+                <div class="alerta-desc">Rodrigo (marceneiro) sugeriu campo de "material perdido" no tablet do chão de fábrica.</div>
+                <button class="alerta-cta">Registrar →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projetos ativos -->
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-4);">
+        <h2 class="t-h2">Projetos ativos</h2>
+        <button class="btn btn-ghost">Ver todos os projetos →</button>
+      </div>
+      <div class="projetos-lista" id="projetos-lista">
+        <!-- populado por JS -->
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VIEW: PROJETOS
+         ========================================================================= -->
+    <section class="view" id="view-projetos">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow t-micro">Projeto · P-2026-014</div>
+          <h1 class="t-hero">Ávila, Fernanda</h1>
+          <p class="lede">Móveis planejados para apartamento em Belo Horizonte. Contrato de R$ 72.686,00 dividido em 12 ambientes.</p>
+        </div>
+        <div>
+          <button class="btn btn-secondary">Ver contrato</button>
+          <button class="btn btn-primary" style="margin-left: var(--sp-2);">Editar projeto</button>
+        </div>
+      </header>
+
+      <div class="projeto-header">
+        <dl class="meta-list">
+          <div><dt>Valor total</dt><dd>R$ 72.686,00</dd></div>
+          <div><dt>Recebido</dt><dd>R$ 36.343,00 <span style="color: var(--ink-subtle); font-size: 0.75rem;">(50% — fechamento)</span></dd></div>
+          <div><dt>Prazo contratual</dt><dd>15 set 2026</dd></div>
+          <div><dt>Ambientes</dt><dd>12 · 42 etapas</dd></div>
+        </dl>
+        <div class="stack stack-2" style="align-items: flex-end;">
+          <div class="t-micro">Progresso</div>
+          <div class="t-hero" style="font-size: 3rem;">28%</div>
+          <div class="progresso-bar" style="width: 200px;"><div class="progresso-fill" style="width: 28%;"></div></div>
+        </div>
+      </div>
+
+      <!-- Ambientes com motor de liberação -->
+      <div id="ambientes-lista">
+        <!-- populado por JS -->
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VIEW: REAGENDAMENTO
+         ========================================================================= -->
+    <section class="view" id="view-reagendamento">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow t-micro">Assistente de reagendamento</div>
+          <h1 class="t-hero">O sistema não decide.<br>Ele te mostra as opções.</h1>
+          <p class="lede">Um imprevisto mudou o desenho da sua agenda. Aqui está o impacto em cascata e as saídas possíveis. Nada é gravado no seu Google Agenda até você aprovar.</p>
+        </div>
+      </header>
+
+      <!-- Trigger -->
+      <div class="trigger-card">
+        <div class="icon">!</div>
+        <div>
+          <div class="titulo">Fernanda Ávila adiou a entrega da chave para 4 de agosto</div>
+          <div class="desc">Motivo informado: reforma elétrica atrasada. Isso empurra a medição técnica em 3 dias úteis, e a cascata afeta 3 outros compromissos que dependiam do galpão livre.</div>
+        </div>
+      </div>
+
+      <!-- Diff antes/depois -->
+      <div class="diff-grid">
+        <div class="diff-col">
+          <h4>Agenda atual</h4>
+          <div class="stack">
+            <div class="agenda-item"><div class="data">30 jul</div><div><div class="titulo">Medição técnica · Ávila</div><div class="cliente">BH · 09:00–11:00</div></div></div>
+            <div class="agenda-item"><div class="data">01 ago</div><div><div class="titulo">Início corte · Ávila</div><div class="cliente">Galpão · dia todo</div></div></div>
+            <div class="agenda-item"><div class="data">05 ago</div><div><div class="titulo">Visita técnica · Ribeiro</div><div class="cliente">Nova Lima · 14:00</div></div></div>
+            <div class="agenda-item"><div class="data">08 ago</div><div><div class="titulo">Instalação · Costa (final)</div><div class="cliente">Contagem · manhã</div></div></div>
+            <div class="agenda-item"><div class="data">12 ago</div><div><div class="titulo">Início montagem · Ávila</div><div class="cliente">BH</div></div></div>
+          </div>
+        </div>
+
+        <div class="diff-arrow">→</div>
+
+        <div class="diff-col proposta">
+          <h4>Proposta com o atraso</h4>
+          <div class="stack">
+            <div class="agenda-item moved"><div class="data">04 ago</div><div><div class="titulo">Medição técnica · Ávila</div><div class="cliente">BH · 09:00–11:00</div><div class="diff-label">Adiada 3 dias úteis</div></div></div>
+            <div class="agenda-item moved"><div class="data">06 ago</div><div><div class="titulo">Início corte · Ávila</div><div class="cliente">Galpão · dia todo</div><div class="diff-label">Adiada 3 dias</div></div></div>
+            <div class="agenda-item conflict"><div class="data">05 ago</div><div><div class="titulo">Visita técnica · Ribeiro</div><div class="cliente">Nova Lima · 14:00</div><div class="diff-label" style="color: var(--status-atrasado);">Conflita com corte Ávila</div></div></div>
+            <div class="agenda-item"><div class="data">08 ago</div><div><div class="titulo">Instalação · Costa (final)</div><div class="cliente">Contagem · manhã</div></div></div>
+            <div class="agenda-item moved"><div class="data">15 ago</div><div><div class="titulo">Início montagem · Ávila</div><div class="cliente">BH</div><div class="diff-label">Adiada 3 dias</div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel de decisão do conflito -->
+      <div class="conflict-panel">
+        <div class="conflict-header">
+          <div class="icon">?</div>
+          <div>
+            <div class="t-micro">Conflito 1 de 1</div>
+          </div>
+        </div>
+        <div class="conflict-question">A visita ao Ribeiro (05 ago) colide com o corte do Ávila. Como resolver?</div>
+
+        <div class="opcoes">
+          <button class="opcao" onclick="selecionarOpcao(this)">
+            <div>
+              <div class="titulo">Adiar visita Ribeiro para 07 ago (tarde)</div>
+              <div class="impacto">Ribeiro tem disponibilidade confirmada. Cronograma dele não é impactado, projeto ainda não iniciado.</div>
+            </div>
+            <div class="radio"></div>
+          </button>
+          <button class="opcao selecionada" onclick="selecionarOpcao(this)">
+            <div>
+              <div class="titulo">Manter visita Ribeiro em 05 ago, terceirizar corte Ávila</div>
+              <div class="impacto">Custo adicional estimado: R$ 380. Terceirizado disponível (Marcenaria Central). Mantém prazo do Ávila.</div>
+            </div>
+            <div class="radio"></div>
+          </button>
+          <button class="opcao" onclick="selecionarOpcao(this)">
+            <div>
+              <div class="titulo">Comprimir prazo do corte para 04 ago (dia da medição)</div>
+              <div class="impacto">Alto risco. Requer hora extra e a chapa precisa chegar até 03 ago (fornecedor confirmou dia 05). Não recomendado.</div>
+            </div>
+            <div class="radio"></div>
+          </button>
+          <button class="opcao" onclick="selecionarOpcao(this)">
+            <div>
+              <div class="titulo">Decidir depois — deixar como pendência</div>
+              <div class="impacto">O conflito fica sinalizado no Painel, mas o resto do reagendamento pode ser aprovado agora.</div>
+            </div>
+            <div class="radio"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de confirmação -->
+      <div class="confirm-bar">
+        <div class="info">
+          <div class="icon-check">✓</div>
+          <div>
+            <div style="font-weight: 500; font-size: 0.9375rem;">4 mudanças no Google Agenda + 1 decisão de conflito</div>
+            <div style="font-size: 0.8125rem; color: var(--ink-muted);">Nada é gravado até você confirmar.</div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-secondary" onclick="cancelarReagendamento()">Cancelar</button>
+          <button class="btn btn-primary" onclick="confirmarReagendamento()">Confirmar e sincronizar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VIEW: CUSTOS
+         ========================================================================= -->
+    <section class="view" id="view-custos">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow t-micro">Custos · Ávila, Fernanda</div>
+          <h1 class="t-hero">Rastreabilidade ponta a ponta</h1>
+          <p class="lede">Cada real gasto no projeto ancora em um ambiente e uma etapa. As quatro camadas — material, mão de obra, indiretos e retrabalho — se somam para revelar a margem real, não a projetada.</p>
+        </div>
+        <div>
+          <button class="btn btn-secondary">Exportar planilha</button>
+        </div>
+      </header>
+
+      <!-- Margem consolidada -->
+      <div class="margem-hero">
+        <div class="item">
+          <div class="lbl">Receita contratada</div>
+          <div class="num">R$ 72.686</div>
+          <div class="desc">50% recebido, 25% na instalação, 25% na entrega</div>
+        </div>
+        <div class="item">
+          <div class="lbl">Custo acumulado</div>
+          <div class="num">R$ 18.240</div>
+          <div class="desc">Real, das 4 camadas somadas até hoje</div>
+        </div>
+        <div class="item">
+          <div class="lbl">Margem projetada</div>
+          <div class="num">34,2%</div>
+          <div class="desc">−1,8pp vs. orçamento inicial (36%)</div>
+        </div>
+      </div>
+
+      <!-- Camadas -->
+      <div class="custos-header">
+        <div class="camada-card" data-camada="materiais">
+          <div class="label">Materiais</div>
+          <div class="valor">R$ 12.420</div>
+          <div class="pct">68% do custo · MDF, ferragens, vidro</div>
+        </div>
+        <div class="camada-card" data-camada="mao-obra">
+          <div class="label">Mão de obra</div>
+          <div class="valor">R$ 4.280</div>
+          <div class="pct">23% · 47h de PJ registradas</div>
+        </div>
+        <div class="camada-card" data-camada="indiretos">
+          <div class="label">Indiretos (rateio)</div>
+          <div class="valor">R$ 1.180</div>
+          <div class="pct">6% · energia, aluguel galpão</div>
+        </div>
+        <div class="camada-card" data-camada="retrabalho">
+          <div class="label">Retrabalho</div>
+          <div class="valor">R$ 360</div>
+          <div class="pct">2% · 1 ocorrência (usinagem)</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab" aria-selected="true" onclick="switchTab(this, 'materiais')">Materiais</button>
+        <button class="tab" aria-selected="false" onclick="switchTab(this, 'mao-obra')">Mão de obra</button>
+        <button class="tab" aria-selected="false" onclick="switchTab(this, 'indiretos')">Indiretos</button>
+        <button class="tab" aria-selected="false" onclick="switchTab(this, 'retrabalho')">Retrabalho</button>
+      </div>
+
+      <!-- Tabela de itens -->
+      <div class="custo-tabela" id="custo-tabela">
+        <div class="custo-tabela-header">
+          <div>Item</div>
+          <div>Ambiente / Etapa</div>
+          <div>Fornecedor / Origem</div>
+          <div style="text-align: right;">Valor</div>
+        </div>
+        <div id="custo-linhas"><!-- populado por JS --></div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VIEW: CONFIGURAÇÃO
+         ========================================================================= -->
+    <section class="view" id="view-configuracao">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow t-micro">Configuração</div>
+          <h1 class="t-hero">Credenciais das integrações</h1>
+          <p class="lede">Cole aqui as credenciais do seu projeto Supabase e do OAuth do Google. Elas ficam salvas apenas no seu navegador — nunca são enviadas para nenhum lugar além dos serviços originais.</p>
+        </div>
+      </header>
+
+      <div class="config-warning">
+        <strong>⚠ Sobre segurança</strong>
+        Estas credenciais ficam em <code>localStorage</code> do navegador. Para produção real com múltiplos usuários, migre para variáveis de ambiente no servidor. Para uso pessoal do Wagner num único dispositivo, isso é aceitável.
+      </div>
+
+      <div class="card" style="margin-bottom: var(--sp-5);">
+        <h3 class="t-h3" style="margin-bottom: var(--sp-4);">Supabase</h3>
+
+        <div class="credential-field">
+          <div class="field-label">Project URL <span class="req">*</span></div>
+          <input type="url" class="input" id="cfg-supabase-url" placeholder="https://xxxxxxxx.supabase.co">
+          <div class="field-hint">Em Supabase → Project Settings → API → <code>Project URL</code></div>
+        </div>
+
+        <div class="credential-field">
+          <div class="field-label">Anon (public) key <span class="req">*</span></div>
+          <input type="text" class="input" id="cfg-supabase-key" placeholder="eyJhbGci...">
+          <div class="field-hint">Em Supabase → Project Settings → API → <code>anon public</code></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: var(--sp-5);">
+        <h3 class="t-h3" style="margin-bottom: var(--sp-4);">Google Cloud OAuth</h3>
+
+        <div class="credential-field">
+          <div class="field-label">OAuth Client ID <span class="req">*</span></div>
+          <input type="text" class="input" id="cfg-google-client-id" placeholder="xxxxxxxxxxxx.apps.googleusercontent.com">
+          <div class="field-hint">Em Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs (tipo Web application). Adicione a URL desta página como Authorized JavaScript origin.</div>
+        </div>
+      </div>
+
+      <div class="wizard-nav">
+        <button class="btn btn-ghost" onclick="limparConfiguracao()">Limpar</button>
+        <div style="display: flex; gap: var(--sp-3);">
+          <button class="btn btn-secondary" onclick="testarConexoes()">Testar conexões</button>
+          <button class="btn btn-primary" onclick="salvarConfiguracao()">Salvar credenciais</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VIEW: NOVO PROJETO (wizard 4 etapas)
+         ========================================================================= -->
+    <section class="view" id="view-novo-projeto">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow t-micro">Novo projeto</div>
+          <h1 class="t-hero">Cadastro em 4 etapas</h1>
+          <p class="lede">O sistema valida cada passo antes de deixar avançar. Isso reduz erros que só apareceriam no meio da produção — percentuais que não fecham, cronogramas sem cliente confirmado, contratos sem parcela definida.</p>
+        </div>
+      </header>
+
+      <!-- Steps indicator -->
+      <div class="wizard-steps">
+        <div class="wizard-step active" data-step="1"><span class="num">1</span><span class="label">Cliente</span></div>
+        <div class="wizard-step" data-step="2"><span class="num">2</span><span class="label">Projeto</span></div>
+        <div class="wizard-step" data-step="3"><span class="num">3</span><span class="label">Ambientes</span></div>
+        <div class="wizard-step" data-step="4"><span class="num">4</span><span class="label">Revisão</span></div>
+      </div>
+
+      <!-- Step 1: Cliente -->
+      <div class="wizard-panel active" data-panel="1">
+        <h2 class="wizard-title">Dados do cliente</h2>
+        <p class="wizard-desc">Estas informações vão diretamente para o contrato. CPF e CEP têm validação automática.</p>
+
+        <div class="stack stack-5">
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="cli-nome">Nome completo <span class="req">*</span></label>
+              <input type="text" class="input" id="cli-nome" placeholder="Ex: Fernanda Fagundes da Silva Ávila">
+            </div>
+            <div class="field">
+              <label class="field-label" for="cli-cpf">CPF <span class="req">*</span></label>
+              <input type="text" class="input" id="cli-cpf" placeholder="000.000.000-00" maxlength="14">
+              <div class="field-error" id="cli-cpf-err" style="display: none;">CPF inválido</div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="cli-nascimento">Data de nascimento</label>
+              <input type="date" class="input" id="cli-nascimento">
+            </div>
+            <div class="field">
+              <label class="field-label" for="cli-email">E-mail</label>
+              <input type="email" class="input" id="cli-email" placeholder="cliente@exemplo.com">
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="cli-telefone">Telefone <span class="req">*</span></label>
+              <input type="tel" class="input" id="cli-telefone" placeholder="(31) 99999-9999">
+            </div>
+            <div class="field">
+              <label class="field-label" for="cli-cep">CEP</label>
+              <input type="text" class="input" id="cli-cep" placeholder="00000-000" maxlength="9">
+              <div class="field-hint">O endereço preenche automaticamente</div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field" style="grid-column: 1 / -1;">
+              <label class="field-label" for="cli-endereco">Endereço da obra <span class="req">*</span></label>
+              <input type="text" class="input" id="cli-endereco" placeholder="Rua, número, complemento, bairro, cidade / UF">
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn btn-ghost" onclick="switchView('projetos')">Cancelar</button>
+          <button class="btn btn-primary" onclick="wizardNext(1)">Continuar →</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Projeto & valores -->
+      <div class="wizard-panel" data-panel="2">
+        <h2 class="wizard-title">Dados do projeto</h2>
+        <p class="wizard-desc">O cronograma de pagamento fica em branco intencionalmente — cada cliente é uma negociação diferente. Configure as parcelas conforme combinado.</p>
+
+        <div class="stack stack-5">
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="prj-codigo">Código do projeto</label>
+              <input type="text" class="input" id="prj-codigo" placeholder="Ex: P-2026-015" readonly>
+              <div class="field-hint">Gerado automaticamente</div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="prj-prazo">Prazo contratual <span class="req">*</span></label>
+              <input type="date" class="input" id="prj-prazo">
+              <div class="field-hint">Data de entrega final</div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="prj-valor">Valor total (R$) <span class="req">*</span></label>
+              <input type="text" class="input" id="prj-valor" placeholder="72.686,00">
+            </div>
+            <div class="field">
+              <label class="field-label" for="prj-descricao">Descrição resumida</label>
+              <input type="text" class="input" id="prj-descricao" placeholder="Ex: 12 ambientes planejados">
+            </div>
+          </div>
+
+          <div>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-3);">
+              <label class="field-label">Cronograma de pagamento <span class="req">*</span></label>
+              <button class="btn btn-ghost" onclick="adicionarParcela()" style="font-size: 0.75rem;">+ Adicionar parcela</button>
+            </div>
+            <div id="parcelas-list">
+              <!-- populado dinamicamente -->
+            </div>
+            <div class="percentual-status warn" id="parcelas-status">
+              <span>⚠</span> <span>Nenhuma parcela definida ainda. Confirme com o cliente antes de continuar.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn btn-secondary" onclick="wizardBack(2)">← Voltar</button>
+          <button class="btn btn-primary" onclick="wizardNext(2)">Continuar →</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Ambientes -->
+      <div class="wizard-panel" data-panel="3">
+        <h2 class="wizard-title">Ambientes do projeto</h2>
+        <p class="wizard-desc">Adicione cada ambiente com o percentual de participação no valor total. A soma deve fechar em 100% — o sistema não deixa avançar se ficar diferente.</p>
+
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-3);">
+          <label class="field-label">Ambientes</label>
+          <button class="btn btn-ghost" onclick="adicionarAmbiente()" style="font-size: 0.75rem;">+ Adicionar ambiente</button>
+        </div>
+
+        <div id="ambientes-list-wizard">
+          <!-- populado dinamicamente -->
+        </div>
+
+        <div class="percentual-status warn" id="ambientes-status">
+          <span>⚠</span> <span>Nenhum ambiente adicionado.</span>
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn btn-secondary" onclick="wizardBack(3)">← Voltar</button>
+          <button class="btn btn-primary" onclick="wizardNext(3)">Continuar →</button>
+        </div>
+      </div>
+
+      <!-- Step 4: Revisão -->
+      <div class="wizard-panel" data-panel="4">
+        <h2 class="wizard-title">Confira antes de salvar</h2>
+        <p class="wizard-desc">Revise os dados. Se algo estiver errado, volte às etapas anteriores. Ao salvar, o projeto entra no banco e passa a ficar visível para toda a equipe.</p>
+
+        <div class="card" id="review-content">
+          <!-- populado dinamicamente -->
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn btn-secondary" onclick="wizardBack(4)">← Voltar</button>
+          <button class="btn btn-primary" onclick="salvarProjeto()">Salvar projeto no banco</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VIEW: INTEGRAÇÃO GOOGLE AGENDA
+         ========================================================================= -->
+    <section class="view" id="view-integracao-agenda">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow t-micro">Integração · Google Agenda</div>
+          <h1 class="t-hero">Sua agenda,<br>sob seu controle.</h1>
+          <p class="lede">O sistema pode ler seus compromissos e propor mudanças — mas nunca escreve na sua agenda sem uma autorização explícita para cada modificação. Você vê o que vai mudar antes de confirmar.</p>
+        </div>
+      </header>
+
+      <!-- Status de conexão -->
+      <div class="integration-card">
+        <div class="integration-status disconnected" id="google-status">
+          <div class="indicator"></div>
+          <div class="info">
+            <strong id="google-status-title">Desconectado</strong>
+            <small id="google-status-detail">Autorize o acesso para começar a sincronizar eventos</small>
+          </div>
+          <button class="btn btn-primary" id="google-connect-btn" onclick="conectarGoogleAgenda()">Conectar Google Agenda</button>
+        </div>
+
+        <div style="margin-top: var(--sp-5);">
+          <div class="field-label" style="margin-bottom: var(--sp-3);">Como funciona</div>
+          <div class="stack stack-3" style="font-size: 0.875rem; color: var(--ink-muted);">
+            <div style="display: flex; gap: var(--sp-3);"><span style="color: var(--accent); font-weight: 600;">01</span> Você autoriza pelo popup oficial do Google. Nenhuma senha passa pelo sistema.</div>
+            <div style="display: flex; gap: var(--sp-3);"><span style="color: var(--accent); font-weight: 600;">02</span> O sistema lê seus eventos futuros para saber o que já está agendado.</div>
+            <div style="display: flex; gap: var(--sp-3);"><span style="color: var(--accent); font-weight: 600;">03</span> Quando propõe uma mudança, um modal mostra exatamente o que vai alterar.</div>
+            <div style="display: flex; gap: var(--sp-3);"><span style="color: var(--accent); font-weight: 600;">04</span> Só depois do "Confirmar", a modificação é gravada no Google Agenda.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Eventos futuros (quando conectado) -->
+      <div class="integration-card" id="eventos-container" style="display: none;">
+        <div class="card-title">
+          <h3>Seus próximos compromissos</h3>
+          <button class="btn btn-ghost" onclick="carregarEventos()" style="font-size: 0.75rem;">Atualizar</button>
+        </div>
+        <div class="event-list" id="eventos-list">
+          <!-- populado ao conectar -->
+        </div>
+      </div>
+
+      <!-- Demonstração de modificação -->
+      <div class="integration-card" id="demo-container" style="display: none;">
+        <div class="card-title">
+          <h3>Testar modificação com autorização</h3>
+        </div>
+        <p style="font-size: 0.875rem; color: var(--ink-muted); margin-bottom: var(--sp-4);">
+          Este botão simula o fluxo que o motor de reagendamento usa: cria um evento de teste na sua agenda, propõe uma mudança nele, e pede sua confirmação antes de aplicar. Nada é modificado sem seu OK.
+        </p>
+        <button class="btn btn-secondary" onclick="demoModificacao()">Executar teste de modificação</button>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VIEW: CHÃO DE FÁBRICA (dark auto)
+         ========================================================================= -->
+    <section class="view" id="view-chao">
+      <div class="chao-container">
+        <div class="chao-header">
+          <div>
+            <div class="t-micro" style="margin-bottom: var(--sp-2);">Fila do galpão</div>
+            <div class="titulo">Bom trabalho, equipe.</div>
+          </div>
+          <div class="relogio" id="relogio">14:32</div>
+        </div>
+
+        <div class="chao-grid" id="chao-grid">
+          <!-- populado por JS -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Modal de confirmação (Google Calendar sync) -->
+<div class="modal-backdrop" id="modal-sync">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-header">
+      <div class="icon">!</div>
+      <div>
+        <h3 id="modal-title">Autorização necessária</h3>
+        <p>O sistema quer fazer as seguintes modificações no seu Google Agenda. Nada será gravado até você confirmar.</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-list" id="modal-changes">
+        <!-- populado dinamicamente -->
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="fecharModal()">Não modificar</button>
+      <button class="btn btn-primary" id="modal-confirm-btn" onclick="executarModificacoes()">Confirmar e sincronizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="check">✓</div>
+  <div id="toast-msg">Ação concluída</div>
+</div>
+
+<!-- Welcome overlay — tela de boas-vindas baseada no horário -->
+<div class="welcome-overlay" id="welcome-overlay">
+  <div class="welcome-card">
+    <div class="welcome-logo">
+      <img src="SIMBOLO SISTEMA .svg" alt="Alpha Móveis" style="width: 80px; height: auto; object-fit: contain;">
+    </div>
+    <div class="welcome-content">
+      <div class="welcome-greeting" id="welcome-greeting">Bom dia, Wagner!</div>
+      <div class="welcome-message" id="welcome-message">O galpão está pronto para produzir. Vamos lá?</div>
+      <div class="welcome-time" id="welcome-time">Segunda, 27 de julho · 14:32</div>
+    </div>
+    <button class="btn btn-primary" onclick="fecharWelcome()">Entrar no sistema</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================================
+   MOCK DATA — Baseado no contrato real da Fernanda Ávila (72.686,00)
+   ============================================================================ */
+
+const projetos = [
+  {
+    id: 'p001',
+    codigo: 'P-2026-014',
+    cliente: 'Ávila, Fernanda',
+    endereco: 'Belo Horizonte / MG',
+    valor: 72686,
+    recebido: 36343,
+    prazo: '2026-09-15',
+    progresso: 28,
+    status: 'ativo',
+    ambientes: [
+      {
+        id: 'a1', nome: 'Cozinha', percentual: 21.70,
+        etapas: [
+          { id: 'e1', nome: 'Corte de chapas', responsavel: 'Rodrigo M.', status: 'concluido', dependeDe: [] },
+          { id: 'e2', nome: 'Usinagem puxadores cava', responsavel: 'Rodrigo M.', status: 'concluido', dependeDe: ['e1'] },
+          { id: 'e3', nome: 'Montagem armário inferior', responsavel: 'Rodrigo M.', status: 'andamento', dependeDe: ['e2'] },
+          { id: 'e4', nome: 'Instalação LED sensor', responsavel: 'Elétrica terceirizada', status: 'bloqueado', dependeDe: ['e3'] },
+        ]
+      },
+      {
+        id: 'a2', nome: 'Suíte casal', percentual: 19.19,
+        etapas: [
+          { id: 'e5', nome: 'Corte MDF Areia', responsavel: 'Rodrigo M.', status: 'atrasado', dependeDe: [] },
+          { id: 'e6', nome: 'Montagem closet aberto', responsavel: 'Silvano P.', status: 'bloqueado', dependeDe: ['e5'] },
+          { id: 'e7', nome: 'Fixação sapateiras', responsavel: 'Silvano P.', status: 'bloqueado', dependeDe: ['e6'] },
+        ]
+      },
+      {
+        id: 'a3', nome: 'Quarto Fernandinha', percentual: 9.93,
+        etapas: [
+          { id: 'e8', nome: 'Corte MDF Tauari', responsavel: 'Rodrigo M.', status: 'liberado', dependeDe: [] },
+          { id: 'e9', nome: 'Montagem cabeceira', responsavel: 'Silvano P.', status: 'bloqueado', dependeDe: ['e8'] },
+        ]
+      },
+    ],
+    custos: {
+      materiais: [
+        { item: 'MDF Branco Texturizado 15mm', desc: '12 chapas 2,75×1,85m', ambiente: 'Cozinha · Corte', origem: 'Madema', valor: 3840 },
+        { item: 'MDF Areia Guararapes 15mm', desc: '8 chapas', ambiente: 'Cozinha · Vistas', origem: 'Madema', valor: 3120 },
+        { item: 'MDF Tauari Guararapes 15mm', desc: '6 chapas', ambiente: 'Suíte · Closet', origem: 'Madema', valor: 2680 },
+        { item: 'Corrediças ocultas Blum', desc: '18 pares Tandem', ambiente: 'Cozinha · Gavetas', origem: 'Bortoletto', valor: 1740 },
+        { item: 'LED 240lm sensor', desc: '12m de fita + sensores', ambiente: 'Cozinha · Iluminação', origem: 'LuzForte', valor: 640 },
+        { item: 'Vidro temperado moldurado', desc: 'Frutas + buffet', ambiente: 'Cozinha / Sala jantar', origem: 'Cristalfer', valor: 400 },
+      ],
+      maoDeObra: [
+        { item: 'Rodrigo M. (marceneiro sênior)', desc: '24h · corte e usinagem', ambiente: 'Cozinha', origem: 'PJ interno', valor: 2160 },
+        { item: 'Silvano P. (marceneiro)', desc: '18h · montagem inicial', ambiente: 'Suíte / Quarto', origem: 'PJ interno', valor: 1440 },
+        { item: 'Elétrica terceirizada', desc: '5h estimadas', ambiente: 'Cozinha · LED', origem: 'Cardoso Instalações', valor: 680 },
+      ],
+      indiretos: [
+        { item: 'Energia elétrica galpão', desc: 'Rateio julho (32% Ávila)', ambiente: 'Global', origem: 'Cemig', valor: 480 },
+        { item: 'Aluguel galpão', desc: 'Rateio julho (32%)', ambiente: 'Global', origem: 'Locação', valor: 640 },
+        { item: 'Ferramentas / consumíveis', desc: 'Lixas, brocas, cola PU', ambiente: 'Global', origem: 'Diversos', valor: 60 },
+      ],
+      retrabalho: [
+        { item: 'Retrabalho puxador cava', desc: 'Usinagem fora de esquadro em 2 portas', ambiente: 'Cozinha · Armário inf.', origem: 'Fabricação', valor: 360 },
+      ]
+    }
+  },
+  {
+    id: 'p002',
+    cliente: 'Costa, Marina',
+    endereco: 'Contagem / MG',
+    valor: 48200,
+    recebido: 48200,
+    prazo: '2026-08-08',
+    progresso: 92,
+    status: 'instalacao',
+  },
+  {
+    id: 'p003',
+    cliente: 'Ribeiro, Anderson',
+    endereco: 'Nova Lima / MG',
+    valor: 61540,
+    recebido: 15385,
+    prazo: '2026-10-20',
+    progresso: 8,
+    status: 'ativo',
+  },
+];
+
+/* ============================================================================
+   RENDERING
+   ============================================================================ */
+
+function fmtBRL(v) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
+}
+
+function fmtDate(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+}
+
+function diasAte(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  const hoje = new Date('2026-07-27T00:00:00');
+  return Math.ceil((d - hoje) / (1000 * 60 * 60 * 24));
+}
+
+/* ============================================================================
+   CONFIG STORAGE
+   Credenciais ficam no localStorage do navegador. Nunca são enviadas para
+   nenhum servidor além dos próprios serviços (Supabase, Google).
+   ============================================================================ */
+const CONFIG_KEY = 'alpha-sistema-config-v1';
+
+function getConfig() {
+  try {
+    return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
+  } catch { return {}; }
+}
+function setConfig(cfg) {
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+}
+
+function carregarConfiguracaoUI() {
+  const cfg = getConfig();
+  const url = document.getElementById('cfg-supabase-url');
+  const key = document.getElementById('cfg-supabase-key');
+  const gid = document.getElementById('cfg-google-client-id');
+  if (url) url.value = cfg.supabaseUrl || '';
+  if (key) key.value = cfg.supabaseKey || '';
+  if (gid) gid.value = cfg.googleClientId || '';
+}
+
+function salvarConfiguracao() {
+  const cfg = {
+    supabaseUrl: document.getElementById('cfg-supabase-url').value.trim(),
+    supabaseKey: document.getElementById('cfg-supabase-key').value.trim(),
+    googleClientId: document.getElementById('cfg-google-client-id').value.trim(),
+  };
+  setConfig(cfg);
+  showToast('Credenciais salvas neste navegador.');
+  initSupabase();
+  initGoogleAuth();
+}
+
+function limparConfiguracao() {
+  if (!confirm('Limpar todas as credenciais salvas?')) return;
+  localStorage.removeItem(CONFIG_KEY);
+  carregarConfiguracaoUI();
+  showToast('Credenciais removidas.');
+}
+
+async function testarConexoes() {
+  const cfg = getConfig();
+  const messages = [];
+
+  // Test Supabase
+  if (cfg.supabaseUrl && cfg.supabaseKey) {
+    try {
+      const res = await fetch(cfg.supabaseUrl + '/rest/v1/', {
+        headers: { 'apikey': cfg.supabaseKey }
+      });
+      messages.push(res.ok ? '✓ Supabase respondendo' : `⚠ Supabase HTTP ${res.status}`);
+    } catch (e) { messages.push('✗ Supabase inacessível'); }
+  } else {
+    messages.push('⚠ Supabase: credenciais em branco');
+  }
+
+  // Test Google (just checks if the library loaded and client ID looks valid)
+  if (cfg.googleClientId && cfg.googleClientId.includes('.apps.googleusercontent.com')) {
+    messages.push(window.google?.accounts ? '✓ Google Identity Services carregado' : '⚠ Google GIS ainda carregando');
+  } else {
+    messages.push('⚠ Google Client ID vazio ou mal formatado');
+  }
+
+  alert(messages.join('\n'));
+}
+
+/* ============================================================================
+   SUPABASE CLIENT
+   ============================================================================ */
+let supabase = null;
+
+function initSupabase() {
+  const cfg = getConfig();
+  if (!cfg.supabaseUrl || !cfg.supabaseKey || !window.createSupabaseClient) return;
+  try {
+    supabase = window.createSupabaseClient(cfg.supabaseUrl, cfg.supabaseKey);
+    console.info('[Supabase] Cliente inicializado');
+  } catch (e) {
+    console.error('[Supabase] Erro ao inicializar:', e);
+    supabase = null;
+  }
+}
+
+async function salvarProjetoNoBanco(projeto) {
+  if (!supabase) {
+    return { error: { message: 'Supabase não configurado. Vá em Configuração.' } };
+  }
+  // Insere cliente primeiro, depois projeto vinculado, depois ambientes
+  const { data: cliente, error: e1 } = await supabase
+    .from('clientes')
+    .insert(projeto.cliente)
+    .select()
+    .single();
+  if (e1) return { error: e1 };
+
+  const { data: prj, error: e2 } = await supabase
+    .from('projetos')
+    .insert({ ...projeto.projeto, cliente_id: cliente.id })
+    .select()
+    .single();
+  if (e2) return { error: e2 };
+
+  if (projeto.ambientes.length > 0) {
+    const ambs = projeto.ambientes.map(a => ({ ...a, projeto_id: prj.id }));
+    const { error: e3 } = await supabase.from('ambientes').insert(ambs);
+    if (e3) return { error: e3 };
+  }
+
+  if (projeto.parcelas.length > 0) {
+    const parcs = projeto.parcelas.map(p => ({ ...p, projeto_id: prj.id }));
+    const { error: e4 } = await supabase.from('parcelas_pagamento').insert(parcs);
+    if (e4) return { error: e4 };
+  }
+
+  return { data: prj };
+}
+
+/* ============================================================================
+   GOOGLE CALENDAR — OAUTH via Google Identity Services
+   ============================================================================ */
+let googleTokenClient = null;
+let googleAccessToken = null;
+let googleUserEmail = null;
+
+function initGoogleAuth() {
+  const cfg = getConfig();
+  if (!cfg.googleClientId) return;
+  if (!window.google || !window.google.accounts) {
+    // GIS library ainda carregando — retentativa em 500ms
+    setTimeout(initGoogleAuth, 500);
+    return;
+  }
+
+  try {
+    googleTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: cfg.googleClientId,
+      scope: 'https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email',
+      callback: (response) => {
+        if (response.error) {
+          console.error('[Google] Auth error:', response);
+          showToast('Autorização recusada ou falhou.');
+          return;
+        }
+        googleAccessToken = response.access_token;
+        atualizarStatusGoogle();
+        // Busca email do usuário
+        fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+          headers: { Authorization: `Bearer ${googleAccessToken}` }
+        })
+        .then(r => r.json())
+        .then(u => {
+          googleUserEmail = u.email;
+          atualizarStatusGoogle();
+          carregarEventos();
+        });
+      }
+    });
+    console.info('[Google] Token client inicializado');
+  } catch (e) {
+    console.error('[Google] Erro ao inicializar:', e);
+  }
+}
+
+function conectarGoogleAgenda() {
+  const cfg = getConfig();
+  if (!cfg.googleClientId) {
+    showToast('Configure o Google Client ID em Configuração primeiro.');
+    switchView('configuracao');
+    return;
+  }
+  if (!googleTokenClient) {
+    initGoogleAuth();
+    setTimeout(() => googleTokenClient && googleTokenClient.requestAccessToken(), 800);
+    return;
+  }
+  googleTokenClient.requestAccessToken();
+}
+
+function desconectarGoogleAgenda() {
+  if (googleAccessToken && window.google) {
+    google.accounts.oauth2.revoke(googleAccessToken, () => {});
+  }
+  googleAccessToken = null;
+  googleUserEmail = null;
+  atualizarStatusGoogle();
+  showToast('Desconectado do Google Agenda.');
+}
+
+function atualizarStatusGoogle() {
+  const statusEl = document.getElementById('google-status');
+  const titleEl = document.getElementById('google-status-title');
+  const detailEl = document.getElementById('google-status-detail');
+  const btnEl = document.getElementById('google-connect-btn');
+  const evContainer = document.getElementById('eventos-container');
+  const demoContainer = document.getElementById('demo-container');
+
+  if (!statusEl) return;
+
+  if (googleAccessToken && googleUserEmail) {
+    statusEl.className = 'integration-status connected';
+    titleEl.textContent = 'Conectado';
+    detailEl.textContent = googleUserEmail;
+    btnEl.textContent = 'Desconectar';
+    btnEl.className = 'btn btn-secondary';
+    btnEl.onclick = desconectarGoogleAgenda;
+    if (evContainer) evContainer.style.display = 'block';
+    if (demoContainer) demoContainer.style.display = 'block';
+  } else {
+    statusEl.className = 'integration-status disconnected';
+    titleEl.textContent = 'Desconectado';
+    detailEl.textContent = 'Autorize o acesso para começar a sincronizar eventos';
+    btnEl.textContent = 'Conectar Google Agenda';
+    btnEl.className = 'btn btn-primary';
+    btnEl.onclick = conectarGoogleAgenda;
+    if (evContainer) evContainer.style.display = 'none';
+    if (demoContainer) demoContainer.style.display = 'none';
+  }
+}
+
+async function carregarEventos() {
+  if (!googleAccessToken) return;
+  const list = document.getElementById('eventos-list');
+  if (!list) return;
+  list.innerHTML = '<div style="padding: var(--sp-4); color: var(--ink-muted); font-size: 0.875rem;">Carregando…</div>';
+
+  const timeMin = new Date().toISOString();
+  const timeMax = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&maxResults=15&singleEvents=true&orderBy=startTime`;
+
+  try {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${googleAccessToken}` } });
+    const data = await res.json();
+    if (!data.items || data.items.length === 0) {
+      list.innerHTML = '<div style="padding: var(--sp-4); color: var(--ink-muted); font-size: 0.875rem;">Nenhum compromisso nos próximos 30 dias.</div>';
+      return;
+    }
+    list.innerHTML = data.items.map(ev => {
+      const inicio = ev.start.dateTime || ev.start.date;
+      const d = new Date(inicio);
+      const dataStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '');
+      const horaStr = ev.start.dateTime ? d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Dia inteiro';
+      return `
+        <div class="event-item">
+          <div class="data">${dataStr}</div>
+          <div>
+            <div class="titulo">${ev.summary || '(sem título)'}</div>
+            <div class="horario">${horaStr}${ev.location ? ' · ' + ev.location : ''}</div>
+          </div>
+          <div style="color: var(--ink-subtle); font-size: 0.75rem;">${ev.status || ''}</div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error(e);
+    list.innerHTML = '<div style="padding: var(--sp-4); color: var(--status-atrasado);">Erro ao carregar eventos.</div>';
+  }
+}
+
+/* Cria um evento de teste, propõe modificação, e pede confirmação */
+async function demoModificacao() {
+  if (!googleAccessToken) return;
+  showToast('Criando evento de teste na sua agenda…');
+
+  // Cria evento amanhã 14h
+  const amanha = new Date();
+  amanha.setDate(amanha.getDate() + 1);
+  amanha.setHours(14, 0, 0, 0);
+  const fim = new Date(amanha.getTime() + 60 * 60 * 1000);
+
+  const evento = {
+    summary: '[Alpha Sistema] Evento de teste',
+    description: 'Criado pelo sistema Alpha para demonstração da integração com Google Agenda. Pode apagar depois.',
+    start: { dateTime: amanha.toISOString(), timeZone: 'America/Sao_Paulo' },
+    end: { dateTime: fim.toISOString(), timeZone: 'America/Sao_Paulo' }
+  };
+
+  try {
+    const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(evento)
+    });
+    const created = await res.json();
+    if (!res.ok) throw new Error(created.error?.message || 'Falha ao criar evento');
+
+    // Agora propõe modificação: adiar 2 horas
+    const novoInicio = new Date(amanha.getTime() + 2 * 60 * 60 * 1000);
+    const novoFim = new Date(novoInicio.getTime() + 60 * 60 * 1000);
+
+    // Exibe o modal de autorização
+    modalPendingChanges = [{
+      eventId: created.id,
+      titulo: created.summary,
+      antes: amanha.toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+      depois: novoInicio.toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
+      changes: {
+        start: { dateTime: novoInicio.toISOString(), timeZone: 'America/Sao_Paulo' },
+        end: { dateTime: novoFim.toISOString(), timeZone: 'America/Sao_Paulo' }
+      }
+    }];
+    abrirModalSync();
+  } catch (e) {
+    console.error(e);
+    showToast('Erro: ' + e.message);
+  }
+}
+
+/* ============================================================================
+   MODAL DE SINCRONIZAÇÃO — Autorização de modificações no Google Agenda
+   ============================================================================ */
+let modalPendingChanges = [];
+
+function abrirModalSync() {
+  const backdrop = document.getElementById('modal-sync');
+  const list = document.getElementById('modal-changes');
+  list.innerHTML = modalPendingChanges.map(c => `
+    <div class="modal-list-item">
+      <div class="titulo">${c.titulo}</div>
+      <div class="change">
+        <span class="from">${c.antes}</span>
+        <span class="arrow">→</span>
+        <span class="to">${c.depois}</span>
+      </div>
+    </div>
+  `).join('');
+  backdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharModal() {
+  const backdrop = document.getElementById('modal-sync');
+  backdrop.classList.remove('open');
+  document.body.style.overflow = '';
+  modalPendingChanges = [];
+}
+
+async function executarModificacoes() {
+  if (!googleAccessToken || modalPendingChanges.length === 0) {
+    fecharModal();
+    return;
+  }
+  const btn = document.getElementById('modal-confirm-btn');
+  btn.textContent = 'Sincronizando…';
+  btn.disabled = true;
+
+  let ok = 0, fail = 0;
+  for (const change of modalPendingChanges) {
+    try {
+      const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${change.eventId}`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(change.changes)
+      });
+      if (res.ok) ok++; else fail++;
+    } catch { fail++; }
+  }
+
+  btn.textContent = 'Confirmar e sincronizar';
+  btn.disabled = false;
+  fecharModal();
+  showToast(`${ok} evento(s) atualizado(s) no Google Agenda${fail > 0 ? ` · ${fail} falha(s)` : ''}`);
+  if (googleAccessToken) carregarEventos();
+}
+
+/* ============================================================================
+   WIZARD NOVO PROJETO
+   ============================================================================ */
+const wizard = {
+  cliente: { nome: '', cpf: '', nascimento: '', email: '', telefone: '', cep: '', endereco: '' },
+  projeto: { codigo: '', prazo: '', valor: 0, descricao: '' },
+  parcelas: [],
+  ambientes: []
+};
+
+function wizardGoTo(step) {
+  document.querySelectorAll('.wizard-step').forEach(s => {
+    const n = parseInt(s.dataset.step);
+    s.classList.remove('active', 'done');
+    if (n < step) s.classList.add('done');
+    if (n === step) s.classList.add('active');
+  });
+  document.querySelectorAll('.wizard-panel').forEach(p => p.classList.remove('active'));
+  const target = document.querySelector(`.wizard-panel[data-panel="${step}"]`);
+  if (target) target.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function wizardNext(from) {
+  if (from === 1) {
+    if (!validarCliente()) return;
+    wizardGoTo(2);
+    gerarCodigoProjeto();
+  } else if (from === 2) {
+    if (!validarProjeto()) return;
+    wizardGoTo(3);
+    if (wizard.ambientes.length === 0) adicionarAmbiente();
+  } else if (from === 3) {
+    if (!validarAmbientes()) return;
+    renderReview();
+    wizardGoTo(4);
+  }
+}
+
+function wizardBack(from) {
+  wizardGoTo(from - 1);
+}
+
+/* Validação e coleta */
+function validarCliente() {
+  const nome = document.getElementById('cli-nome').value.trim();
+  const cpf = document.getElementById('cli-cpf').value.trim();
+  const tel = document.getElementById('cli-telefone').value.trim();
+  const end = document.getElementById('cli-endereco').value.trim();
+
+  if (!nome) { showToast('Nome do cliente é obrigatório.'); return false; }
+  if (!validarCPF(cpf)) { showToast('CPF inválido.'); return false; }
+  if (!tel) { showToast('Telefone é obrigatório.'); return false; }
+  if (!end) { showToast('Endereço da obra é obrigatório.'); return false; }
+
+  wizard.cliente = {
+    nome, cpf, telefone: tel, endereco: end,
+    nascimento: document.getElementById('cli-nascimento').value || null,
+    email: document.getElementById('cli-email').value.trim() || null,
+    cep: document.getElementById('cli-cep').value.trim() || null,
+  };
+  return true;
+}
+
+function validarProjeto() {
+  const prazo = document.getElementById('prj-prazo').value;
+  const valorStr = document.getElementById('prj-valor').value.trim();
+  const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.'));
+
+  if (!prazo) { showToast('Prazo contratual é obrigatório.'); return false; }
+  if (!valor || valor <= 0) { showToast('Valor total inválido.'); return false; }
+
+  const somaParcelas = wizard.parcelas.reduce((s, p) => s + (parseFloat(p.percentual) || 0), 0);
+  if (Math.abs(somaParcelas - 100) > 0.01) {
+    showToast(`Parcelas somam ${somaParcelas.toFixed(1)}%. Devem somar 100%.`);
+    return false;
+  }
+  if (wizard.parcelas.length === 0) {
+    showToast('Adicione ao menos uma parcela de pagamento.');
+    return false;
+  }
+
+  wizard.projeto = {
+    codigo: document.getElementById('prj-codigo').value,
+    prazo, valor,
+    descricao: document.getElementById('prj-descricao').value.trim() || null
+  };
+  return true;
+}
+
+function validarAmbientes() {
+  const soma = wizard.ambientes.reduce((s, a) => s + (parseFloat(a.percentual) || 0), 0);
+  if (wizard.ambientes.length === 0) { showToast('Adicione ao menos um ambiente.'); return false; }
+  if (Math.abs(soma - 100) > 0.01) {
+    showToast(`Ambientes somam ${soma.toFixed(1)}%. Devem somar 100%.`);
+    return false;
+  }
+  return true;
+}
+
+function validarCPF(cpf) {
+  cpf = cpf.replace(/\D/g, '');
+  if (cpf.length !== 11) return false;
+  if (/^(\d)\1+$/.test(cpf)) return false;
+  let s = 0;
+  for (let i = 0; i < 9; i++) s += parseInt(cpf[i]) * (10 - i);
+  let d1 = 11 - (s % 11); if (d1 >= 10) d1 = 0;
+  if (d1 !== parseInt(cpf[9])) return false;
+  s = 0;
+  for (let i = 0; i < 10; i++) s += parseInt(cpf[i]) * (11 - i);
+  let d2 = 11 - (s % 11); if (d2 >= 10) d2 = 0;
+  return d2 === parseInt(cpf[10]);
+}
+
+/* Máscara CPF */
+function mascaraCPF(e) {
+  let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+  v = v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1-$2');
+  e.target.value = v;
+}
+
+/* CEP autofill via ViaCEP */
+async function buscarCEP(e) {
+  let v = e.target.value.replace(/\D/g, '').slice(0, 8);
+  e.target.value = v.replace(/(\d{5})(\d)/, '$1-$2');
+  if (v.length === 8) {
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${v}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        const end = `${data.logradouro}, ${data.bairro}, ${data.localidade} / ${data.uf}`;
+        document.getElementById('cli-endereco').value = end;
+      }
+    } catch {}
+  }
+}
+
+/* Gerar código de projeto */
+function gerarCodigoProjeto() {
+  const ano = new Date().getFullYear();
+  const n = Math.floor(Math.random() * 900) + 100;
+  const codigo = `P-${ano}-${n}`;
+  document.getElementById('prj-codigo').value = codigo;
+}
+
+/* Parcelas */
+function adicionarParcela() {
+  wizard.parcelas.push({ descricao: '', percentual: 0 });
+  renderParcelas();
+}
+function removerParcela(i) {
+  wizard.parcelas.splice(i, 1);
+  renderParcelas();
+}
+function updateParcela(i, field, valor) {
+  wizard.parcelas[i][field] = field === 'percentual' ? parseFloat(valor) || 0 : valor;
+  atualizarStatusParcelas();
+}
+function renderParcelas() {
+  const container = document.getElementById('parcelas-list');
+  container.innerHTML = wizard.parcelas.map((p, i) => `
+    <div class="parcela-row">
+      <div class="field">
+        <label class="field-label">Descrição</label>
+        <input type="text" class="input" placeholder="Ex: No ato do fechamento" value="${p.descricao}" oninput="updateParcela(${i}, 'descricao', this.value)">
+      </div>
+      <div class="field">
+        <label class="field-label">Percentual (%)</label>
+        <input type="number" class="input" min="0" max="100" step="0.01" value="${p.percentual || ''}" oninput="updateParcela(${i}, 'percentual', this.value)">
+      </div>
+      <button class="remover" onclick="removerParcela(${i})">Remover</button>
+    </div>
+  `).join('');
+  atualizarStatusParcelas();
+}
+function atualizarStatusParcelas() {
+  const soma = wizard.parcelas.reduce((s, p) => s + (parseFloat(p.percentual) || 0), 0);
+  const el = document.getElementById('parcelas-status');
+  if (wizard.parcelas.length === 0) {
+    el.className = 'percentual-status warn';
+    el.innerHTML = '<span>⚠</span> <span>Nenhuma parcela definida ainda. Confirme com o cliente antes de continuar.</span>';
+  } else if (Math.abs(soma - 100) < 0.01) {
+    el.className = 'percentual-status ok';
+    el.innerHTML = `<span>✓</span> <span>Parcelas somam 100%. ${wizard.parcelas.length} parcela(s) configurada(s).</span>`;
+  } else {
+    el.className = 'percentual-status warn';
+    el.innerHTML = `<span>⚠</span> <span>Parcelas somam ${soma.toFixed(1)}%. Ajuste para totalizar 100%.</span>`;
+  }
+}
+
+/* Ambientes */
+function adicionarAmbiente() {
+  wizard.ambientes.push({ nome: '', percentual: 0 });
+  renderAmbientesWizard();
+}
+function removerAmbienteWizard(i) {
+  wizard.ambientes.splice(i, 1);
+  renderAmbientesWizard();
+}
+function updateAmbienteWizard(i, field, valor) {
+  wizard.ambientes[i][field] = field === 'percentual' ? parseFloat(valor) || 0 : valor;
+  atualizarStatusAmbientes();
+}
+function renderAmbientesWizard() {
+  const container = document.getElementById('ambientes-list-wizard');
+  container.innerHTML = wizard.ambientes.map((a, i) => `
+    <div class="ambiente-input">
+      <div class="field">
+        <label class="field-label">Nome do ambiente</label>
+        <input type="text" class="input" placeholder="Ex: Cozinha" value="${a.nome}" oninput="updateAmbienteWizard(${i}, 'nome', this.value)">
+      </div>
+      <div class="field">
+        <label class="field-label">% do contrato</label>
+        <input type="number" class="input" min="0" max="100" step="0.01" value="${a.percentual || ''}" oninput="updateAmbienteWizard(${i}, 'percentual', this.value)">
+      </div>
+      <button class="remover" onclick="removerAmbienteWizard(${i})">Remover</button>
+    </div>
+  `).join('');
+  atualizarStatusAmbientes();
+}
+function atualizarStatusAmbientes() {
+  const soma = wizard.ambientes.reduce((s, a) => s + (parseFloat(a.percentual) || 0), 0);
+  const el = document.getElementById('ambientes-status');
+  if (wizard.ambientes.length === 0) {
+    el.className = 'percentual-status warn';
+    el.innerHTML = '<span>⚠</span> <span>Nenhum ambiente adicionado.</span>';
+  } else if (Math.abs(soma - 100) < 0.01) {
+    el.className = 'percentual-status ok';
+    el.innerHTML = `<span>✓</span> <span>Ambientes somam 100%. ${wizard.ambientes.length} ambiente(s) configurado(s).</span>`;
+  } else {
+    el.className = 'percentual-status warn';
+    el.innerHTML = `<span>⚠</span> <span>Ambientes somam ${soma.toFixed(1)}%. Ajuste para totalizar 100%.</span>`;
+  }
+}
+
+/* Revisão final */
+function renderReview() {
+  const c = wizard.cliente;
+  const p = wizard.projeto;
+  const el = document.getElementById('review-content');
+  const parcelasStr = wizard.parcelas.map(pa => `${pa.percentual}% — ${pa.descricao}`).join(' · ');
+  const ambStr = wizard.ambientes.map(a => `${a.nome} (${a.percentual}%)`).join(' · ');
+
+  el.innerHTML = `
+    <div class="review-section">
+      <h4>Cliente</h4>
+      <dl>
+        <div class="review-item"><dt>Nome</dt><dd>${c.nome}</dd></div>
+        <div class="review-item"><dt>CPF</dt><dd>${c.cpf}</dd></div>
+        <div class="review-item"><dt>Telefone</dt><dd>${c.telefone}</dd></div>
+        ${c.email ? `<div class="review-item"><dt>E-mail</dt><dd>${c.email}</dd></div>` : ''}
+        <div class="review-item"><dt>Endereço</dt><dd>${c.endereco}</dd></div>
+      </dl>
+    </div>
+    <div class="review-section">
+      <h4>Projeto</h4>
+      <dl>
+        <div class="review-item"><dt>Código</dt><dd>${p.codigo}</dd></div>
+        <div class="review-item"><dt>Valor total</dt><dd>${fmtBRL(p.valor)}</dd></div>
+        <div class="review-item"><dt>Prazo</dt><dd>${new Date(p.prazo + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</dd></div>
+        ${p.descricao ? `<div class="review-item"><dt>Descrição</dt><dd>${p.descricao}</dd></div>` : ''}
+        <div class="review-item"><dt>Cronograma</dt><dd>${parcelasStr}</dd></div>
+      </dl>
+    </div>
+    <div class="review-section">
+      <h4>Ambientes (${wizard.ambientes.length})</h4>
+      <p style="color: var(--ink-muted); font-size: 0.875rem;">${ambStr}</p>
+    </div>
+  `;
+}
+
+async function salvarProjeto() {
+  const payload = {
+    cliente: wizard.cliente,
+    projeto: {
+      codigo: wizard.projeto.codigo,
+      valor: wizard.projeto.valor,
+      prazo: wizard.projeto.prazo,
+      descricao: wizard.projeto.descricao,
+      status: 'ativo',
+      progresso: 0
+    },
+    parcelas: wizard.parcelas.map(p => ({ descricao: p.descricao, percentual: p.percentual })),
+    ambientes: wizard.ambientes.map(a => ({ nome: a.nome, percentual: a.percentual }))
+  };
+
+  const { data, error } = await salvarProjetoNoBanco(payload);
+  if (error) {
+    showToast('Erro ao salvar: ' + (error.message || 'desconhecido'));
+    return;
+  }
+  showToast(`Projeto ${payload.projeto.codigo} salvo com sucesso.`);
+  resetWizard();
+  setTimeout(() => switchView('painel'), 1500);
+}
+
+function resetWizard() {
+  wizard.cliente = { nome: '', cpf: '', nascimento: '', email: '', telefone: '', cep: '', endereco: '' };
+  wizard.projeto = { codigo: '', prazo: '', valor: 0, descricao: '' };
+  wizard.parcelas = [];
+  wizard.ambientes = [];
+  document.querySelectorAll('#view-novo-projeto input').forEach(i => { if (!i.readOnly) i.value = ''; });
+  renderParcelas();
+  renderAmbientesWizard();
+  wizardGoTo(1);
+}
+
+/* ============================================================================
+   UPGRADE do reagendamento existente — quando Google conectado, usa API real
+   ============================================================================ */
+const _originalConfirmar = window.confirmarReagendamento;
+function confirmarReagendamentoIntegrado() {
+  if (!googleAccessToken) {
+    // Mesmo fluxo mockado de antes
+    showToast('Google Agenda não conectado. Agenda modificada localmente.');
+    setTimeout(() => switchView('painel'), 1400);
+    return;
+  }
+  // Prepara mudanças de exemplo (viriam do motor de reagendamento real)
+  modalPendingChanges = [
+    { eventId: 'DEMO_1', titulo: 'Medição técnica · Ávila', antes: '30 jul 09:00', depois: '04 ago 09:00', changes: {} },
+    { eventId: 'DEMO_2', titulo: 'Início corte · Ávila', antes: '01 ago', depois: '06 ago', changes: {} },
+    { eventId: 'DEMO_3', titulo: 'Início montagem · Ávila', antes: '12 ago', depois: '15 ago', changes: {} }
+  ];
+  abrirModalSync();
+}
+window.confirmarReagendamento = confirmarReagendamentoIntegrado;
+
+/* Attach input listeners uma vez que o DOM está pronto */
+function bindWizardInputs() {
+  const cpf = document.getElementById('cli-cpf');
+  if (cpf) cpf.addEventListener('input', mascaraCPF);
+  const cep = document.getElementById('cli-cep');
+  if (cep) cep.addEventListener('input', buscarCEP);
+}
+
+/* ============================================================================
+   BOOT
+   ============================================================================ */
+window.addEventListener('load', () => {
+  carregarConfiguracaoUI();
+  initSupabase();
+  initGoogleAuth();
+  bindWizardInputs();
+  inicializarWelcome();
+});
+  const container = document.getElementById('projetos-lista');
+  container.innerHTML = projetos.map(p => {
+    const dias = diasAte(p.prazo);
+    const prazoStr = dias > 0 ? `${fmtDate(p.prazo)} · ${dias}d` : `atrasado ${Math.abs(dias)}d`;
+    const cls = dias < 0 ? 'atrasado' : '';
+    return `
+      <button class="projeto-row" onclick="abrirProjeto('${p.id}')">
+        <div>
+          <div class="nome">${p.cliente}</div>
+          <div class="cliente">${p.endereco} · ${fmtBRL(p.valor)}</div>
+        </div>
+        <div class="progresso">
+          <span class="t-small t-num">${p.progresso}%</span>
+          <div class="progresso-bar"><div class="progresso-fill" style="width: ${p.progresso}%"></div></div>
+        </div>
+        <div class="prazo ${cls}">${prazoStr}</div>
+        <div style="color: var(--ink-subtle);">→</div>
+      </button>
+    `;
+  }).join('');
+}
+
+/* Renderiza os ambientes com motor de liberação visual */
+function renderAmbientes() {
+  const projeto = projetos[0];
+  const container = document.getElementById('ambientes-lista');
+  container.innerHTML = projeto.ambientes.map(amb => {
+    const etapasHtml = amb.etapas.map((et, i) => {
+      const statusMap = {
+        'concluido': { tag: 'tag--concluido', label: 'Concluída' },
+        'liberado': { tag: 'tag--liberado', label: 'Liberada' },
+        'andamento': { tag: 'tag--andamento', label: 'Em andamento' },
+        'atrasado': { tag: 'tag--atrasado', label: 'Atrasada' },
+        'bloqueado': { tag: 'tag--bloqueado', label: 'Aguarda dependência' }
+      };
+      const s = statusMap[et.status];
+      const conector = i > 0 ? `<div class="etapa-conector ${amb.etapas[i-1].status === 'concluido' ? 'done' : ''}">
+        <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
+          <polyline points="4,32 12,8 20,32 28,8 36,32" stroke="currentColor" stroke-width="2" stroke-linejoin="miter" fill="none"/>
+        </svg>
+      </div>` : '';
+      const dep = et.dependeDe.length > 0 ? `<div class="depende">Depende: ${et.dependeDe.join(', ')}</div>` : '';
+      return `${conector}
+        <div class="etapa-node" data-status="${et.status}">
+          <div class="nome">${et.nome}</div>
+          <div class="responsavel">${et.responsavel}</div>
+          <span class="tag ${s.tag}">${s.label}</span>
+          ${dep}
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="ambiente">
+        <div class="ambiente-header">
+          <h3>${amb.nome}</h3>
+          <span class="percentual">${amb.percentual.toString().replace('.', ',')}% do contrato · ${fmtBRL(projeto.valor * amb.percentual / 100)}</span>
+        </div>
+        <div class="etapas-cadeia">${etapasHtml}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* Renderiza tabela de custos por camada */
+let camadaAtiva = 'materiais';
+function renderCustos() {
+  const projeto = projetos[0];
+  const itens = projeto.custos[camadaAtiva === 'mao-obra' ? 'maoDeObra' : camadaAtiva];
+  const container = document.getElementById('custo-linhas');
+  container.innerHTML = itens.map(i => `
+    <div class="custo-tabela-row">
+      <div>
+        <div class="item-nome">${i.item}</div>
+        <div class="item-desc">${i.desc}</div>
+      </div>
+      <div><span class="ambiente-tag">${i.ambiente}</span></div>
+      <div class="t-small" style="color: var(--ink-muted);">${i.origem}</div>
+      <div class="valor t-num">${fmtBRL(i.valor)}</div>
+    </div>
+  `).join('');
+}
+
+function switchTab(btn, camada) {
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', 'false'));
+  btn.setAttribute('aria-selected', 'true');
+  camadaAtiva = camada;
+  renderCustos();
+}
+
+/* Chão de fábrica — dark queue */
+function renderChao() {
+  const projeto = projetos[0];
+  const etapas = [];
+  projeto.ambientes.forEach(amb => {
+    amb.etapas.forEach(et => {
+      if (et.status === 'andamento' || et.status === 'liberado') {
+        etapas.push({ ...et, ambiente: amb.nome, projeto: projeto.cliente });
+      }
+    });
+  });
+
+  document.getElementById('chao-grid').innerHTML = etapas.map(et => `
+    <div class="chao-etapa" tabindex="0">
+      <div class="projeto-nome">${et.projeto}</div>
+      <div class="etapa-titulo">${et.nome}</div>
+      <div class="ambiente">${et.ambiente} · ${et.responsavel}</div>
+      <div class="tempo">
+        <div>
+          <div class="t-micro" style="margin-bottom: 4px;">Em execução</div>
+          <div class="tempo-atual">${et.status === 'andamento' ? '2h 14min' : '—'}</div>
+        </div>
+        <div>
+          <div class="t-micro" style="margin-bottom: 4px; text-align: right;">Estimado</div>
+          <div class="tempo-estimado">4h 30min</div>
+        </div>
+      </div>
+      <button class="btn-concluir" onclick="concluirEtapa(this, '${et.nome}')">Marcar concluída</button>
+    </div>
+  `).join('');
+}
+
+/* ============================================================================
+   INTERAÇÕES
+   ============================================================================ */
+
+/* View history stack — powers the back button */
+const viewLabels = {
+  'painel': 'Painel',
+  'projetos': 'Projetos',
+  'reagendamento': 'Reagendar Agenda',
+  'custos': 'Custos',
+  'chao': 'Chão de Fábrica'
+};
+let viewHistory = [];
+let currentView = 'painel';
+
+function switchView(name, opts = {}) {
+  const { skipHistory = false, viaBack = false } = opts;
+
+  if (!skipHistory && !viaBack && name !== currentView) {
+    viewHistory.push(currentView);
+  }
+
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const target = document.getElementById('view-' + name);
+  if (!target) return;
+  target.classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(b => b.removeAttribute('aria-current'));
+  const btn = document.querySelector(`.nav-item[data-view="${name}"]`);
+  if (btn) btn.setAttribute('aria-current', 'page');
+
+  // Auto-switch mode for chao
+  if (name === 'chao') {
+    document.body.setAttribute('data-mode', 'chao');
+    document.getElementById('mode-label').textContent = 'Chão de fábrica';
+  } else {
+    document.body.removeAttribute('data-mode');
+    document.getElementById('mode-label').textContent = 'Gestor';
+  }
+
+  currentView = name;
+  updateBackButton();
+  closeDrawer();
+
+  // Browser history integration — so device back button works
+  if (!viaBack && !skipHistory) {
+    history.pushState({ view: name }, '', '#' + name);
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateBackButton() {
+  const btn = document.getElementById('back-btn');
+  const label = document.getElementById('back-btn-label');
+  if (viewHistory.length > 0) {
+    const prev = viewHistory[viewHistory.length - 1];
+    label.textContent = 'Voltar para ' + viewLabels[prev];
+    btn.classList.add('visible');
+  } else {
+    btn.classList.remove('visible');
+  }
+}
+
+function voltarView() {
+  if (viewHistory.length === 0) return;
+  const prev = viewHistory.pop();
+  switchView(prev, { viaBack: true });
+  // Also pop browser history so URL stays in sync
+  if (history.state && history.state.view) {
+    history.replaceState({ view: prev }, '', '#' + prev);
+  }
+}
+
+/* Browser back button (device / gesture) */
+window.addEventListener('popstate', (e) => {
+  if (viewHistory.length > 0) {
+    const prev = viewHistory.pop();
+    switchView(prev, { viaBack: true });
+  }
+});
+
+/* Mobile drawer */
+function toggleDrawer() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('drawer-backdrop');
+  const isOpen = sidebar.classList.toggle('open');
+  backdrop.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+
+function closeDrawer() {
+  const sidebar = document.querySelector('.sidebar');
+  const backdrop = document.getElementById('drawer-backdrop');
+  sidebar.classList.remove('open');
+  backdrop.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function toggleMode() {
+  const isChao = document.body.getAttribute('data-mode') === 'chao';
+  if (isChao) {
+    switchView('painel');
+  } else {
+    switchView('chao');
+  }
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('alpha-theme', newTheme);
+  
+  // Atualizar label e ícone
+  const label = document.getElementById('theme-label');
+  const icon = document.getElementById('theme-icon');
+  
+  if (newTheme === 'dark') {
+    label.textContent = 'Escuro';
+    icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+  } else {
+    label.textContent = 'Claro';
+    icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  }
+}
+
+function abrirProjeto(id) { switchView('projetos'); }
+
+function selecionarOpcao(el) {
+  document.querySelectorAll('.opcao').forEach(o => o.classList.remove('selecionada'));
+  el.classList.add('selecionada');
+}
+
+function confirmarReagendamento() {
+  showToast('Agenda atualizada. 4 eventos sincronizados no Google Agenda.');
+  setTimeout(() => switchView('painel'), 1400);
+}
+
+function cancelarReagendamento() {
+  showToast('Reagendamento cancelado. Agenda mantida como está.');
+}
+
+function concluirEtapa(btn, nome) {
+  btn.textContent = 'Registrada ✓';
+  btn.style.background = 'var(--status-liberado)';
+  btn.disabled = true;
+  showToast(`"${nome}" concluída. Próxima etapa liberada.`);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => switchView(btn.dataset.view));
+});
+
+/* Relógio */
+function updateRelogio() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const el = document.getElementById('relogio');
+  if (el) el.textContent = `${h}:${m}`;
+}
+updateRelogio();
+/* ============================================================================
+   WELCOME SCREEN — Mensagens baseadas no horário
+   ============================================================================ */
+const welcomeMessages = {
+  madrugada: { greeting: 'Oi, madrugada!', messages: ['Você não dorme? A dedicação é admirável.', 'O sistema também está acordado pra você.', 'Essa produção não vai fazer sozinha, né?', 'Noite criativa é sempre bem-vinda aqui.'] },
+  manhã: { greeting: 'Bom dia, Wagner!', messages: ['O galpão está pronto para produzir. Vamos lá?', 'Café coado, sistema acordado. É hora!', 'Novo dia, novos móveis. Bora começar?', 'O turno da manhã agradece sua presença.'] },
+  tarde: { greeting: 'Boa tarde, Wagner!', messages: ['A tarde está rendendo bem. Segue firme!', 'Metade do caminho já percorrido. Vamos terminar forte!', 'Tempo de acelerar a produção, amigo.', 'O ritmo da tarde é nosso agora.'] },
+  noite: { greeting: 'Boa noite, Wagner!', messages: ['A noite é pra quem quer terminar certo.', 'Luz acesa no galpão, você por aqui. Perfeito!', 'Reta final do dia. Vamos fechar bem?', 'Aqui no sistema, a noite também é produtiva.'] }
+};
+
+function getTimeOfDay() { const h = new Date().getHours(); if (h >= 0 && h < 6) return 'madrugada'; if (h >= 6 && h < 12) return 'manhã'; if (h >= 12 && h < 18) return 'tarde'; return 'noite'; }
+function getRandomMessage(p) { const m = welcomeMessages[p].messages; return m[Math.floor(Math.random() * m.length)]; }
+function inicializarWelcome() {
+  const period = getTimeOfDay();
+  const greeting = welcomeMessages[period].greeting;
+  const message = getRandomMessage(period);
+  const now = new Date();
+  const dayName = now.toLocaleDateString('pt-BR', { weekday: 'long' });
+  const dateStr = now.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
+  const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('welcome-greeting').textContent = greeting;
+  document.getElementById('welcome-message').textContent = message;
+  document.getElementById('welcome-time').textContent = `${dayName.charAt(0).toUpperCase() + dayName.slice(1)}, ${dateStr} · ${timeStr}`;
+  const lastWelcome = localStorage.getItem('alpha-welcome-date');
+  const today = now.toDateString();
+  if (lastWelcome !== today) { document.getElementById('welcome-overlay').classList.add('visible'); }
+}
+function fecharWelcome() { localStorage.setItem('alpha-welcome-date', new Date().toDateString()); document.getElementById('welcome-overlay').classList.remove('visible'); }
+
+/* Init */
+renderProjetosLista();
+renderAmbientes();
+renderCustos();
+renderChao();
+
+// Carregar tema salvo
+const savedTheme = localStorage.getItem('alpha-theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+if (savedTheme === 'dark') {
+  document.getElementById('theme-label').textContent = 'Escuro';
+  document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+}
+</script>
+</body>
+</html>
