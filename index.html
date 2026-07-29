@@ -3553,6 +3553,8 @@ window.addEventListener('load', () => {
   bindWizardInputs();
   inicializarWelcome();
 });
+
+function renderProjetosLista() {
   const container = document.getElementById('projetos-lista');
   container.innerHTML = projetos.map(p => {
     const dias = diasAte(p.prazo);
@@ -3721,7 +3723,11 @@ function switchView(name, opts = {}) {
 
   // Browser history integration — so device back button works
   if (!viaBack && !skipHistory) {
-    history.pushState({ view: name }, '', '#' + name);
+    try {
+      history.pushState({ view: name }, '', '#' + name);
+    } catch (e) {
+      console.warn('history.pushState falhou (provavelmente executando via file://)', e);
+    }
   }
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
