@@ -1,0 +1,30 @@
+{
+  "name": "Alpha · Sistema Interno",
+  "short_name": "Alpha Sistema",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F7F4EE",
+  "theme_color": "#6D6250",
+  "icons": [
+    {
+      "src": "icons/icon-60.png",
+      "sizes": "60x60",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-80.png",
+      "sizes": "80x80",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-120.png",
+      "sizes": "120x120",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
