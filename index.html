@@ -3633,35 +3633,49 @@ function limparSessaoGoogle() {
 async function restaurarSessaoGoogle() {
   try {
     const raw = localStorage.getItem(GOOGLE_SESSION_KEY);
-    if (!raw) return false;
+    if (!raw) {
+      console.info('[Google] Nenhuma sessão encontrada no localStorage.');
+      return false;
+    }
     const session = JSON.parse(raw);
     if (!session || !session.token) return false;
 
     const now = Date.now();
-    const margin = 5 * 60 * 1000; // 5 min em ms
-    if (session.expiry - now < margin) {
+    const margin = 5 * 60 * 1000; // 5 min de margem
+    if (session.expiry && (session.expiry - now < margin)) {
+      console.warn('[Google] Sessão expirou localmente. Limpando...');
       limparSessaoGoogle();
       return false;
     }
 
-    const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-      headers: { Authorization: `Bearer ${session.token}` }
-    });
-    if (res.status === 200) {
-      const u = await res.json();
-      googleAccessToken = session.token;
-      googleUserEmail = u.email || session.email;
-      googleTokenExpiry = session.expiry;
-      atualizarStatusGoogle();
-      carregarEventos();
-      return true;
-    } else {
-      limparSessaoGoogle();
+    try {
+      const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${session.token}` }
+      });
+      
+      if (res.status === 200) {
+        const u = await res.json();
+        googleAccessToken = session.token;
+        googleUserEmail = u.email || session.email;
+        googleTokenExpiry = session.expiry;
+        atualizarStatusGoogle();
+        carregarEventos();
+        console.info('[Google] Sessão restaurada com sucesso para:', googleUserEmail);
+        return true;
+      } else if (res.status === 401 || res.status === 403) {
+        console.warn('[Google] Token inválido ou revogado (HTTP ' + res.status + '). Limpando sessão...');
+        limparSessaoGoogle();
+        return false;
+      } else {
+        console.warn('[Google] Resposta inesperada ao validar token (HTTP ' + res.status + '). Preservando sessão para retentativa.');
+        return false;
+      }
+    } catch (fetchError) {
+      console.warn('[Google] Falha de rede ao validar sessão. Mantendo dados salvos:', fetchError);
       return false;
     }
   } catch (e) {
-    console.error('[Google] Erro ao restaurar sessão:', e);
-    limparSessaoGoogle();
+    console.error('[Google] Erro crítico ao restaurar sessão:', e);
     return false;
   }
 }
