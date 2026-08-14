@@ -3039,69 +3039,16 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       <div class="wizard-steps">
         <div class="wizard-step active" data-step="1"><span class="num">1</span><span class="label">Cliente</span></div>
         <div class="wizard-step" data-step="2"><span class="num">2</span><span class="label">Projeto</span></div>
-        <div class="wizard-step" data-step="3"><span class="num">3</span><span class="label">Ambientes</span></div>
-        <div class="wizard-step" data-step="4"><span class="num">4</span><span class="label">Revisão</span></div>
+        <div class="wizard-step" data-step="3"><span class="num">3</span><span class="label">Pagamento</span></div>
       </div>
+    </section>
 
-      <!-- Step 1: Cliente -->
-      <div class="wizard-panel active" data-panel="1">
-        <h2 class="wizard-title">Dados do cliente</h2>
-        <p class="wizard-desc">Estas informações vão diretamente para o contrato. CPF e CEP têm validação automática.</p>
-
-        <div class="stack stack-5">
-          <div class="field-row">
-            <div class="field">
-              <label class="field-label" for="cli-nome">Nome completo <span class="req">*</span></label>
-              <input type="text" class="input" id="cli-nome" placeholder="Ex: Fernanda Fagundes da Silva Ávila">
-            </div>
-            <div class="field">
-              <label class="field-label" for="cli-cpf">CPF <span class="req">*</span></label>
-              <input type="text" class="input" id="cli-cpf" placeholder="000.000.000-00" maxlength="14">
-              <div class="field-error" id="cli-cpf-err" style="display: none;">CPF inválido</div>
-            </div>
-          </div>
-
-          <div class="field-row">
-            <div class="field">
-              <label class="field-label" for="cli-nascimento">Data de nascimento</label>
-              <input type="date" class="input" id="cli-nascimento">
-            </div>
-            <div class="field">
-              <label class="field-label" for="cli-email">E-mail</label>
-              <input type="email" class="input" id="cli-email" placeholder="cliente@exemplo.com">
-            </div>
-          </div>
-
-          <div class="field-row">
-            <div class="field">
-              <label class="field-label" for="cli-telefone">Telefone <span class="req">*</span></label>
-              <input type="tel" class="input" id="cli-telefone" placeholder="(31) 99999-9999">
-            </div>
-            <div class="field">
-              <label class="field-label" for="cli-cep">CEP</label>
-              <input type="text" class="input" id="cli-cep" placeholder="00000-000" maxlength="9">
-              <div class="field-hint">O endereço preenche automaticamente</div>
-            </div>
-          </div>
-
-          <div class="field-row">
-            <div class="field" style="grid-column: 1 / -1;">
-              <label class="field-label" for="cli-endereco">Endereço da obra <span class="req">*</span></label>
-              <input type="text" class="input" id="cli-endereco" placeholder="Rua, número, complemento, bairro, cidade / UF">
-            </div>
-          </div>
-        </div>
-
-        <div class="wizard-nav">
-          <button class="btn btn-ghost" onclick="switchView('projetos')">Cancelar</button>
-          <button class="btn btn-primary" onclick="wizardNext(1)">Continuar →</button>
-        </div>
-      </div>
-
+    <!-- Step 1 is handled in the section above, now appending Step 2 and Step 3 in view-novo-projeto -->
+    <section class="view" id="view-novo-projeto-steps">
       <!-- Step 2: Projeto & valores -->
       <div class="wizard-panel" data-panel="2">
         <h2 class="wizard-title">Dados do projeto</h2>
-        <p class="wizard-desc">O cronograma de pagamento fica em branco intencionalmente — cada cliente é uma negociação diferente. Configure as parcelas conforme combinado.</p>
+        <p class="wizard-desc">Configure os detalhes financeiros e arquivos do projeto.</p>
 
         <div class="stack stack-5">
           <div class="field-row">
@@ -3111,16 +3058,17 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
               <div class="field-hint">Gerado automaticamente</div>
             </div>
             <div class="field">
-              <label class="field-label" for="prj-prazo">Prazo contratual <span class="req">*</span></label>
+              <label class="field-label" for="prj-prazo">Prazo contratual</label>
               <input type="date" class="input" id="prj-prazo">
-              <div class="field-hint">Data de entrega final</div>
+              <div class="field-hint">Data de entrega final (opcional)</div>
             </div>
           </div>
 
           <div class="field-row">
             <div class="field">
-              <label class="field-label" for="prj-valor">Valor total (R$) <span class="req">*</span></label>
-              <input type="text" class="input" id="prj-valor" placeholder="72.686,00">
+              <label class="field-label" for="prj-valor">Valor do projeto</label>
+              <input type="text" class="input" id="prj-valor" placeholder="R$ 0,00">
+              <div class="field-hint">Opcional — use máscara em reais</div>
             </div>
             <div class="field">
               <label class="field-label" for="prj-descricao">Descrição resumida</label>
@@ -3128,16 +3076,11 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
             </div>
           </div>
 
-          <div>
-            <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-3);">
-              <label class="field-label">Cronograma de pagamento <span class="req">*</span></label>
-              <button class="btn btn-ghost" onclick="adicionarParcela()" style="font-size: 0.75rem;">+ Adicionar parcela</button>
-            </div>
-            <div id="parcelas-list">
-              <!-- populado dinamicamente -->
-            </div>
-            <div class="percentual-status warn" id="parcelas-status">
-              <span>⚠</span> <span>Nenhuma parcela definida ainda. Confirme com o cliente antes de continuar.</span>
+          <div class="field-row">
+            <div class="field" style="grid-column: 1 / -1;">
+              <label class="field-label" for="prj-arquivo">Projeto / Apresentação</label>
+              <input type="file" class="input" id="prj-arquivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip" style="padding: var(--sp-2);">
+              <div class="field-hint">Opcional — anexe o PDF, apresentação ou arquivo relacionado ao projeto.</div>
             </div>
           </div>
         </div>
@@ -3148,42 +3091,49 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         </div>
       </div>
 
-      <!-- Step 3: Ambientes -->
+      <!-- Step 3: Pagamento -->
       <div class="wizard-panel" data-panel="3">
-        <h2 class="wizard-title">Ambientes do projeto</h2>
-        <p class="wizard-desc">Adicione cada ambiente com o percentual de participação no valor total. A soma deve fechar em 100% — o sistema não deixa avançar se ficar diferente.</p>
+        <h2 class="wizard-title">Informações de pagamento</h2>
+        <p class="wizard-desc">Indique se algum pagamento inicial ou sinal já foi realizado pelo cliente.</p>
 
-        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-3);">
-          <label class="field-label">Ambientes</label>
-          <button class="btn btn-ghost" onclick="adicionarAmbiente()" style="font-size: 0.75rem;">+ Adicionar ambiente</button>
-        </div>
+        <div class="stack stack-5">
+          <div class="field">
+            <label class="field-label">Já foi realizado algum pagamento?</label>
+            <div style="display: flex; gap: var(--sp-4); margin-top: var(--sp-2); margin-bottom: var(--sp-4);">
+              <label style="display: flex; align-items: center; gap: var(--sp-2); cursor: pointer; font-size: 1rem; font-weight: 500;">
+                <input type="radio" name="prj-pagamento-realizado" value="nao" checked onchange="togglePagamentoCampos(this.value)">
+                Não
+              </label>
+              <label style="display: flex; align-items: center; gap: var(--sp-2); cursor: pointer; font-size: 1rem; font-weight: 500;">
+                <input type="radio" name="prj-pagamento-realizado" value="sim" onchange="togglePagamentoCampos(this.value)">
+                Sim
+              </label>
+            </div>
+          </div>
 
-        <div id="ambientes-list-wizard">
-          <!-- populado dinamicamente -->
-        </div>
-
-        <div class="percentual-status warn" id="ambientes-status">
-          <span>⚠</span> <span>Nenhum ambiente adicionado.</span>
+          <!-- Campos de pagamento condicional -->
+          <div id="pagamento-campos-condicionais" style="display: none;" class="stack stack-4">
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label" for="pag-valor">Valor da parcela/sinal <span class="req">*</span></label>
+                <input type="text" class="input" id="pag-valor" placeholder="R$ 0,00">
+              </div>
+              <div class="field">
+                <label class="field-label" for="pag-data">Data do pagamento <span class="req">*</span></label>
+                <input type="date" class="input" id="pag-data">
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="pag-comprovante">Comprovante de pagamento</label>
+              <input type="file" class="input" id="pag-comprovante" accept=".pdf,.jpg,.jpeg,.png,.zip" style="padding: var(--sp-2);">
+              <div class="field-hint">Opcional — anexe a foto ou PDF do comprovante.</div>
+            </div>
+          </div>
         </div>
 
         <div class="wizard-nav">
           <button class="btn btn-secondary" onclick="wizardBack(3)">← Voltar</button>
-          <button class="btn btn-primary" onclick="wizardNext(3)">Continuar →</button>
-        </div>
-      </div>
-
-      <!-- Step 4: Revisão -->
-      <div class="wizard-panel" data-panel="4">
-        <h2 class="wizard-title">Confira antes de salvar</h2>
-        <p class="wizard-desc">Revise os dados. Se algo estiver errado, volte às etapas anteriores. Ao salvar, o projeto entra no banco e passa a ficar visível para toda a equipe.</p>
-
-        <div class="card" id="review-content">
-          <!-- populado dinamicamente -->
-        </div>
-
-        <div class="wizard-nav">
-          <button class="btn btn-secondary" onclick="wizardBack(4)">← Voltar</button>
-          <button class="btn btn-primary" onclick="salvarProjeto()">Salvar projeto no banco</button>
+          <button id="btn-cadastrar-projeto" class="btn btn-primary" onclick="salvarProjeto()">Cadastrar projeto</button>
         </div>
       </div>
     </section>
@@ -4143,6 +4093,13 @@ const wizard = {
   ambientes: []
 };
 
+function togglePagamentoCampos(val) {
+  const container = document.getElementById('pagamento-campos-condicionais');
+  if (container) {
+    container.style.display = val === 'sim' ? 'block' : 'none';
+  }
+}
+
 function wizardGoTo(step) {
   document.querySelectorAll('.wizard-step').forEach(s => {
     const n = parseInt(s.dataset.step);
@@ -4164,11 +4121,6 @@ function wizardNext(from) {
   } else if (from === 2) {
     if (!validarProjeto()) return;
     wizardGoTo(3);
-    if (wizard.ambientes.length === 0) adicionarAmbiente();
-  } else if (from === 3) {
-    if (!validarAmbientes()) return;
-    renderReview();
-    wizardGoTo(4);
   }
 }
 
@@ -4176,20 +4128,30 @@ function wizardBack(from) {
   wizardGoTo(from - 1);
 }
 
-/* Validação e coleta */
 function validarCliente() {
-  const nome = document.getElementById('cli-nome').value.trim();
+  const nomeInput = document.getElementById('cli-nome');
+  const nome = nomeInput ? nomeInput.value.trim() : '';
   const cpf = document.getElementById('cli-cpf').value.trim();
   const tel = document.getElementById('cli-telefone').value.trim();
   const end = document.getElementById('cli-endereco').value.trim();
 
-  if (!nome) { showToast('Nome do cliente é obrigatório.'); return false; }
-  if (!validarCPF(cpf)) { showToast('CPF inválido.'); return false; }
-  if (!tel) { showToast('Telefone é obrigatório.'); return false; }
-  if (!end) { showToast('Endereço da obra é obrigatório.'); return false; }
+  if (!nome) {
+    showToast('Informe o nome do cliente.');
+    return false;
+  }
+
+  if (cpf !== '') {
+    if (!validarCPF(cpf)) {
+      showToast('CPF/CNPJ inválido.');
+      return false;
+    }
+  }
 
   wizard.cliente = {
-    nome, cpf, telefone: tel, endereco: end,
+    nome, 
+    cpf: cpf || null, 
+    telefone: tel || null, 
+    endereco: end || null,
     nascimento: document.getElementById('cli-nascimento').value || null,
     email: document.getElementById('cli-email').value.trim() || null,
     cep: document.getElementById('cli-cep').value.trim() || null,
@@ -4198,28 +4160,68 @@ function validarCliente() {
 }
 
 function validarProjeto() {
-  const prazo = document.getElementById('prj-prazo').value;
+  const prazo = document.getElementById('prj-prazo').value || null;
   const valorStr = document.getElementById('prj-valor').value.trim();
-  const valor = parseFloat(valorStr.replace(/\./g, '').replace(',', '.'));
-
-  if (!prazo) { showToast('Prazo contratual é obrigatório.'); return false; }
-  if (!valor || valor <= 0) { showToast('Valor total inválido.'); return false; }
-
-  const somaParcelas = wizard.parcelas.reduce((s, p) => s + (parseFloat(p.percentual) || 0), 0);
-  if (Math.abs(somaParcelas - 100) > 0.01) {
-    showToast(`Parcelas somam ${somaParcelas.toFixed(1)}%. Devem somar 100%.`);
-    return false;
+  
+  let valor = null;
+  if (valorStr) {
+    valor = parseFloat(valorStr.replace(/[^\d,]/g, '').replace(',', '.'));
+    if (isNaN(valor) || valor < 0) {
+      showToast('Valor do projeto inválido.');
+      return false;
+    }
   }
-  if (wizard.parcelas.length === 0) {
-    showToast('Adicione ao menos uma parcela de pagamento.');
-    return false;
-  }
+
+  const arquivo = document.getElementById('prj-arquivo').files[0] || null;
 
   wizard.projeto = {
     codigo: document.getElementById('prj-codigo').value,
-    prazo, valor,
-    descricao: document.getElementById('prj-descricao').value.trim() || null
+    prazo, 
+    valor,
+    descricao: document.getElementById('prj-descricao').value.trim() || null,
+    arquivo: arquivo
   };
+  return true;
+}
+
+function validarPagamento() {
+  const realizadoInput = document.querySelector('input[name="prj-pagamento-realizado"]:checked');
+  const realizado = realizadoInput ? realizadoInput.value : 'nao';
+  
+  if (realizado === 'sim') {
+    const valorStr = document.getElementById('pag-valor').value.trim();
+    const data = document.getElementById('pag-data').value;
+    
+    if (!valorStr) {
+      showToast('Informe o valor do pagamento.');
+      return false;
+    }
+    
+    const valNumeric = parseFloat(valorStr.replace(/[^\d,]/g, '').replace(',', '.'));
+    if (isNaN(valNumeric) || valNumeric <= 0) {
+      showToast('Informe um valor de pagamento válido.');
+      return false;
+    }
+    
+    if (!data) {
+      showToast('Informe a data do pagamento.');
+      return false;
+    }
+    
+    wizard.pagamento = {
+      realizado: true,
+      valor: valNumeric,
+      data: data,
+      comprovante: document.getElementById('pag-comprovante').files[0] || null
+    };
+  } else {
+    wizard.pagamento = {
+      realizado: false,
+      valor: null,
+      data: null,
+      comprovante: null
+    };
+  }
   return true;
 }
 
@@ -4233,25 +4235,75 @@ function validarAmbientes() {
   return true;
 }
 
-function validarCPF(cpf) {
-  cpf = cpf.replace(/\D/g, '');
-  if (cpf.length !== 11) return false;
-  if (/^(\d)\1+$/.test(cpf)) return false;
-  let s = 0;
-  for (let i = 0; i < 9; i++) s += parseInt(cpf[i]) * (10 - i);
-  let d1 = 11 - (s % 11); if (d1 >= 10) d1 = 0;
-  if (d1 !== parseInt(cpf[9])) return false;
-  s = 0;
-  for (let i = 0; i < 10; i++) s += parseInt(cpf[i]) * (11 - i);
-  let d2 = 11 - (s % 11); if (d2 >= 10) d2 = 0;
-  return d2 === parseInt(cpf[10]);
+function validarCPF(doc) {
+  doc = doc.replace(/\D/g, '');
+  if (doc.length === 0) return true; // opcional
+  if (doc.length === 11) {
+    if (/^(\d)\1+$/.test(doc)) return false;
+    let s = 0;
+    for (let i = 0; i < 9; i++) s += parseInt(doc[i]) * (10 - i);
+    let d1 = 11 - (s % 11); if (d1 >= 10) d1 = 0;
+    if (d1 !== parseInt(doc[9])) return false;
+    s = 0;
+    for (let i = 0; i < 10; i++) s += parseInt(doc[i]) * (11 - i);
+    let d2 = 11 - (s % 11); if (d2 >= 10) d2 = 0;
+    return d2 === parseInt(doc[10]);
+  } else if (doc.length === 14) {
+    if (/^(\d)\1+$/.test(doc)) return false;
+    let tamanho = doc.length - 2;
+    let numeros = doc.substring(0, tamanho);
+    let digitos = doc.substring(tamanho);
+    let soma = 0;
+    let pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+      soma += numeros.charAt(tamanho - i) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(0))) return false;
+    tamanho = tamanho + 1;
+    numeros = doc.substring(0, tamanho);
+    soma = 0;
+    pos = tamanho - 7;
+    for (let i = tamanho; i >= 1; i--) {
+      soma += numeros.charAt(tamanho - i) * pos--;
+      if (pos < 2) pos = 9;
+    }
+    resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+    if (resultado !== parseInt(digitos.charAt(1))) return false;
+    return true;
+  }
+  return false;
 }
 
-/* Máscara CPF */
+/* Máscara CPF/CNPJ */
 function mascaraCPF(e) {
-  let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-  v = v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1-$2');
+  let v = e.target.value.replace(/\D/g, '').slice(0, 14);
+  if (v.length > 11) {
+    v = v.replace(/^(\d{2})(\d)/, '$1.$2')
+         .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+         .replace(/\.(\d{3})(\d)/, '.$1/$2')
+         .replace(/(\d{4})(\d)/, '$1-$2');
+  } else {
+    v = v.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1-$2');
+  }
   e.target.value = v;
+}
+
+/* Máscara de Moeda (BRL) */
+function aplicarMascaraMoeda(input) {
+  if (!input) return;
+  input.addEventListener('input', (e) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value === '') {
+      e.target.value = '';
+      return;
+    }
+    value = (parseFloat(value) / 100).toFixed(2);
+    value = value.replace('.', ',');
+    value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+    e.target.value = 'R$ ' + value;
+  });
 }
 
 /* CEP autofill via ViaCEP */
@@ -4404,40 +4456,215 @@ function renderReview() {
   `;
 }
 
-async function salvarProjeto() {
-  const payload = {
-    cliente: wizard.cliente,
-    projeto: {
-      codigo: wizard.projeto.codigo,
-      valor: wizard.projeto.valor,
-      prazo: wizard.projeto.prazo,
-      descricao: wizard.projeto.descricao,
-      status: 'ativo',
-      progresso: 0
-    },
-    parcelas: wizard.parcelas.map(p => ({ descricao: p.descricao, percentual: p.percentual })),
-    ambientes: wizard.ambientes.map(a => ({ nome: a.nome, percentual: a.percentual }))
-  };
+async function uploadArquivoSupabase(bucketName, path, file) {
+  if (!supabase || !file) return { path: null, error: null };
+  try {
+    let { data, error } = await supabase.storage.from(bucketName).upload(path, file, { upsert: true });
+    
+    if (error && (error.message?.includes('not found') || error.status === 404 || error.error === 'Bucket not found')) {
+      console.info(`[Storage] Bucket "${bucketName}" não encontrado. Tentando criar...`);
+      const { error: errCreate } = await supabase.storage.createBucket(bucketName, { public: true });
+      if (!errCreate) {
+        const retry = await supabase.storage.from(bucketName).upload(path, file, { upsert: true });
+        data = retry.data;
+        error = retry.error;
+      }
+    }
+    
+    if (error) return { path: null, error };
+    return { path: data.path, error: null };
+  } catch (e) {
+    return { path: null, error: e };
+  }
+}
 
-  const { data, error } = await salvarProjetoNoBanco(payload);
-  if (error) {
-    showToast('Erro ao salvar: ' + (error.message || 'desconhecido'));
+async function salvarProjetoNoBancoCompleto(payload) {
+  if (!supabase) {
+    return { error: { message: 'Supabase não configurado. Vá em Configuração.' } };
+  }
+
+  // A. Inserir Cliente
+  const { data: cliente, error: e1 } = await supabase
+    .from('clientes')
+    .insert(payload.cliente)
+    .select()
+    .single();
+  if (e1) return { error: e1 };
+
+  // B. Inserir Projeto (inicialmente sem caminhos de arquivos)
+  const { data: prj, error: e2 } = await supabase
+    .from('projetos')
+    .insert({
+      codigo: payload.projeto.codigo,
+      valor: payload.projeto.valor,
+      prazo: payload.projeto.prazo,
+      descricao: payload.projeto.descricao,
+      status: 'ativo',
+      progresso: 0,
+      cliente_id: cliente.id
+    })
+    .select()
+    .single();
+    
+  if (e2) {
+    // Rollback cliente
+    await supabase.from('clientes').delete().eq('id', cliente.id);
+    return { error: e2 };
+  }
+
+  // C. Upload do Arquivo do Projeto (se existir)
+  let projectFilePath = null;
+  if (payload.projeto.arquivo) {
+    const file = payload.projeto.arquivo;
+    const extension = file.name.split('.').pop();
+    const fileName = `project-file.${extension}`;
+    const path = `projects/${prj.id}/${fileName}`;
+    
+    const { path: uploadedPath, error: errUpload } = await uploadArquivoSupabase('arquivos', path, file);
+    if (errUpload) {
+      // Rollback projeto e cliente
+      await supabase.from('projetos').delete().eq('id', prj.id);
+      await supabase.from('clientes').delete().eq('id', cliente.id);
+      return { error: { message: 'Falha no upload do arquivo do projeto: ' + errUpload.message } };
+    }
+    projectFilePath = uploadedPath;
+
+    // Atualiza o registro do projeto com o caminho do arquivo (preenche ambas as convenções de coluna)
+    const { error: errUpdateProj } = await supabase
+      .from('projetos')
+      .update({
+        project_file_path: projectFilePath,
+        arquivo_url: projectFilePath
+      })
+      .eq('id', prj.id);
+    if (errUpdateProj) {
+      console.warn('Erro ao atualizar caminho do arquivo no projeto:', errUpdateProj);
+    }
+  }
+
+  // D. Inserir Pagamento (se houver)
+  if (payload.pagamento.realizado) {
+    const { data: parc, error: e4 } = await supabase
+      .from('parcelas_pagamento')
+      .insert({
+        projeto_id: prj.id,
+        descricao: 'Sinal / Entrada',
+        percentual: payload.projeto.valor > 0 ? (payload.pagamento.valor / payload.projeto.valor) * 100 : 100,
+        valor_parcela: payload.pagamento.valor,
+        amount: payload.pagamento.valor,
+        data_pagamento: payload.pagamento.data,
+        payment_date: payload.pagamento.data,
+        pago: true
+      })
+      .select()
+      .single();
+      
+    if (e4) {
+      // Rollback projeto e cliente
+      await supabase.from('projetos').delete().eq('id', prj.id);
+      await supabase.from('clientes').delete().eq('id', cliente.id);
+      return { error: e4 };
+    }
+
+    // Upload do Comprovante (se existir)
+    if (payload.pagamento.comprovante) {
+      const file = payload.pagamento.comprovante;
+      const extension = file.name.split('.').pop();
+      const fileName = `receipt.${extension}`;
+      const path = `projects/${prj.id}/payments/${parc.id}/${fileName}`;
+
+      const { path: uploadedPath, error: errUpload } = await uploadArquivoSupabase('arquivos', path, file);
+      if (errUpload) {
+        // Rollback pagamento, projeto e cliente
+        await supabase.from('parcelas_pagamento').delete().eq('id', parc.id);
+        await supabase.from('projetos').delete().eq('id', prj.id);
+        await supabase.from('clientes').delete().eq('id', cliente.id);
+        return { error: { message: 'Falha no upload do comprovante de pagamento: ' + errUpload.message } };
+      }
+
+      // Atualiza o registro da parcela com o comprovante (preenche ambas as convenções de coluna)
+      const { error: errUpdateParc } = await supabase
+        .from('parcelas_pagamento')
+        .update({
+          comprovante_url: uploadedPath,
+          comprovante_path: uploadedPath,
+          receipt_file_path: uploadedPath
+        })
+        .eq('id', parc.id);
+      if (errUpdateParc) {
+        console.warn('Erro ao atualizar comprovante na parcela:', errUpdateParc);
+      }
+    }
+  }
+
+  return { data: prj };
+}
+
+async function salvarProjeto() {
+  const btnCadastrar = document.getElementById('btn-cadastrar-projeto');
+  if (btnCadastrar) {
+    if (btnCadastrar.disabled) return; // evita duplo clique
+    btnCadastrar.disabled = true;
+    btnCadastrar.textContent = 'Cadastrando...';
+  }
+
+  if (!validarPagamento()) {
+    if (btnCadastrar) {
+      btnCadastrar.disabled = false;
+      btnCadastrar.textContent = 'Cadastrar projeto';
+    }
     return;
   }
-  showToast(`Projeto ${payload.projeto.codigo} salvo com sucesso.`);
-  resetWizard();
-  carregarProjetosDoBanco();
-  setTimeout(() => switchView('painel'), 1500);
+
+  try {
+    const payload = {
+      cliente: wizard.cliente,
+      projeto: wizard.projeto,
+      pagamento: wizard.pagamento
+    };
+
+    const { data, error } = await salvarProjetoNoBancoCompleto(payload);
+    if (error) {
+      showToast('Não foi possível cadastrar o projeto: ' + (error.message || 'Erro desconhecido.'));
+      if (btnCadastrar) {
+        btnCadastrar.disabled = false;
+        btnCadastrar.textContent = 'Cadastrar projeto';
+      }
+      return;
+    }
+
+    showToast(`Projeto ${payload.projeto.codigo} cadastrado com sucesso.`);
+    resetWizard();
+    carregarProjetosDoBanco();
+    setTimeout(() => switchView('painel'), 1500);
+
+  } catch (err) {
+    console.error('Erro crítico ao salvar:', err);
+    showToast('Erro crítico ao cadastrar projeto.');
+    if (btnCadastrar) {
+      btnCadastrar.disabled = false;
+      btnCadastrar.textContent = 'Cadastrar projeto';
+    }
+  }
 }
 
 function resetWizard() {
   wizard.cliente = { nome: '', cpf: '', nascimento: '', email: '', telefone: '', cep: '', endereco: '' };
-  wizard.projeto = { codigo: '', prazo: '', valor: 0, descricao: '' };
-  wizard.parcelas = [];
-  wizard.ambientes = [];
-  document.querySelectorAll('#view-novo-projeto input').forEach(i => { if (!i.readOnly) i.value = ''; });
-  renderParcelas();
-  renderAmbientesWizard();
+  wizard.projeto = { codigo: '', prazo: '', valor: null, descricao: '', arquivo: null };
+  wizard.pagamento = { realizado: false, valor: null, data: null, comprovante: null };
+  
+  // Limpar inputs
+  document.querySelectorAll('#view-novo-projeto input').forEach(i => { 
+    if (!i.readOnly) {
+      if (i.type === 'radio') {
+        if (i.value === 'nao') i.checked = true;
+      } else {
+        i.value = ''; 
+      }
+    }
+  });
+
+  togglePagamentoCampos('nao');
   wizardGoTo(1);
 }
 
@@ -5161,6 +5388,9 @@ function bindWizardInputs() {
   if (cpf) cpf.addEventListener('input', mascaraCPF);
   const cep = document.getElementById('cli-cep');
   if (cep) cep.addEventListener('input', buscarCEP);
+
+  aplicarMascaraMoeda(document.getElementById('prj-valor'));
+  aplicarMascaraMoeda(document.getElementById('pag-valor'));
 }
 
 function renderProjetosLista() {
