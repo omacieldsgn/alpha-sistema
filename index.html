@@ -2746,11 +2746,11 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         <div>
           <div class="eyebrow t-micro">Painel do gestor</div>
           <h1 class="t-hero">Boa tarde, Jhonata.</h1>
-          <p class="lede">Três projetos ativos, um pedindo sua atenção agora. A margem consolidada do mês está saudável, mas o Ávila precisa de decisão sobre reagendamento.</p>
+          <p class="lede" id="dashboard-lede">Carregando informações do painel...</p>
         </div>
         <div class="stack stack-2" style="align-items: flex-end;">
           <div class="t-micro">Hoje</div>
-          <div style="font-family: var(--font-display); font-size: 1.5rem;">27 jul, seg</div>
+          <div style="font-family: var(--font-display); font-size: 1.5rem;" id="dashboard-data">...</div>
         </div>
       </header>
 
@@ -2758,59 +2758,36 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         <!-- Termômetro -->
         <div class="termometro">
           <div class="eyebrow t-micro">Termômetro operacional</div>
-          <div class="hero-number">R$ 41.320</div>
+          <div class="hero-number" id="db-margem-consolidada">R$ 0</div>
           <p class="hero-desc">Margem consolidada dos projetos ativos, no ritmo atual de produção. Considera materiais lançados, mão de obra alocada e indiretos rateados de julho.</p>
 
           <div class="termometro-kpis">
             <div class="kpi">
               <div class="label">Projetos ativos</div>
-              <div class="value">3</div>
-              <div class="trend up">+1 fechado esta semana</div>
+              <div class="value" id="db-projetos-ativos">0</div>
+              <div class="trend up" id="db-projetos-trend">—</div>
             </div>
             <div class="kpi">
               <div class="label">Etapas em andamento</div>
-              <div class="value">7</div>
-              <div class="trend">2 aguardando material</div>
+              <div class="value" id="db-etapas-andamento">0</div>
+              <div class="trend" id="db-etapas-trend">—</div>
             </div>
             <div class="kpi">
               <div class="label">Margem média</div>
-              <div class="value">32%</div>
-              <div class="trend down">−4pp vs. junho</div>
+              <div class="value" id="db-margem-media">0%</div>
+              <div class="trend down" id="db-margem-trend">—</div>
             </div>
           </div>
         </div>
 
         <!-- Alertas -->
-        <div class="card">
+        <div class="card" id="alertas-container">
           <div class="card-title">
             <h3>Precisa da sua atenção</h3>
-            <span class="meta t-small">3</span>
+            <span class="meta t-small" id="db-alertas-count">0</span>
           </div>
-          <div class="alertas-list">
-            <div class="alerta">
-              <div class="alerta-bar"></div>
-              <div class="alerta-body">
-                <div class="alerta-title">Ávila · Fernanda</div>
-                <div class="alerta-desc">Cliente adiou entrega da chave em 3 dias. Motor de reagendamento sugere ajuste em 4 compromissos.</div>
-                <button class="alerta-cta" onclick="switchView('reagendamento')">Ver proposta →</button>
-              </div>
-            </div>
-            <div class="alerta">
-              <div class="alerta-bar warn"></div>
-              <div class="alerta-body">
-                <div class="alerta-title">MDF Guararapes em falta</div>
-                <div class="alerta-desc">3 etapas da cozinha Ávila estão bloqueadas aguardando chapa Areia Guararapes. Fornecedor Madema informou 4 dias.</div>
-                <button class="alerta-cta">Ver solicitação de compra →</button>
-              </div>
-            </div>
-            <div class="alerta">
-              <div class="alerta-bar info"></div>
-              <div class="alerta-body">
-                <div class="alerta-title">Feedback da equipe</div>
-                <div class="alerta-desc">Rodrigo (marceneiro) sugeriu campo de "material perdido" no tablet do chão de fábrica.</div>
-                <button class="alerta-cta">Registrar →</button>
-              </div>
-            </div>
+          <div class="alertas-list" id="db-alertas-list">
+            <!-- populado dinamicamente -->
           </div>
         </div>
       </div>
@@ -3552,6 +3529,145 @@ async function salvarProjetoNoBanco(projeto) {
   return { data: prj };
 }
 
+function renderDashboard() {
+  const count = projetos.length;
+  
+  // Atualiza lede do cabeçalho
+  const ledeEl = document.getElementById('dashboard-lede');
+  if (ledeEl) {
+    if (count === 0) {
+      ledeEl.textContent = 'Nenhum projeto ativo no momento. Vá em "Novo projeto" para iniciar cadastros.';
+    } else if (count === 1) {
+      ledeEl.textContent = 'Você tem 1 projeto ativo no momento.';
+    } else {
+      ledeEl.textContent = `${count} projetos ativos no momento.`;
+    }
+  }
+
+  // Atualiza data do cabeçalho
+  const dataEl = document.getElementById('dashboard-data');
+  if (dataEl) {
+    const hoje = new Date();
+    const diaNome = hoje.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+    const diaNum = hoje.toLocaleDateString('pt-BR', { day: 'numeric' });
+    const mesNome = hoje.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
+    dataEl.textContent = `${diaNum} ${mesNome}, ${diaNome}`;
+  }
+
+  // Calcula valores dinâmicos
+  const totalVal = projetos.reduce((acc, p) => acc + p.valor, 0);
+  const margemConsolidada = totalVal * 0.32; // Simulação de margem média de 32% sobre os projetos
+  
+  const mConsolidadaEl = document.getElementById('db-margem-consolidada');
+  if (mConsolidadaEl) mConsolidadaEl.textContent = fmtBRL(margemConsolidada);
+
+  const projAtivosEl = document.getElementById('db-projetos-ativos');
+  if (projAtivosEl) projAtivosEl.textContent = count;
+
+  const projTrendEl = document.getElementById('db-projetos-trend');
+  if (projTrendEl) {
+    projTrendEl.textContent = count > 0 ? `+${count} no total` : '—';
+  }
+
+  // Calcula etapas em execução
+  let totalEtapas = 0;
+  projetos.forEach(p => {
+    if (p.ambientes) {
+      p.ambientes.forEach(amb => {
+        if (amb.etapas) {
+          totalEtapas += amb.etapas.filter(et => et.status === 'andamento').length;
+        }
+      });
+    }
+  });
+  const etapasEl = document.getElementById('db-etapas-andamento');
+  if (etapasEl) etapasEl.textContent = totalEtapas;
+
+  const marginMediaEl = document.getElementById('db-margem-media');
+  if (marginMediaEl) marginMediaEl.textContent = count > 0 ? '32%' : '0%';
+
+  // Atualiza seção de alertas
+  const alertasCountEl = document.getElementById('db-alertas-count');
+  const alertasListEl = document.getElementById('db-alertas-list');
+  if (alertasListEl && alertasCountEl) {
+    if (count === 0) {
+      alertasCountEl.textContent = '0';
+      alertasListEl.innerHTML = `
+        <div style="padding: var(--sp-4); text-align: center; color: var(--ink-muted); font-size: 0.875rem;">
+          Tudo em dia! Sem alertas pendentes no momento.
+        </div>
+      `;
+    } else {
+      const alerts = [];
+      projetos.forEach(p => {
+        if (p.progresso < 10) {
+          alerts.push({
+            bar: 'info',
+            title: `Novo projeto: ${p.cliente}`,
+            desc: `Projeto ${p.codigo} recém cadastrado. Planeje o corte de chapas nos ambientes.`,
+            cta: `switchView('projetos')`
+          });
+        }
+      });
+
+      if (alerts.length === 0) {
+        alertasCountEl.textContent = '0';
+        alertasListEl.innerHTML = `
+          <div style="padding: var(--sp-4); text-align: center; color: var(--ink-muted); font-size: 0.875rem;">
+            Tudo em dia! Sem alertas pendentes no momento.
+          </div>
+        `;
+      } else {
+        alertasCountEl.textContent = alerts.length;
+        alertasListEl.innerHTML = alerts.map(a => `
+          <div class="alerta">
+            <div class="alerta-bar ${a.bar || ''}"></div>
+            <div class="alerta-body">
+              <div class="alerta-title">${a.title}</div>
+              <div class="alerta-desc">${a.desc}</div>
+              <button class="alerta-cta" onclick="${a.cta}">Ver detalhes →</button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  }
+
+  // Renderiza a lista de projetos ativos do dashboard (projetos-lista)
+  const listaEl = document.getElementById('projetos-lista');
+  if (listaEl) {
+    if (count === 0) {
+      listaEl.innerHTML = `
+        <div style="padding: var(--sp-6); text-align: center; border: 1px dashed var(--surface-2); border-radius: var(--border-radius); color: var(--ink-muted); font-size: 0.875rem;">
+          Nenhum projeto ativo para listar.
+        </div>
+      `;
+    } else {
+      listaEl.innerHTML = projetos.map(p => {
+        const dias = diasAte(p.prazo);
+        const prazoStr = dias > 0 ? `Prazo: ${fmtDate(p.prazo)} · ${dias}d restantes` : `ATRASADO ${Math.abs(dias)}d`;
+        const statusLabel = p.status === 'instalacao' ? 'Instalação' : p.status === 'ativo' ? 'Em produção' : p.status;
+        const statusColor = p.status === 'instalacao' ? 'var(--status-liberado)' : p.status === 'ativo' ? 'var(--status-em-andamento)' : 'var(--ink-subtle)';
+        
+        return `
+          <div class="projeto-card" onclick="abrirProjeto('${p.id}')" style="cursor: pointer; padding: var(--sp-4); margin-bottom: var(--sp-2);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="font-size: 1rem;">${p.cliente}</strong>
+                <div style="font-size: 0.75rem; color: var(--ink-muted); margin-top: 2px;">${p.codigo} · ${prazoStr}</div>
+              </div>
+              <span style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:${statusColor};padding:3px 8px;border-radius:10px;background:color-mix(in oklch,${statusColor} 12%,var(--surface)); flex-shrink: 0;">${statusLabel}</span>
+            </div>
+            <div style="margin-top: var(--sp-3);">
+              <div class="progresso-bar"><div class="progresso-fill" style="width: ${p.progresso}%"></div></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
 async function carregarProjetosDoBanco() {
   if (!supabase) {
     console.info('[Supabase] Cliente não inicializado. Usando lista vazia.');
@@ -3559,6 +3675,7 @@ async function carregarProjetosDoBanco() {
     renderProjetosLista();
     renderCustos();
     renderChao();
+    renderDashboard();
     return;
   }
   
@@ -3573,6 +3690,7 @@ async function carregarProjetosDoBanco() {
       renderProjetosLista();
       renderCustos();
       renderChao();
+      renderDashboard();
       return;
     }
 
@@ -3633,6 +3751,7 @@ async function carregarProjetosDoBanco() {
     renderProjetosLista();
     renderCustos();
     renderChao();
+    renderDashboard();
   }
 }
 
@@ -5472,6 +5591,7 @@ renderProjetosLista();
 renderAmbientes();
 renderCustos();
 renderChao();
+renderDashboard();
 
 // Carregar tema salvo
 const savedTheme = localStorage.getItem('alpha-theme') || 'light';
