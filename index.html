@@ -2686,7 +2686,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       </button>
       <button class="nav-item" data-view="projetos">
         <span class="dot"></span> Projetos
-        <span class="badge">3</span>
+        <span class="badge" id="projetos-badge" style="display: none;"></span>
       </button>
       <button class="nav-item" data-view="novo-projeto">
         <span class="dot"></span> Novo projeto
@@ -3619,6 +3619,18 @@ function renderDashboard() {
   }
 }
 
+function atualizarContadorProjetos() {
+  const badge = document.getElementById('projetos-badge');
+  if (!badge) return;
+  const count = projetos.length;
+  if (count > 0) {
+    badge.textContent = count;
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
 async function carregarProjetosDoBanco() {
   if (!supabase) {
     console.info('[Supabase] Cliente não inicializado. Usando lista vazia.');
@@ -3627,6 +3639,7 @@ async function carregarProjetosDoBanco() {
     renderCustosView();
     renderChao();
     renderDashboard();
+    atualizarContadorProjetos();
     return;
   }
   
@@ -3642,6 +3655,7 @@ async function carregarProjetosDoBanco() {
       renderCustosView();
       renderChao();
       renderDashboard();
+      atualizarContadorProjetos();
       return;
     }
 
@@ -3698,11 +3712,13 @@ async function carregarProjetosDoBanco() {
     console.info('[Supabase] Projetos carregados do banco:', projetos);
   } catch (err) {
     console.error('[Supabase] Erro ao carregar dados do Supabase:', err);
+    showToast('Erro ao carregar dados de projetos do banco.');
   } finally {
     renderProjetosLista();
     renderCustosView();
     renderChao();
     renderDashboard();
+    atualizarContadorProjetos();
   }
 }
 
