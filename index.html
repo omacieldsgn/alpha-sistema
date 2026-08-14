@@ -43,6 +43,16 @@
 <script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   window.createSupabaseClient = createClient;
+
+  try {
+    if (typeof import.meta !== 'undefined' && import.meta.env) {
+      window.ENV_SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      window.ENV_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_KEY;
+      window.ENV_GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    }
+  } catch (e) {
+    console.warn('[Vite Env] Não foi possível ler as variáveis de ambiente import.meta:', e);
+  }
 </script>
 <style>
 /* ===========================================================================
@@ -3381,88 +3391,8 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
    MOCK DATA — Baseado no contrato real da Fernanda Ávila (72.686,00)
    ============================================================================ */
 
-const projetos = [
-  {
-    id: 'p001',
-    codigo: 'P-2026-014',
-    cliente: 'Ávila, Fernanda',
-    endereco: 'Belo Horizonte / MG',
-    valor: 72686,
-    recebido: 36343,
-    prazo: '2026-09-15',
-    progresso: 28,
-    status: 'ativo',
-    ambientes: [
-      {
-        id: 'a1', nome: 'Cozinha', percentual: 21.70,
-        etapas: [
-          { id: 'e1', nome: 'Corte de chapas', responsavel: 'Rodrigo M.', status: 'concluido', dependeDe: [] },
-          { id: 'e2', nome: 'Usinagem puxadores cava', responsavel: 'Rodrigo M.', status: 'concluido', dependeDe: ['e1'] },
-          { id: 'e3', nome: 'Montagem armário inferior', responsavel: 'Rodrigo M.', status: 'andamento', dependeDe: ['e2'] },
-          { id: 'e4', nome: 'Instalação LED sensor', responsavel: 'Elétrica terceirizada', status: 'bloqueado', dependeDe: ['e3'] },
-        ]
-      },
-      {
-        id: 'a2', nome: 'Suíte casal', percentual: 19.19,
-        etapas: [
-          { id: 'e5', nome: 'Corte MDF Areia', responsavel: 'Rodrigo M.', status: 'atrasado', dependeDe: [] },
-          { id: 'e6', nome: 'Montagem closet aberto', responsavel: 'Silvano P.', status: 'bloqueado', dependeDe: ['e5'] },
-          { id: 'e7', nome: 'Fixação sapateiras', responsavel: 'Silvano P.', status: 'bloqueado', dependeDe: ['e6'] },
-        ]
-      },
-      {
-        id: 'a3', nome: 'Quarto Fernandinha', percentual: 9.93,
-        etapas: [
-          { id: 'e8', nome: 'Corte MDF Tauari', responsavel: 'Rodrigo M.', status: 'liberado', dependeDe: [] },
-          { id: 'e9', nome: 'Montagem cabeceira', responsavel: 'Silvano P.', status: 'bloqueado', dependeDe: ['e8'] },
-        ]
-      },
-    ],
-    custos: {
-      materiais: [
-        { item: 'MDF Branco Texturizado 15mm', desc: '12 chapas 2,75×1,85m', ambiente: 'Cozinha · Corte', origem: 'Madema', valor: 3840 },
-        { item: 'MDF Areia Guararapes 15mm', desc: '8 chapas', ambiente: 'Cozinha · Vistas', origem: 'Madema', valor: 3120 },
-        { item: 'MDF Tauari Guararapes 15mm', desc: '6 chapas', ambiente: 'Suíte · Closet', origem: 'Madema', valor: 2680 },
-        { item: 'Corrediças ocultas Blum', desc: '18 pares Tandem', ambiente: 'Cozinha · Gavetas', origem: 'Bortoletto', valor: 1740 },
-        { item: 'LED 240lm sensor', desc: '12m de fita + sensores', ambiente: 'Cozinha · Iluminação', origem: 'LuzForte', valor: 640 },
-        { item: 'Vidro temperado moldurado', desc: 'Frutas + buffet', ambiente: 'Cozinha / Sala jantar', origem: 'Cristalfer', valor: 400 },
-      ],
-      maoDeObra: [
-        { item: 'Rodrigo M. (marceneiro sênior)', desc: '24h · corte e usinagem', ambiente: 'Cozinha', origem: 'PJ interno', valor: 2160 },
-        { item: 'Silvano P. (marceneiro)', desc: '18h · montagem inicial', ambiente: 'Suíte / Quarto', origem: 'PJ interno', valor: 1440 },
-        { item: 'Elétrica terceirizada', desc: '5h estimadas', ambiente: 'Cozinha · LED', origem: 'Cardoso Instalações', valor: 680 },
-      ],
-      indiretos: [
-        { item: 'Energia elétrica galpão', desc: 'Rateio julho (32% Ávila)', ambiente: 'Global', origem: 'Cemig', valor: 480 },
-        { item: 'Aluguel galpão', desc: 'Rateio julho (32%)', ambiente: 'Global', origem: 'Locação', valor: 640 },
-        { item: 'Ferramentas / consumíveis', desc: 'Lixas, brocas, cola PU', ambiente: 'Global', origem: 'Diversos', valor: 60 },
-      ],
-      retrabalho: [
-        { item: 'Retrabalho puxador cava', desc: 'Usinagem fora de esquadro em 2 portas', ambiente: 'Cozinha · Armário inf.', origem: 'Fabricação', valor: 360 },
-      ]
-    }
-  },
-  {
-    id: 'p002',
-    cliente: 'Costa, Marina',
-    endereco: 'Contagem / MG',
-    valor: 48200,
-    recebido: 48200,
-    prazo: '2026-08-08',
-    progresso: 92,
-    status: 'instalacao',
-  },
-  {
-    id: 'p003',
-    cliente: 'Ribeiro, Anderson',
-    endereco: 'Nova Lima / MG',
-    valor: 61540,
-    recebido: 15385,
-    prazo: '2026-10-20',
-    progresso: 8,
-    status: 'ativo',
-  },
-];
+// Dados do sistema iniciam vazios para integração com o Supabase
+let projetos = [];
 
 /* ============================================================================
    RENDERING
@@ -3490,10 +3420,26 @@ function diasAte(iso) {
    ============================================================================ */
 const CONFIG_KEY = 'alpha-sistema-config-v1';
 
+// Constantes padrão de fallback (Cole suas credenciais aqui se desejar fixá-las no código)
+const DEFAULT_SUPABASE_URL = '';
+const DEFAULT_SUPABASE_KEY = '';
+const DEFAULT_GOOGLE_CLIENT_ID = '';
+
 function getConfig() {
   try {
-    return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
-  } catch { return {}; }
+    const local = JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
+    return {
+      supabaseUrl: local.supabaseUrl || window.ENV_SUPABASE_URL || DEFAULT_SUPABASE_URL || '',
+      supabaseKey: local.supabaseKey || window.ENV_SUPABASE_KEY || DEFAULT_SUPABASE_KEY || '',
+      googleClientId: local.googleClientId || window.ENV_GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID || '',
+    };
+  } catch {
+    return {
+      supabaseUrl: window.ENV_SUPABASE_URL || DEFAULT_SUPABASE_URL || '',
+      supabaseKey: window.ENV_SUPABASE_KEY || DEFAULT_SUPABASE_KEY || '',
+      googleClientId: window.ENV_GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID || '',
+    };
+  }
 }
 function setConfig(cfg) {
   localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
@@ -3565,6 +3511,7 @@ function initSupabase() {
   try {
     supabase = window.createSupabaseClient(cfg.supabaseUrl, cfg.supabaseKey);
     console.info('[Supabase] Cliente inicializado');
+    carregarProjetosDoBanco();
   } catch (e) {
     console.error('[Supabase] Erro ao inicializar:', e);
     supabase = null;
@@ -3603,6 +3550,90 @@ async function salvarProjetoNoBanco(projeto) {
   }
 
   return { data: prj };
+}
+
+async function carregarProjetosDoBanco() {
+  if (!supabase) {
+    console.info('[Supabase] Cliente não inicializado. Usando lista vazia.');
+    projetos = [];
+    renderProjetosLista();
+    renderCustos();
+    renderChao();
+    return;
+  }
+  
+  try {
+    const { data: dbProjetos, error: eProj } = await supabase
+      .from('projetos')
+      .select('*');
+    if (eProj) throw eProj;
+
+    if (!dbProjetos || dbProjetos.length === 0) {
+      projetos = [];
+      renderProjetosLista();
+      renderCustos();
+      renderChao();
+      return;
+    }
+
+    const { data: dbClientes, error: eCli } = await supabase
+      .from('clientes')
+      .select('*');
+    if (eCli) throw eCli;
+
+    const { data: dbAmbientes, error: eAmb } = await supabase
+      .from('ambientes')
+      .select('*');
+    if (eAmb) throw eAmb;
+
+    const { data: dbParcelas, error: eParc } = await supabase
+      .from('parcelas_pagamento')
+      .select('*');
+    if (eParc) throw eParc;
+
+    projetos = dbProjetos.map(p => {
+      const cli = dbClientes.find(c => c.id === p.cliente_id) || {};
+      const ambs = dbAmbientes.filter(a => a.projeto_id === p.id) || [];
+      const parcs = dbParcelas.filter(x => x.projeto_id === p.id) || [];
+      
+      const valorTotal = p.valor || 0;
+      const valorRecebido = parcs.reduce((acc, curr) => {
+        return acc + (curr.pago ? (valorTotal * (curr.percentual / 100)) : 0);
+      }, 0) || (valorTotal / 2);
+
+      return {
+        id: p.id,
+        codigo: p.codigo || `P-${p.id}`,
+        cliente: cli.nome || 'Cliente não identificado',
+        endereco: cli.endereco || cli.cep || 'Sem endereço',
+        valor: valorTotal,
+        recebido: valorRecebido,
+        prazo: p.prazo || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        progresso: p.progresso || 0,
+        status: p.status || 'ativo',
+        ambientes: ambs.map(a => ({
+          id: a.id,
+          nome: a.nome,
+          percentual: a.percentual,
+          etapas: []
+        })),
+        custos: {
+          materiais: [],
+          maoDeObra: [],
+          indiretos: [],
+          retrabalho: []
+        }
+      };
+    });
+
+    console.info('[Supabase] Projetos carregados do banco:', projetos);
+  } catch (err) {
+    console.error('[Supabase] Erro ao carregar dados do Supabase:', err);
+  } finally {
+    renderProjetosLista();
+    renderCustos();
+    renderChao();
+  }
 }
 
 /* ============================================================================
@@ -4275,6 +4306,7 @@ async function salvarProjeto() {
   }
   showToast(`Projeto ${payload.projeto.codigo} salvo com sucesso.`);
   resetWizard();
+  carregarProjetosDoBanco();
   setTimeout(() => switchView('painel'), 1500);
 }
 
@@ -5116,9 +5148,21 @@ function renderAmbientes() {
 
 let camadaAtiva = 'materiais';
 function renderCustos() {
-  const projeto = projetos[0];
-  const itens = projeto.custos[camadaAtiva === 'mao-obra' ? 'maoDeObra' : camadaAtiva];
   const container = document.getElementById('custo-linhas');
+  if (!container) return;
+
+  const projeto = projetos[0];
+  if (!projeto || !projeto.custos) {
+    container.innerHTML = `<div style="padding: var(--sp-4); text-align: center; color: var(--ink-muted);">Nenhum custo lançado.</div>`;
+    return;
+  }
+
+  const itens = projeto.custos[camadaAtiva === 'mao-obra' ? 'maoDeObra' : camadaAtiva] || [];
+  if (itens.length === 0) {
+    container.innerHTML = `<div style="padding: var(--sp-4); text-align: center; color: var(--ink-muted);">Nenhum item nesta categoria.</div>`;
+    return;
+  }
+
   container.innerHTML = itens.map(i => `
     <div class="custo-tabela-row">
       <div>
@@ -5141,17 +5185,32 @@ function switchTab(btn, camada) {
 
 /* Chão de fábrica — dark queue */
 function renderChao() {
+  const container = document.getElementById('chao-grid');
+  if (!container) return;
+
   const projeto = projetos[0];
+  if (!projeto || !projeto.ambientes) {
+    container.innerHTML = `<div style="grid-column: 1 / -1; padding: var(--sp-8); text-align: center; color: var(--ink-muted);">Nenhum trabalho pendente no galpão.</div>`;
+    return;
+  }
+
   const etapas = [];
   projeto.ambientes.forEach(amb => {
-    amb.etapas.forEach(et => {
-      if (et.status === 'andamento' || et.status === 'liberado') {
-        etapas.push({ ...et, ambiente: amb.nome, projeto: projeto.cliente });
-      }
-    });
+    if (amb.etapas) {
+      amb.etapas.forEach(et => {
+        if (et.status === 'andamento' || et.status === 'liberado') {
+          etapas.push({ ...et, ambiente: amb.nome, projeto: projeto.cliente });
+        }
+      });
+    }
   });
 
-  document.getElementById('chao-grid').innerHTML = etapas.map(et => `
+  if (etapas.length === 0) {
+    container.innerHTML = `<div style="grid-column: 1 / -1; padding: var(--sp-8); text-align: center; color: var(--ink-muted);">Nenhuma etapa de produção ativa no momento.</div>`;
+    return;
+  }
+
+  container.innerHTML = etapas.map(et => `
     <div class="chao-etapa" tabindex="0">
       <div class="projeto-nome">${et.projeto}</div>
       <div class="etapa-titulo">${et.nome}</div>
