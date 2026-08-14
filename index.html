@@ -3041,10 +3041,62 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         <div class="wizard-step" data-step="2"><span class="num">2</span><span class="label">Projeto</span></div>
         <div class="wizard-step" data-step="3"><span class="num">3</span><span class="label">Pagamento</span></div>
       </div>
-    </section>
 
-    <!-- Step 1 is handled in the section above, now appending Step 2 and Step 3 in view-novo-projeto -->
-    <section class="view" id="view-novo-projeto-steps">
+      <!-- Step 1: Cliente -->
+      <div class="wizard-panel active" data-panel="1">
+        <h2 class="wizard-title">Dados do cliente</h2>
+        <p class="wizard-desc">Estas informações vão diretamente para o contrato. CPF/CNPJ e CEP têm validação automática se preenchidos.</p>
+
+        <div class="stack stack-5">
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="cli-nome">Nome do cliente <span class="req">*</span></label>
+              <input type="text" class="input" id="cli-nome" placeholder="Ex: Fernanda Fagundes da Silva Ávila">
+            </div>
+            <div class="field">
+              <label class="field-label" for="cli-cpf">CPF/CNPJ</label>
+              <input type="text" class="input" id="cli-cpf" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+              <div class="field-error" id="cli-cpf-err" style="display: none;">Documento inválido</div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="cli-nascimento">Data de nascimento</label>
+              <input type="date" class="input" id="cli-nascimento">
+            </div>
+            <div class="field">
+              <label class="field-label" for="cli-email">E-mail</label>
+              <input type="email" class="input" id="cli-email" placeholder="cliente@exemplo.com">
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="cli-telefone">Telefone</label>
+              <input type="tel" class="input" id="cli-telefone" placeholder="(31) 99999-9999">
+            </div>
+            <div class="field">
+              <label class="field-label" for="cli-cep">CEP</label>
+              <input type="text" class="input" id="cli-cep" placeholder="00000-000" maxlength="9">
+              <div class="field-hint">O endereço preenche automaticamente</div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field" style="grid-column: 1 / -1;">
+              <label class="field-label" for="cli-endereco">Endereço da obra</label>
+              <input type="text" class="input" id="cli-endereco" placeholder="Rua, número, complemento, bairro, cidade / UF">
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn btn-ghost" onclick="switchView('projetos')">Cancelar</button>
+          <button class="btn btn-primary" onclick="wizardNext(1)">Continuar →</button>
+        </div>
+      </div>
+
       <!-- Step 2: Projeto & valores -->
       <div class="wizard-panel" data-panel="2">
         <h2 class="wizard-title">Dados do projeto</h2>
