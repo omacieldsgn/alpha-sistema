@@ -2757,9 +2757,9 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       <div class="painel-grid">
         <!-- Termômetro -->
         <div class="termometro">
-          <div class="eyebrow t-micro">Termômetro operacional</div>
+          <div class="eyebrow t-micro">Total de Receitas (Entradas)</div>
           <div class="hero-number" id="db-margem-consolidada">R$ 0</div>
-          <p class="hero-desc">Margem consolidada dos projetos ativos, no ritmo atual de produção. Considera materiais lançados, mão de obra alocada e indiretos rateados de julho.</p>
+          <p class="hero-desc">Soma acumulada de todas as parcelas e entradas recebidas e confirmadas para os projetos cadastrados no Supabase.</p>
 
           <div class="termometro-kpis">
             <div class="kpi">
@@ -2834,18 +2834,91 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
           <h1 class="t-hero" id="detalhe-nome"></h1>
           <p class="lede" id="detalhe-lede"></p>
         </div>
-        <div>
-          <button class="btn btn-secondary">Ver contrato</button>
-          <button class="btn btn-primary" style="margin-left: var(--sp-2);">Editar projeto</button>
+        <div style="display: flex; gap: var(--sp-2);">
+          <button class="btn btn-secondary" onclick="abrirModalEditarProjeto()">Editar projeto</button>
+          <button class="btn btn-ghost" onclick="switchView('projetos')">Voltar</button>
         </div>
       </header>
 
-      <div class="projeto-header" id="detalhe-meta">
-        <!-- populado por JS -->
+      <!-- Grid com duas colunas principais -->
+      <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: var(--sp-6); margin-bottom: var(--sp-6);">
+        <!-- Coluna 1: Informações do Cliente & Arquivos -->
+        <div class="stack stack-5">
+          <!-- Dados do Cliente -->
+          <div class="card" style="padding: var(--sp-4);">
+            <h3 class="t-h3" style="margin-bottom: var(--sp-3); font-family: var(--font-display);">Dados do cliente</h3>
+            <dl class="meta-list" style="font-size: 0.9375rem;">
+              <div style="display: flex; justify-content: space-between; padding: var(--sp-2) 0; border-bottom: 1px solid var(--border);"><dt style="color: var(--ink-subtle); font-weight: 500;">Telefone</dt><dd id="detalhe-cli-tel" style="font-weight: 600;">—</dd></div>
+              <div style="display: flex; justify-content: space-between; padding: var(--sp-2) 0; border-bottom: 1px solid var(--border);"><dt style="color: var(--ink-subtle); font-weight: 500;">CPF/CNPJ</dt><dd id="detalhe-cli-cpf" style="font-weight: 600;">—</dd></div>
+              <div style="display: flex; justify-content: space-between; padding: var(--sp-2) 0; border-bottom: 1px solid var(--border);"><dt style="color: var(--ink-subtle); font-weight: 500;">Endereço</dt><dd id="detalhe-cli-end" style="font-weight: 600;">—</dd></div>
+            </dl>
+          </div>
+
+          <!-- Arquivos e Documentos -->
+          <div class="card" style="padding: var(--sp-4);">
+            <h3 class="t-h3" style="margin-bottom: var(--sp-3); font-family: var(--font-display);">Contratos e Documentos</h3>
+            <div class="stack stack-3">
+              <!-- Contrato -->
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) 0; border-bottom: 1px solid var(--border);">
+                <div>
+                  <div style="font-weight: 600; font-size: 0.9375rem;">Contrato assinado</div>
+                  <div id="detalhe-contrato-status" style="font-size: 0.75rem; color: var(--ink-subtle);">Não anexado</div>
+                </div>
+                <div id="detalhe-contrato-acoes" style="display: flex; gap: var(--sp-2);">
+                  <!-- Dinâmico -->
+                </div>
+              </div>
+
+              <!-- Projeto / Apresentação -->
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) 0; border-bottom: 1px solid var(--border);">
+                <div>
+                  <div style="font-weight: 600; font-size: 0.9375rem;">Projeto / Apresentação</div>
+                  <div id="detalhe-projeto-status" style="font-size: 0.75rem; color: var(--ink-subtle);">Não anexado</div>
+                </div>
+                <div id="detalhe-projeto-acoes" style="display: flex; gap: var(--sp-2);">
+                  <!-- Dinâmico -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Financeiro & Entradas -->
+        <div class="stack stack-5">
+          <!-- Resumo Financeiro -->
+          <div class="card" style="padding: var(--sp-4);">
+            <h3 class="t-h3" style="margin-bottom: var(--sp-3); font-family: var(--font-display);">Resumo financeiro</h3>
+            <div id="detalhe-resumo-financeiro">
+              <!-- JS -->
+            </div>
+          </div>
+
+          <!-- Histórico de Entradas -->
+          <div class="card" style="padding: var(--sp-4);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-3);">
+              <h3 class="t-h3" style="margin: 0; font-family: var(--font-display);">Entradas recebidas</h3>
+              <button class="btn btn-primary" onclick="abrirModalAdicionarEntrada()" style="font-size: 0.75rem; padding: var(--sp-1) var(--sp-2);">+ Adicionar entrada</button>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--border); color: var(--ink-subtle); font-weight: 600;">
+                  <th style="padding: var(--sp-2) 0;">Data</th>
+                  <th style="padding: var(--sp-2) 0;">Valor</th>
+                  <th style="padding: var(--sp-2) 0;">Comprovante</th>
+                  <th style="padding: var(--sp-2) 0; text-align: right;">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="detalhe-entradas-list">
+                <!-- JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <!-- Ambientes com motor de liberação -->
-      <div id="ambientes-lista">
+      <div id="ambientes-lista" style="margin-top: var(--sp-5);">
         <!-- populado por JS -->
       </div>
     </section>
@@ -3129,10 +3202,15 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
           </div>
 
           <div class="field-row">
-            <div class="field" style="grid-column: 1 / -1;">
+            <div class="field">
               <label class="field-label" for="prj-arquivo">Projeto / Apresentação</label>
               <input type="file" class="input" id="prj-arquivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip" style="padding: var(--sp-2);">
-              <div class="field-hint">Opcional — anexe o PDF, apresentação ou arquivo relacionado ao projeto.</div>
+              <div class="field-hint">Opcional — anexe o arquivo do projeto.</div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="prj-contrato">Contrato assinado</label>
+              <input type="file" class="input" id="prj-contrato" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="padding: var(--sp-2);">
+              <div class="field-hint">Opcional — anexe o contrato assinado pelo cliente.</div>
             </div>
           </div>
         </div>
@@ -3267,6 +3345,109 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
     </section>
 
   </main>
+</div>
+
+<!-- Modal de Entrada de Pagamento (Adicionar / Editar) -->
+<div class="modal-backdrop" id="modal-entrada-financeira" style="display: none;">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-entrada-title">
+    <div class="modal-header">
+      <div class="icon">💰</div>
+      <div>
+        <h3 id="modal-entrada-title">Lançar Entrada Financeira</h3>
+        <p>Insira os detalhes do pagamento recebido para este projeto</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="form-entrada-financeira" onsubmit="event.preventDefault();">
+        <input type="hidden" id="ent-id">
+        <div class="modal-form-grid" style="display: grid; gap: var(--sp-4);">
+          <div class="modal-field" style="display: flex; flex-direction: column; gap: var(--sp-1);">
+            <label for="ent-valor" class="field-label" style="font-weight: 500;">Valor recebido *</label>
+            <input type="text" class="input" id="ent-valor" placeholder="R$ 0,00" required>
+          </div>
+          <div class="modal-field" style="display: flex; flex-direction: column; gap: var(--sp-1);">
+            <label for="ent-data" class="field-label" style="font-weight: 500;">Data do recebimento *</label>
+            <input type="date" class="input" id="ent-data" required>
+          </div>
+          <div class="modal-field" style="display: flex; flex-direction: column; gap: var(--sp-1);">
+            <label for="ent-comprovante" class="field-label" style="font-weight: 500;">Comprovante de pagamento</label>
+            <input type="file" class="input" id="ent-comprovante" accept=".pdf,.jpg,.jpeg,.png,.zip" style="padding: var(--sp-1);">
+            <div class="field-hint" style="font-size: 0.75rem; color: var(--ink-subtle);">Opcional — anexe o comprovante.</div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: var(--sp-2); margin-top: var(--sp-4);">
+      <button class="btn btn-secondary" onclick="fecharModalEntrada()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-entrada" onclick="salvarEntradaFinanceira()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Edição de Projeto -->
+<div class="modal-backdrop" id="modal-editar-projeto" style="display: none;">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-editar-title" style="max-width: 600px;">
+    <div class="modal-header">
+      <div class="icon">✏️</div>
+      <div>
+        <h3 id="modal-editar-title">Editar Projeto</h3>
+        <p>Atualize as informações cadastrais e financeiras do projeto</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="form-editar-projeto" onsubmit="event.preventDefault();">
+        <div class="stack stack-4">
+          <div class="field-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4);">
+            <div class="field" style="display: flex; flex-direction: column; gap: var(--sp-1);">
+              <label class="field-label" for="edit-cli-nome">Nome do cliente *</label>
+              <input type="text" class="input" id="edit-cli-nome" required>
+            </div>
+            <div class="field" style="display: flex; flex-direction: column; gap: var(--sp-1);">
+              <label class="field-label" for="edit-cli-cpf">CPF/CNPJ</label>
+              <input type="text" class="input" id="edit-cli-cpf" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+            </div>
+          </div>
+
+          <div class="field-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); margin-top: var(--sp-3);">
+            <div class="field" style="display: flex; flex-direction: column; gap: var(--sp-1);">
+              <label class="field-label" for="edit-cli-telefone">Telefone</label>
+              <input type="tel" class="input" id="edit-cli-telefone">
+            </div>
+            <div class="field" style="display: flex; flex-direction: column; gap: var(--sp-1);">
+              <label class="field-label" for="edit-cli-endereco">Endereço da obra</label>
+              <input type="text" class="input" id="edit-cli-endereco">
+            </div>
+          </div>
+
+          <div class="field-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); margin-top: var(--sp-3);">
+            <div class="field" style="display: flex; flex-direction: column; gap: var(--sp-1);">
+              <label class="field-label" for="edit-prj-valor">Valor total do projeto</label>
+              <input type="text" class="input" id="edit-prj-valor" placeholder="R$ 0,00">
+            </div>
+            <div class="field" style="display: flex; flex-direction: column; gap: var(--sp-1);">
+              <label class="field-label" for="edit-prj-prazo">Prazo contratual</label>
+              <input type="date" class="input" id="edit-prj-prazo">
+            </div>
+          </div>
+
+          <div class="field-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); margin-top: var(--sp-3);">
+            <div class="field" style="display: flex; flex-direction: column; gap: var(--sp-1);">
+              <label class="field-label" for="edit-prj-arquivo">Projeto / Apresentação</label>
+              <input type="file" class="input" id="edit-prj-arquivo" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.zip" style="padding: var(--sp-1);">
+            </div>
+            <div class="field" style="display: flex; flex-direction: column; gap: var(--sp-1);">
+              <label class="field-label" for="edit-prj-contrato">Contrato assinado</label>
+              <input type="file" class="input" id="edit-prj-contrato" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="padding: var(--sp-1);">
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: var(--sp-2); margin-top: var(--sp-4);">
+      <button class="btn btn-secondary" onclick="fecharModalEditarProjeto()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-edicao-projeto" onclick="salvarEdicaoProjeto()">Salvar alterações</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal de confirmação (Google Calendar sync) -->
@@ -3559,10 +3740,10 @@ function renderDashboard() {
 
   // Calcula valores dinâmicos
   const totalVal = projetos.reduce((acc, p) => acc + p.valor, 0);
-  const margemConsolidada = totalVal * 0.32; // Simulação de margem média de 32% sobre os projetos
+  const totalRecebido = projetos.reduce((acc, p) => acc + (p.recebido || 0), 0);
   
   const mConsolidadaEl = document.getElementById('db-margem-consolidada');
-  if (mConsolidadaEl) mConsolidadaEl.textContent = fmtBRL(margemConsolidada);
+  if (mConsolidadaEl) mConsolidadaEl.textContent = fmtBRL(totalRecebido);
 
   const projAtivosEl = document.getElementById('db-projetos-ativos');
   if (projAtivosEl) projAtivosEl.textContent = count;
@@ -3733,16 +3914,25 @@ async function carregarProjetosDoBanco() {
       
       const valorTotal = p.valor || 0;
       const valorRecebido = parcs.reduce((acc, curr) => {
-        return acc + (curr.pago ? (valorTotal * (curr.percentual / 100)) : 0);
-      }, 0) || (valorTotal / 2);
+        return acc + (curr.pago ? (curr.valor_parcela || curr.amount || (valorTotal * ((curr.percentual || 0) / 100))) : 0);
+      }, 0);
 
       return {
         id: p.id,
         codigo: p.codigo || `P-${p.id}`,
         cliente: cli.nome || 'Cliente não identificado',
+        cliente_id: cli.id || null,
+        cliente_telefone: cli.telefone || '',
+        cliente_cpf: cli.cpf || '',
+        cliente_endereco: cli.endereco || '',
+        cliente_nascimento: cli.nascimento || '',
+        cliente_email: cli.email || '',
+        cliente_cep: cli.cep || '',
         endereco: cli.endereco || cli.cep || 'Sem endereço',
         valor: valorTotal,
         recebido: valorRecebido,
+        project_file_path: p.project_file_path || p.arquivo_url || null,
+        contrato_url: p.contrato_url || p.contrato_path || p.contract_file_path || null,
         prazo: p.prazo || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         progresso: p.progresso || 0,
         status: p.status || 'ativo',
@@ -3751,6 +3941,15 @@ async function carregarProjetosDoBanco() {
           nome: a.nome,
           percentual: a.percentual,
           etapas: []
+        })),
+        entradas: parcs.map(x => ({
+          id: x.id,
+          descricao: x.descricao || 'Entrada',
+          percentual: x.percentual || 0,
+          valor: x.valor_parcela || x.amount || 0,
+          data: x.data_pagamento || x.payment_date || null,
+          comprovante_url: x.comprovante_url || x.comprovante_path || x.receipt_file_path || null,
+          pago: x.pago
         })),
         custos: {
           materiais: [],
@@ -4241,13 +4440,15 @@ function validarProjeto() {
   }
 
   const arquivo = document.getElementById('prj-arquivo').files[0] || null;
+  const contrato = document.getElementById('prj-contrato').files[0] || null;
 
   wizard.projeto = {
     codigo: document.getElementById('prj-codigo').value,
     prazo, 
     valor,
     descricao: document.getElementById('prj-descricao').value.trim() || null,
-    arquivo: arquivo
+    arquivo: arquivo,
+    contrato: contrato
   };
   return true;
 }
@@ -4607,6 +4808,37 @@ async function salvarProjetoNoBancoCompleto(payload) {
       .eq('id', prj.id);
     if (errUpdateProj) {
       console.warn('Erro ao atualizar caminho do arquivo no projeto:', errUpdateProj);
+    }
+  }
+
+  // C2. Upload do Contrato Assinado (se existir)
+  let contractFilePath = null;
+  if (payload.projeto.contrato) {
+    const file = payload.projeto.contrato;
+    const extension = file.name.split('.').pop();
+    const fileName = `contract-file.${extension}`;
+    const path = `projects/${prj.id}/contract/${fileName}`;
+    
+    const { path: uploadedPath, error: errUpload } = await uploadArquivoSupabase('arquivos', path, file);
+    if (errUpload) {
+      // Rollback projeto e cliente
+      await supabase.from('projetos').delete().eq('id', prj.id);
+      await supabase.from('clientes').delete().eq('id', cliente.id);
+      return { error: { message: 'Falha no upload do contrato: ' + errUpload.message } };
+    }
+    contractFilePath = uploadedPath;
+
+    // Atualiza o registro do projeto com o caminho do contrato (preenche todas as convenções de coluna)
+    const { error: errUpdateCont } = await supabase
+      .from('projetos')
+      .update({
+        contrato_url: contractFilePath,
+        contrato_path: contractFilePath,
+        contract_file_path: contractFilePath
+      })
+      .eq('id', prj.id);
+    if (errUpdateCont) {
+      console.warn('Erro ao atualizar contrato no projeto:', errUpdateCont);
     }
   }
 
@@ -5459,6 +5691,11 @@ function bindWizardInputs() {
 
   aplicarMascaraMoeda(document.getElementById('prj-valor'));
   aplicarMascaraMoeda(document.getElementById('pag-valor'));
+
+  aplicarMascaraMoeda(document.getElementById('edit-prj-valor'));
+  aplicarMascaraMoeda(document.getElementById('ent-valor'));
+  const editCpf = document.getElementById('edit-cli-cpf');
+  if (editCpf) editCpf.addEventListener('input', mascaraCPF);
 }
 
 function renderProjetosLista() {
@@ -5839,6 +6076,11 @@ function toggleTheme() {
   }
 }
 
+function obterPublicUrl(path) {
+  if (!supabase || !path) return '';
+  return supabase.storage.from('arquivos').getPublicUrl(path).data.publicUrl;
+}
+
 function abrirProjeto(id) {
   const p = projetos.find(x => x.id === id);
   if (!p) return;
@@ -5849,28 +6091,102 @@ function abrirProjeto(id) {
   document.getElementById('detalhe-nome').textContent = p.cliente;
   document.getElementById('detalhe-lede').textContent = `${p.endereco} · ${fmtBRL(p.valor)}`;
 
-  // Preenche meta-grid com dados financeiros e progresso
-  const dias = diasAte(p.prazo);
-  const prazoStr = dias > 0 ? `${fmtDate(p.prazo)} (${dias}d)` : `${fmtDate(p.prazo)} — ATRASADO ${Math.abs(dias)}d`;
-  const nAmbientes = p.ambientes ? p.ambientes.length : '—';
-  const nEtapas = p.ambientes ? p.ambientes.reduce((s, a) => s + a.etapas.length, 0) : '—';
-  const recPct = p.recebido && p.valor ? Math.round((p.recebido / p.valor) * 100) : 0;
+  // Preenche Dados do Cliente
+  document.getElementById('detalhe-cli-tel').textContent = p.cliente_telefone || '—';
+  document.getElementById('detalhe-cli-cpf').textContent = p.cliente_cpf || '—';
+  document.getElementById('detalhe-cli-end').textContent = p.cliente_endereco || '—';
 
-  document.getElementById('detalhe-meta').innerHTML = `
-    <div class="detalhe-meta-grid">
-      <dl class="meta-list">
-        <div><dt>Valor total</dt><dd>${fmtBRL(p.valor)}</dd></div>
-        <div><dt>Recebido</dt><dd>${fmtBRL(p.recebido)} <span style="color:var(--ink-subtle);font-size:0.75rem;">(${recPct}%)</span></dd></div>
-        <div><dt>Prazo</dt><dd>${prazoStr}</dd></div>
-        <div><dt>Ambientes</dt><dd>${nAmbientes} · ${nEtapas} etapas</dd></div>
-      </dl>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:var(--sp-2);">
-        <div class="t-micro" style="color:var(--ink-subtle);">Progresso geral</div>
-        <div style="font-family:var(--font-display);font-size:3rem;font-weight:400;letter-spacing:-0.025em;line-height:1;">${p.progresso}%</div>
-        <div class="progresso-bar" style="width:200px;"><div class="progresso-fill" style="width:${p.progresso}%;"></div></div>
+  // Preenche Contrato Assinado
+  const contractStatus = document.getElementById('detalhe-contrato-status');
+  const contractActions = document.getElementById('detalhe-contrato-acoes');
+  if (p.contrato_url) {
+    contractStatus.textContent = 'Contrato anexado';
+    contractStatus.style.color = 'var(--status-liberado)';
+    const url = obterPublicUrl(p.contrato_url);
+    contractActions.innerHTML = `
+      <a href="${url}" target="_blank" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;text-decoration:none;">Visualizar</a>
+      <button class="btn btn-ghost" onclick="substituirContrato('${p.id}')" style="font-size:0.75rem;padding:2px 8px;">Substituir</button>
+      <button class="btn btn-ghost" onclick="removerContrato('${p.id}')" style="font-size:0.75rem;padding:2px 8px;color:var(--status-atrasado);">Remover</button>
+    `;
+  } else {
+    contractStatus.textContent = 'Contrato não anexado';
+    contractStatus.style.color = 'var(--ink-muted)';
+    contractActions.innerHTML = `
+      <button class="btn btn-ghost" onclick="substituirContrato('${p.id}')" style="font-size:0.75rem;padding:2px 8px;">+ Anexar</button>
+    `;
+  }
+
+  // Preenche Projeto / Apresentação
+  const projectStatus = document.getElementById('detalhe-projeto-status');
+  const projectActions = document.getElementById('detalhe-projeto-acoes');
+  if (p.project_file_path) {
+    projectStatus.textContent = 'Arquivo anexado';
+    projectStatus.style.color = 'var(--status-liberado)';
+    const url = obterPublicUrl(p.project_file_path);
+    projectActions.innerHTML = `
+      <a href="${url}" target="_blank" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;text-decoration:none;">Visualizar</a>
+      <button class="btn btn-ghost" onclick="substituirProjetoArquivo('${p.id}')" style="font-size:0.75rem;padding:2px 8px;">Substituir</button>
+      <button class="btn btn-ghost" onclick="removerProjetoArquivo('${p.id}')" style="font-size:0.75rem;padding:2px 8px;color:var(--status-atrasado);">Remover</button>
+    `;
+  } else {
+    projectStatus.textContent = 'Arquivo não anexado';
+    projectStatus.style.color = 'var(--ink-muted)';
+    projectActions.innerHTML = `
+      <button class="btn btn-ghost" onclick="substituirProjetoArquivo('${p.id}')" style="font-size:0.75rem;padding:2px 8px;">+ Anexar</button>
+    `;
+  }
+
+  // Resumo financeiro
+  const recPct = p.valor > 0 ? ((p.recebido / p.valor) * 100).toFixed(1) : '0';
+  const saldo = Math.max(0, p.valor - p.recebido);
+  document.getElementById('detalhe-resumo-financeiro').innerHTML = `
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); font-size: 0.9375rem; margin-bottom: var(--sp-4);">
+      <div>
+        <div style="color: var(--ink-subtle); font-size: 0.75rem; font-weight: 500;">Valor contratado</div>
+        <div style="font-weight: 700; font-size: 1.125rem;">${fmtBRL(p.valor)}</div>
+      </div>
+      <div>
+        <div style="color: var(--ink-subtle); font-size: 0.75rem; font-weight: 500;">Total recebido</div>
+        <div style="font-weight: 700; font-size: 1.125rem; color: var(--status-liberado);">${fmtBRL(p.recebido)}</div>
+      </div>
+      <div>
+        <div style="color: var(--ink-subtle); font-size: 0.75rem; font-weight: 500;">Saldo a receber</div>
+        <div style="font-weight: 700; font-size: 1.125rem;">${fmtBRL(saldo)}</div>
+      </div>
+      <div>
+        <div style="color: var(--ink-subtle); font-size: 0.75rem; font-weight: 500;">Percentual recebido</div>
+        <div style="font-weight: 700; font-size: 1.125rem;">${recPct}%</div>
       </div>
     </div>
+    <div class="progresso-bar" style="height: 8px;"><div class="progresso-fill" style="width:${recPct}%; background: var(--status-liberado);"></div></div>
   `;
+
+  // Histórico de Entradas
+  const tbody = document.getElementById('detalhe-entradas-list');
+  if (p.entradas && p.entradas.length > 0) {
+    tbody.innerHTML = p.entradas.map(e => {
+      let compHtml = '';
+      if (e.comprovante_url) {
+        const url = obterPublicUrl(e.comprovante_url);
+        compHtml = `<a href="${url}" target="_blank" class="btn btn-ghost" style="font-size:0.75rem;padding:2px 8px;text-decoration:none;">Visualizar</a>`;
+      } else {
+        compHtml = `<button class="btn btn-ghost" onclick="substituirComprovante('${p.id}', '${e.id}')" style="font-size:0.75rem;padding:2px 8px;">+ Anexar</button>`;
+      }
+      return `
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: var(--sp-3) 0;">${fmtDate(e.data)}</td>
+          <td style="padding: var(--sp-3) 0; font-weight: 600;">${fmtBRL(e.valor)}</td>
+          <td style="padding: var(--sp-3) 0;">${compHtml}</td>
+          <td style="padding: var(--sp-3) 0; text-align: right;">
+            <button class="btn btn-ghost" onclick="abrirModalEditarEntrada('${e.id}', '${e.valor}', '${e.data}')" style="font-size:0.75rem;padding:2px 8px;">Editar</button>
+            <button class="btn btn-ghost" onclick="excluirEntradaFinanceira('${e.id}')" style="font-size:0.75rem;padding:2px 8px;color:var(--status-atrasado);">Excluir</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } else {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--ink-muted); padding: var(--sp-4) 0;">Nenhum pagamento registrado ainda.</td></tr>`;
+  }
 
   // Renderiza ambientes se o projeto tiver
   const ambContainer = document.getElementById('ambientes-lista');
@@ -5881,6 +6197,457 @@ function abrirProjeto(id) {
   }
 
   switchView('projeto-detalhe');
+}
+
+/* Ações Dinâmicas de Arquivos no Storage */
+function substituirContrato(id) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast('Enviando contrato...');
+    
+    const p = projetos.find(x => x.id === id);
+    if (p && p.contrato_url) {
+      await supabase.storage.from('arquivos').remove([p.contrato_url]);
+    }
+    
+    const extension = file.name.split('.').pop();
+    const fileName = `contract-${Date.now()}.${extension}`;
+    const path = `projects/${id}/contract/${fileName}`;
+    
+    const { path: uploadedPath, error } = await uploadArquivoSupabase('arquivos', path, file);
+    if (error) {
+      showToast('Erro no upload: ' + error.message);
+      return;
+    }
+    
+    const { error: errUpdate } = await supabase
+      .from('projetos')
+      .update({
+        contrato_url: uploadedPath,
+        contrato_path: uploadedPath,
+        contract_file_path: uploadedPath
+      })
+      .eq('id', id);
+      
+    if (errUpdate) {
+      showToast('Erro ao vincular contrato: ' + errUpdate.message);
+    } else {
+      showToast('Contrato anexado com sucesso!');
+      await carregarProjetosDoBanco();
+      abrirProjeto(id);
+    }
+  };
+  input.click();
+}
+
+async function removerContrato(id) {
+  if (!confirm('Deseja realmente remover o contrato deste projeto?')) return;
+  const p = projetos.find(x => x.id === id);
+  if (p && p.contrato_url) {
+    await supabase.storage.from('arquivos').remove([p.contrato_url]);
+  }
+  
+  const { error } = await supabase
+    .from('projetos')
+    .update({
+      contrato_url: null,
+      contrato_path: null,
+      contract_file_path: null
+    })
+    .eq('id', id);
+    
+  if (error) {
+    showToast('Erro ao remover contrato: ' + error.message);
+  } else {
+    showToast('Contrato removido.');
+    await carregarProjetosDoBanco();
+    abrirProjeto(id);
+  }
+}
+
+function substituirProjetoArquivo(id) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.zip';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast('Enviando arquivo do projeto...');
+    
+    const p = projetos.find(x => x.id === id);
+    if (p && p.project_file_path) {
+      await supabase.storage.from('arquivos').remove([p.project_file_path]);
+    }
+    
+    const extension = file.name.split('.').pop();
+    const fileName = `project-${Date.now()}.${extension}`;
+    const path = `projects/${id}/${fileName}`;
+    
+    const { path: uploadedPath, error } = await uploadArquivoSupabase('arquivos', path, file);
+    if (error) {
+      showToast('Erro no upload: ' + error.message);
+      return;
+    }
+    
+    const { error: errUpdate } = await supabase
+      .from('projetos')
+      .update({
+        project_file_path: uploadedPath,
+        arquivo_url: uploadedPath
+      })
+      .eq('id', id);
+      
+    if (errUpdate) {
+      showToast('Erro ao vincular arquivo: ' + errUpdate.message);
+    } else {
+      showToast('Arquivo anexado com sucesso!');
+      await carregarProjetosDoBanco();
+      abrirProjeto(id);
+    }
+  };
+  input.click();
+}
+
+async function removerProjetoArquivo(id) {
+  if (!confirm('Deseja realmente remover o arquivo deste projeto?')) return;
+  const p = projetos.find(x => x.id === id);
+  if (p && p.project_file_path) {
+    await supabase.storage.from('arquivos').remove([p.project_file_path]);
+  }
+  
+  const { error } = await supabase
+    .from('projetos')
+    .update({
+      project_file_path: null,
+      arquivo_url: null
+    })
+    .eq('id', id);
+    
+  if (error) {
+    showToast('Erro ao remover arquivo: ' + error.message);
+  } else {
+    showToast('Arquivo removido.');
+    await carregarProjetosDoBanco();
+    abrirProjeto(id);
+  }
+}
+
+function substituirComprovante(projId, entId) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.pdf,.jpg,.jpeg,.png,.zip';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast('Enviando comprovante...');
+    
+    const extension = file.name.split('.').pop();
+    const fileName = `receipt-${Date.now()}.${extension}`;
+    const path = `projects/${projId}/payments/${entId}/${fileName}`;
+    
+    const { path: uploadedPath, error } = await uploadArquivoSupabase('arquivos', path, file);
+    if (error) {
+      showToast('Erro no upload: ' + error.message);
+      return;
+    }
+    
+    const { error: errUpdate } = await supabase
+      .from('parcelas_pagamento')
+      .update({
+        comprovante_url: uploadedPath,
+        comprovante_path: uploadedPath,
+        receipt_file_path: uploadedPath
+      })
+      .eq('id', entId);
+      
+    if (errUpdate) {
+      showToast('Erro ao vincular comprovante: ' + errUpdate.message);
+    } else {
+      showToast('Comprovante anexado com sucesso!');
+      await carregarProjetosDoBanco();
+      abrirProjeto(projId);
+    }
+  };
+  input.click();
+}
+
+/* Modal Controle de Pagamento/Entrada */
+function abrirModalAdicionarEntrada() {
+  document.getElementById('ent-id').value = '';
+  document.getElementById('ent-valor').value = '';
+  document.getElementById('ent-data').value = new Date().toISOString().split('T')[0];
+  document.getElementById('ent-comprovante').value = '';
+  document.getElementById('modal-entrada-title').textContent = 'Lançar Entrada Financeira';
+  document.getElementById('modal-entrada-financeira').style.display = 'flex';
+}
+
+function abrirModalEditarEntrada(id, valor, data) {
+  document.getElementById('ent-id').value = id;
+  const valorInput = document.getElementById('ent-valor');
+  valorInput.value = 'R$ ' + parseFloat(valor).toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+  document.getElementById('ent-data').value = data;
+  document.getElementById('ent-comprovante').value = '';
+  document.getElementById('modal-entrada-title').textContent = 'Editar Entrada Financeira';
+  document.getElementById('modal-entrada-financeira').style.display = 'flex';
+}
+
+function fecharModalEntrada() {
+  document.getElementById('modal-entrada-financeira').style.display = 'none';
+}
+
+async function salvarEntradaFinanceira() {
+  const btn = document.getElementById('btn-salvar-entrada');
+  if (btn.disabled) return;
+  
+  const entId = document.getElementById('ent-id').value;
+  const valorStr = document.getElementById('ent-valor').value.trim();
+  const data = document.getElementById('ent-data').value;
+  const file = document.getElementById('ent-comprovante').files[0] || null;
+
+  if (!valorStr) {
+    showToast('Informe o valor do pagamento.');
+    return;
+  }
+  const valor = parseFloat(valorStr.replace(/[^\d,]/g, '').replace(',', '.'));
+  if (isNaN(valor) || valor <= 0) {
+    showToast('Informe um valor de pagamento válido.');
+    return;
+  }
+  if (!data) {
+    showToast('Informe a data do recebimento.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  try {
+    const isEdit = entId !== '';
+    let resId = entId;
+
+    const p = projetos.find(x => x.id === projetoSelecionadoId);
+    if (!p) throw new Error('Projeto não encontrado');
+
+    const payload = {
+      projeto_id: projetoSelecionadoId,
+      descricao: isEdit ? 'Entrada (editada)' : 'Entrada',
+      percentual: p.valor > 0 ? (valor / p.valor) * 100 : 100,
+      valor_parcela: valor,
+      amount: valor,
+      data_pagamento: data,
+      payment_date: data,
+      pago: true
+    };
+
+    if (isEdit) {
+      const { error } = await supabase
+        .from('parcelas_pagamento')
+        .update(payload)
+        .eq('id', entId);
+      if (error) throw error;
+    } else {
+      const { data: dbEntry, error } = await supabase
+        .from('parcelas_pagamento')
+        .insert(payload)
+        .select()
+        .single();
+      if (error) throw error;
+      resId = dbEntry.id;
+    }
+
+    if (file) {
+      const extension = file.name.split('.').pop();
+      const fileName = `receipt-${Date.now()}.${extension}`;
+      const path = `projects/${projetoSelecionadoId}/payments/${resId}/${fileName}`;
+      
+      if (isEdit) {
+        const e = p.entradas.find(x => x.id === entId);
+        if (e && e.comprovante_url) {
+          await supabase.storage.from('arquivos').remove([e.comprovante_url]);
+        }
+      }
+
+      const { path: uploadedPath, error: errUpload } = await uploadArquivoSupabase('arquivos', path, file);
+      if (errUpload) throw errUpload;
+
+      await supabase
+        .from('parcelas_pagamento')
+        .update({
+          comprovante_url: uploadedPath,
+          comprovante_path: uploadedPath,
+          receipt_file_path: uploadedPath
+        })
+        .eq('id', resId);
+    }
+
+    showToast(isEdit ? 'Entrada atualizada com sucesso!' : 'Entrada registrada com sucesso!');
+    fecharModalEntrada();
+    await carregarProjetosDoBanco();
+    abrirProjeto(projetoSelecionadoId);
+
+  } catch (err) {
+    console.error('[Supabase] Erro ao salvar entrada:', err);
+    showToast('Falha ao salvar entrada: ' + (err.message || 'desconhecido'));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Confirmar';
+  }
+}
+
+async function excluirEntradaFinanceira(entId) {
+  if (!confirm('Deseja realmente excluir esta entrada de pagamento?')) return;
+  try {
+    const p = projetos.find(x => x.id === projetoSelecionadoId);
+    if (p) {
+      const e = p.entradas.find(x => x.id === entId);
+      if (e && e.comprovante_url) {
+        await supabase.storage.from('arquivos').remove([e.comprovante_url]);
+      }
+    }
+
+    const { error } = await supabase
+      .from('parcelas_pagamento')
+      .delete()
+      .eq('id', entId);
+      
+    if (error) throw error;
+
+    showToast('Entrada excluída com sucesso.');
+    await carregarProjetosDoBanco();
+    abrirProjeto(projetoSelecionadoId);
+  } catch (err) {
+    showToast('Erro ao excluir entrada: ' + err.message);
+  }
+}
+
+/* Modal Edição do Projeto */
+function abrirModalEditarProjeto() {
+  const p = projetos.find(x => x.id === projetoSelecionadoId);
+  if (!p) return;
+
+  document.getElementById('edit-cli-nome').value = p.cliente || '';
+  document.getElementById('edit-cli-cpf').value = p.cliente_cpf || '';
+  document.getElementById('edit-cli-telefone').value = p.cliente_telefone || '';
+  document.getElementById('edit-cli-endereco').value = p.cliente_endereco || '';
+  
+  const valorInput = document.getElementById('edit-prj-valor');
+  if (p.valor) {
+    valorInput.value = 'R$ ' + parseFloat(p.valor).toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+  } else {
+    valorInput.value = '';
+  }
+
+  document.getElementById('edit-prj-prazo').value = p.prazo || '';
+  document.getElementById('edit-prj-arquivo').value = '';
+  document.getElementById('edit-prj-contrato').value = '';
+
+  document.getElementById('modal-editar-projeto').style.display = 'flex';
+}
+
+function fecharModalEditarProjeto() {
+  document.getElementById('modal-editar-projeto').style.display = 'none';
+}
+
+async function salvarEdicaoProjeto() {
+  const btn = document.getElementById('btn-salvar-edicao-projeto');
+  if (btn.disabled) return;
+
+  const nome = document.getElementById('edit-cli-nome').value.trim();
+  const cpf = document.getElementById('edit-cli-cpf').value.trim();
+  const tel = document.getElementById('edit-cli-telefone').value.trim();
+  const end = document.getElementById('edit-cli-endereco').value.trim();
+  const valorStr = document.getElementById('edit-prj-valor').value.trim();
+  const prazo = document.getElementById('edit-prj-prazo').value || null;
+
+  if (!nome) {
+    showToast('Informe o nome do cliente.');
+    return;
+  }
+  if (cpf && !validarCPF(cpf)) {
+    showToast('CPF/CNPJ inválido.');
+    return;
+  }
+
+  let valor = null;
+  if (valorStr) {
+    valor = parseFloat(valorStr.replace(/[^\d,]/g, '').replace(',', '.'));
+    if (isNaN(valor) || valor < 0) {
+      showToast('Informe um valor de projeto válido.');
+      return;
+    }
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Gravando...';
+
+  try {
+    const p = projetos.find(x => x.id === projetoSelecionadoId);
+    if (!p) throw new Error('Projeto não encontrado');
+
+    const { error: errCli } = await supabase
+      .from('clientes')
+      .update({
+        nome,
+        cpf: cpf || null,
+        telefone: tel || null,
+        endereco: end || null
+      })
+      .eq('id', p.cliente_id);
+    if (errCli) throw errCli;
+
+    const { error: errProj } = await supabase
+      .from('projetos')
+      .update({
+        valor,
+        prazo
+      })
+      .eq('id', p.id);
+    if (errProj) throw errProj;
+
+    const fileProj = document.getElementById('edit-prj-arquivo').files[0];
+    if (fileProj) {
+      showToast('Enviando arquivo do projeto...');
+      if (p.project_file_path) {
+        await supabase.storage.from('arquivos').remove([p.project_file_path]);
+      }
+      const ext = fileProj.name.split('.').pop();
+      const fileName = `project-${Date.now()}.${ext}`;
+      const path = `projects/${p.id}/${fileName}`;
+      const { path: uploadedPath, error: errUpload } = await uploadArquivoSupabase('arquivos', path, fileProj);
+      if (errUpload) throw errUpload;
+      await supabase.from('projetos').update({ project_file_path: uploadedPath, arquivo_url: uploadedPath }).eq('id', p.id);
+    }
+
+    const fileCont = document.getElementById('edit-prj-contrato').files[0];
+    if (fileCont) {
+      showToast('Enviando contrato...');
+      if (p.contrato_url) {
+        await supabase.storage.from('arquivos').remove([p.contrato_url]);
+      }
+      const ext = fileCont.name.split('.').pop();
+      const fileName = `contract-${Date.now()}.${ext}`;
+      const path = `projects/${p.id}/contract/${fileName}`;
+      const { path: uploadedPath, error: errUpload } = await uploadArquivoSupabase('arquivos', path, fileCont);
+      if (errUpload) throw errUpload;
+      await supabase.from('projetos').update({ contrato_url: uploadedPath, contrato_path: uploadedPath, contract_file_path: uploadedPath }).eq('id', p.id);
+    }
+
+    showToast('Projeto atualizado com sucesso!');
+    fecharModalEditarProjeto();
+    await carregarProjetosDoBanco();
+    abrirProjeto(projetoSelecionadoId);
+
+  } catch (err) {
+    console.error('[Supabase] Erro ao editar projeto:', err);
+    showToast('Erro ao atualizar projeto: ' + (err.message || 'desconhecido'));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Salvar alterações';
+  }
 }
 
 
