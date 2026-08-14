@@ -2899,7 +2899,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
     <section class="view" id="view-custos">
       <header class="page-header">
         <div>
-          <div class="eyebrow t-micro">Custos · Ávila, Fernanda</div>
+          <div class="eyebrow t-micro" id="custos-projeto-nome">Custos</div>
           <h1 class="t-hero">Rastreabilidade ponta a ponta</h1>
           <p class="lede">Cada real gasto no projeto ancora em um ambiente e uma etapa. As quatro camadas — material, mão de obra, indiretos e retrabalho — se somam para revelar a margem real, não a projetada.</p>
         </div>
@@ -2912,18 +2912,18 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       <div class="margem-hero">
         <div class="item">
           <div class="lbl">Receita contratada</div>
-          <div class="num">R$ 72.686</div>
-          <div class="desc">50% recebido, 25% na instalação, 25% na entrega</div>
+          <div class="num" id="custos-receita">R$ 0</div>
+          <div class="desc">Com base no valor contratado do projeto</div>
         </div>
         <div class="item">
           <div class="lbl">Custo acumulado</div>
-          <div class="num">R$ 18.240</div>
+          <div class="num" id="custos-acumulado">R$ 0</div>
           <div class="desc">Real, das 4 camadas somadas até hoje</div>
         </div>
         <div class="item">
-          <div class="lbl">Margem projetada</div>
-          <div class="num">34,2%</div>
-          <div class="desc">−1,8pp vs. orçamento inicial (36%)</div>
+          <div class="lbl">Margem real</div>
+          <div class="num" id="custos-margem">0%</div>
+          <div class="desc">Baseado nos lançamentos de custo reais</div>
         </div>
       </div>
 
@@ -2931,23 +2931,23 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       <div class="custos-header">
         <div class="camada-card" data-camada="materiais">
           <div class="label">Materiais</div>
-          <div class="valor">R$ 12.420</div>
-          <div class="pct">68% do custo · MDF, ferragens, vidro</div>
+          <div class="valor" id="custos-card-materiais">R$ 0</div>
+          <div class="pct">MDF, ferragens, vidro</div>
         </div>
         <div class="camada-card" data-camada="mao-obra">
           <div class="label">Mão de obra</div>
-          <div class="valor">R$ 4.280</div>
-          <div class="pct">23% · 47h de PJ registradas</div>
+          <div class="valor" id="custos-card-mao-obra">R$ 0</div>
+          <div class="pct">Horas de PJ registradas</div>
         </div>
         <div class="camada-card" data-camada="indiretos">
           <div class="label">Indiretos (rateio)</div>
-          <div class="valor">R$ 1.180</div>
-          <div class="pct">6% · energia, aluguel galpão</div>
+          <div class="valor" id="custos-card-indiretos">R$ 0</div>
+          <div class="pct">Energia, aluguel galpão</div>
         </div>
         <div class="camada-card" data-camada="retrabalho">
           <div class="label">Retrabalho</div>
-          <div class="valor">R$ 360</div>
-          <div class="pct">2% · 1 ocorrência (usinagem)</div>
+          <div class="valor" id="custos-card-retrabalho">R$ 0</div>
+          <div class="pct">Ocorrências de refabricação</div>
         </div>
       </div>
 
@@ -3370,6 +3370,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 
 // Dados do sistema iniciam vazios para integração com o Supabase
 let projetos = [];
+let projetoSelecionadoId = null;
 
 /* ============================================================================
    RENDERING
@@ -3673,7 +3674,7 @@ async function carregarProjetosDoBanco() {
     console.info('[Supabase] Cliente não inicializado. Usando lista vazia.');
     projetos = [];
     renderProjetosLista();
-    renderCustos();
+    renderCustosView();
     renderChao();
     renderDashboard();
     return;
@@ -3688,7 +3689,7 @@ async function carregarProjetosDoBanco() {
     if (!dbProjetos || dbProjetos.length === 0) {
       projetos = [];
       renderProjetosLista();
-      renderCustos();
+      renderCustosView();
       renderChao();
       renderDashboard();
       return;
@@ -3749,7 +3750,7 @@ async function carregarProjetosDoBanco() {
     console.error('[Supabase] Erro ao carregar dados do Supabase:', err);
   } finally {
     renderProjetosLista();
-    renderCustos();
+    renderCustosView();
     renderChao();
     renderDashboard();
   }
@@ -5270,7 +5271,7 @@ function renderCustos() {
   const container = document.getElementById('custo-linhas');
   if (!container) return;
 
-  const projeto = projetos[0];
+  const projeto = projetos.find(x => x.id === projetoSelecionadoId) || projetos[0];
   if (!projeto || !projeto.custos) {
     container.innerHTML = `<div style="padding: var(--sp-4); text-align: center; color: var(--ink-muted);">Nenhum custo lançado.</div>`;
     return;
@@ -5299,6 +5300,57 @@ function switchTab(btn, camada) {
   document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', 'false'));
   btn.setAttribute('aria-selected', 'true');
   camadaAtiva = camada;
+  renderCustos();
+}
+
+function renderCustosView() {
+  const proj = projetos.find(p => p.id === projetoSelecionadoId) || projetos[0];
+  
+  const nomeEl = document.getElementById('custos-projeto-nome');
+  const receitaEl = document.getElementById('custos-receita');
+  const acumuladoEl = document.getElementById('custos-acumulado');
+  const margemEl = document.getElementById('custos-margem');
+  
+  const cardMatEl = document.getElementById('custos-card-materiais');
+  const cardMaoEl = document.getElementById('custos-card-mao-obra');
+  const cardIndEl = document.getElementById('custos-card-indiretos');
+  const cardRetEl = document.getElementById('custos-card-retrabalho');
+
+  if (!proj) {
+    if (nomeEl) nomeEl.textContent = 'Custos · Nenhum projeto selecionado';
+    if (receitaEl) receitaEl.textContent = 'R$ 0';
+    if (acumuladoEl) acumuladoEl.textContent = 'R$ 0';
+    if (margemEl) margemEl.textContent = '0%';
+    if (cardMatEl) cardMatEl.textContent = 'R$ 0';
+    if (cardMaoEl) cardMaoEl.textContent = 'R$ 0';
+    if (cardIndEl) cardIndEl.textContent = 'R$ 0';
+    if (cardRetEl) cardRetEl.textContent = 'R$ 0';
+    
+    const container = document.getElementById('custo-linhas');
+    if (container) container.innerHTML = `<div style="padding: var(--sp-4); text-align: center; color: var(--ink-muted);">Nenhum projeto cadastrado no sistema.</div>`;
+    return;
+  }
+
+  if (nomeEl) nomeEl.textContent = `Custos · ${proj.cliente}`;
+  if (receitaEl) receitaEl.textContent = fmtBRL(proj.valor);
+  
+  // Tudo inicia zerado e limpo para novos lançamentos
+  const matVal = 0;
+  const maoVal = 0;
+  const indVal = 0;
+  const retVal = 0;
+  const totalCusto = matVal + maoVal + indVal + retVal;
+  
+  const margemReal = proj.valor > 0 ? ((proj.valor - totalCusto) / proj.valor) * 100 : 0;
+
+  if (acumuladoEl) acumuladoEl.textContent = fmtBRL(totalCusto);
+  if (margemEl) margemEl.textContent = `${margemReal.toFixed(1)}%`;
+  
+  if (cardMatEl) cardMatEl.textContent = fmtBRL(matVal);
+  if (cardMaoEl) cardMaoEl.textContent = fmtBRL(maoVal);
+  if (cardIndEl) cardIndEl.textContent = fmtBRL(indVal);
+  if (cardRetEl) cardRetEl.textContent = fmtBRL(retVal);
+
   renderCustos();
 }
 
@@ -5396,6 +5448,8 @@ function switchView(name, opts = {}) {
 
   if (name === 'agenda') {
     inicializarAgenda();
+  } else if (name === 'custos') {
+    renderCustosView();
   }
 
   // Browser history integration — so device back button works
@@ -5490,6 +5544,7 @@ function toggleTheme() {
 function abrirProjeto(id) {
   const p = projetos.find(x => x.id === id);
   if (!p) return;
+  projetoSelecionadoId = id;
 
   // Preenche cabeçalho da view de detalhe
   document.getElementById('detalhe-eyebrow').textContent = p.codigo ? `Projeto · ${p.codigo}` : 'Projeto';
@@ -5589,7 +5644,7 @@ function fecharWelcome() { localStorage.setItem('alpha-welcome-date', new Date()
 /* Init */
 renderProjetosLista();
 renderAmbientes();
-renderCustos();
+renderCustosView();
 renderChao();
 renderDashboard();
 
