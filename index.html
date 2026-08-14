@@ -2836,6 +2836,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         </div>
         <div style="display: flex; gap: var(--sp-2);">
           <button class="btn btn-secondary" onclick="abrirModalEditarProjeto()">Editar projeto</button>
+          <button class="btn btn-ghost" style="color: var(--status-atrasado); border-color: var(--status-atrasado);" onclick="excluirProjetoAtual()">Excluir projeto</button>
           <button class="btn btn-ghost" onclick="switchView('projetos')">Voltar</button>
         </div>
       </header>
@@ -6382,7 +6383,7 @@ function abrirModalAdicionarEntrada() {
   document.getElementById('ent-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('ent-comprovante').value = '';
   document.getElementById('modal-entrada-title').textContent = 'Lançar Entrada Financeira';
-  document.getElementById('modal-entrada-financeira').style.display = 'flex';
+  document.getElementById('modal-entrada-financeira').classList.add('open');
 }
 
 function abrirModalEditarEntrada(id, valor, data) {
@@ -6392,11 +6393,11 @@ function abrirModalEditarEntrada(id, valor, data) {
   document.getElementById('ent-data').value = data;
   document.getElementById('ent-comprovante').value = '';
   document.getElementById('modal-entrada-title').textContent = 'Editar Entrada Financeira';
-  document.getElementById('modal-entrada-financeira').style.display = 'flex';
+  document.getElementById('modal-entrada-financeira').classList.add('open');
 }
 
 function fecharModalEntrada() {
-  document.getElementById('modal-entrada-financeira').style.display = 'none';
+  document.getElementById('modal-entrada-financeira').classList.remove('open');
 }
 
 async function salvarEntradaFinanceira() {
@@ -6545,11 +6546,11 @@ function abrirModalEditarProjeto() {
   document.getElementById('edit-prj-arquivo').value = '';
   document.getElementById('edit-prj-contrato').value = '';
 
-  document.getElementById('modal-editar-projeto').style.display = 'flex';
+  document.getElementById('modal-editar-projeto').classList.add('open');
 }
 
 function fecharModalEditarProjeto() {
-  document.getElementById('modal-editar-projeto').style.display = 'none';
+  document.getElementById('modal-editar-projeto').classList.remove('open');
 }
 
 async function salvarEdicaoProjeto() {
@@ -6647,6 +6648,56 @@ async function salvarEdicaoProjeto() {
   } finally {
     btn.disabled = false;
     btn.textContent = 'Salvar alterações';
+  }
+}
+
+async function excluirProjetoAtual() {
+  if (!projetoSelecionadoId) return;
+  const p = projetos.find(x => x.id === projetoSelecionadoId);
+  if (!p) return;
+  
+  if (!confirm(`Tem certeza que deseja EXCLUIR o projeto "${p.codigo} — ${p.cliente}" e todos os seus ambientes, pagamentos e arquivos permanentemente? Esta ação não pode ser desfeita.`)) {
+    return;
+  }
+
+  showToast('Excluindo projeto...');
+  try {
+    // 1. Remover arquivos do Storage
+    const filesToRemove = [];
+    if (p.contrato_url) filesToRemove.push(p.contrato_url);
+    if (p.project_file_path) filesToRemove.push(p.project_file_path);
+    if (p.entradas) {
+      p.entradas.forEach(e => {
+        if (e.comprovante_url) filesToRemove.push(e.comprovante_url);
+      });
+    }
+    if (filesToRemove.length > 0) {
+      await supabase.storage.from('arquivos').remove(filesToRemove);
+    }
+
+    // 2. Apagar do Banco de Dados
+    const { error: errProj } = await supabase
+      .from('projetos')
+      .delete()
+      .eq('id', p.id);
+    if (errProj) throw errProj;
+
+    if (p.cliente_id) {
+      const { error: errCli } = await supabase
+        .from('clientes')
+        .delete()
+        .eq('id', p.cliente_id);
+      if (errCli) {
+        console.warn('Erro ao deletar cliente órfão:', errCli);
+      }
+    }
+
+    showToast('Projeto excluído com sucesso.');
+    await carregarProjetosDoBanco();
+    switchView('projetos');
+  } catch (err) {
+    console.error('Erro ao excluir projeto:', err);
+    showToast('Falha ao excluir projeto: ' + err.message);
   }
 }
 
