@@ -2900,7 +2900,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
               <h3 class="t-h3" style="margin: 0; font-family: var(--font-display);">Entradas recebidas</h3>
               <button class="btn btn-primary" onclick="abrirModalAdicionarEntrada()" style="font-size: 0.75rem; padding: var(--sp-1) var(--sp-2);">+ Adicionar entrada</button>
             </div>
-            
+
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
               <thead>
                 <tr style="border-bottom: 2px solid var(--border); color: var(--ink-subtle); font-weight: 600;">
@@ -2918,6 +2918,11 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         </div>
       </div>
 
+      <!-- Acompanhamento da Produção -->
+      <div id="producao-acompanhamento" style="margin-top: var(--sp-5);">
+        <!-- populado por JS -->
+      </div>
+
       <!-- Ambientes com motor de liberação -->
       <div id="ambientes-lista" style="margin-top: var(--sp-5);">
         <!-- populado por JS -->
@@ -2933,16 +2938,16 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         <div class="agenda-header-controls">
           <div class="agenda-header-left">
             <h1 class="t-hero" style="margin-bottom:0;">Agenda</h1>
-            
+
             <div class="agenda-nav-group">
               <button class="agenda-nav-btn" onclick="navegarPeriodo(-1)" aria-label="Período anterior">‹</button>
               <button class="agenda-btn-hoje" onclick="navegarHoje()">Hoje</button>
               <button class="agenda-nav-btn" onclick="navegarPeriodo(1)" aria-label="Próximo período">›</button>
             </div>
-            
+
             <div class="agenda-period-label" id="agenda-periodo-titulo">Carregando...</div>
           </div>
-          
+
           <div style="display: flex; align-items: center; gap: var(--sp-3);">
             <div class="agenda-view-selector">
               <button class="agenda-view-btn" id="btn-view-dia" data-view="dia" onclick="mudarAgendaVista('dia')">Dia</button>
@@ -2950,7 +2955,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
               <button class="agenda-view-btn" id="btn-view-mes" data-view="mes" onclick="mudarAgendaVista('mes')">Mês</button>
               <button class="agenda-view-btn" id="btn-view-lista" data-view="lista" onclick="mudarAgendaVista('lista')">Lista</button>
             </div>
-            
+
             <button class="btn btn-primary" id="agenda-novo-compromisso-btn" onclick="abrirCriarCompromisso()">+ Novo compromisso</button>
           </div>
         </div>
@@ -3451,6 +3456,21 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   </div>
 </div>
 
+<!-- Modal de detalhes da tarefa operacional -->
+<div class="modal-backdrop" id="modal-detalhe-tarefa" style="display: none;">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-tarefa-title" style="max-width: 560px;">
+    <div class="modal-header">
+      <div class="icon">⚙</div>
+      <div>
+        <h3 id="modal-tarefa-title">Detalhes da tarefa</h3>
+        <p id="modal-tarefa-subtitle">Tarefa operacional</p>
+      </div>
+    </div>
+    <div class="modal-body" id="modal-tarefa-body"></div>
+    <div class="modal-footer" id="modal-tarefa-footer" style="display:flex; justify-content:flex-end; gap:var(--sp-2); margin-top:var(--sp-4);"></div>
+  </div>
+</div>
+
 <!-- Modal de confirmação (Google Calendar sync) -->
 <div class="modal-backdrop" id="modal-sync">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -3491,7 +3511,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
             <label for="comp-titulo">Título *</label>
             <input type="text" id="comp-titulo" required placeholder="Título do compromisso">
           </div>
-          
+
           <div class="modal-form-row-2">
             <div class="modal-field">
               <label for="comp-inicio">Início *</label>
@@ -3502,17 +3522,17 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
               <input type="datetime-local" id="comp-fim" required>
             </div>
           </div>
-          
+
           <div class="modal-field">
             <label for="comp-local">Local</label>
             <input type="text" id="comp-local" placeholder="Ex: Galpão, Belo Horizonte">
           </div>
-          
+
           <div class="modal-field">
             <label for="comp-descricao">Descrição</label>
             <textarea id="comp-descricao" rows="3" placeholder="Detalhes do compromisso..."></textarea>
           </div>
-          
+
           <div class="modal-field">
             <label for="comp-convidados">Convidados (emails separados por vírgula)</label>
             <input type="text" id="comp-convidados" placeholder="exemplo1@email.com, exemplo2@email.com">
@@ -3666,6 +3686,8 @@ async function testarConexoes() {
    SUPABASE CLIENT
    ============================================================================ */
 let supabase = null;
+let productionRealtimeChannel = null;
+let tarefaMutationBusy = false;
 
 function initSupabase() {
   const cfg = getConfig();
@@ -3673,11 +3695,28 @@ function initSupabase() {
   try {
     supabase = window.createSupabaseClient(cfg.supabaseUrl, cfg.supabaseKey);
     console.info('[Supabase] Cliente inicializado');
+    configurarRealtimeProducao();
     carregarProjetosDoBanco();
   } catch (e) {
     console.error('[Supabase] Erro ao inicializar:', e);
     supabase = null;
   }
+}
+
+function configurarRealtimeProducao() {
+  if (!supabase) return;
+  if (productionRealtimeChannel) {
+    supabase.removeChannel(productionRealtimeChannel);
+  }
+
+  productionRealtimeChannel = supabase
+    .channel('alfa-production-tasks')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'production_tasks' }, async payload => {
+      console.info('[Supabase Realtime] Tarefa alterada:', payload.eventType);
+      await carregarProjetosDoBanco();
+      if (projetoSelecionadoId) abrirProjeto(projetoSelecionadoId);
+    })
+    .subscribe(status => console.info('[Supabase Realtime] status:', status));
 }
 
 async function salvarProjetoNoBanco(projeto) {
@@ -3716,7 +3755,7 @@ async function salvarProjetoNoBanco(projeto) {
 
 function renderDashboard() {
   const count = projetos.length;
-  
+
   // Atualiza lede do cabeçalho
   const ledeEl = document.getElementById('dashboard-lede');
   if (ledeEl) {
@@ -3742,7 +3781,7 @@ function renderDashboard() {
   // Calcula valores dinâmicos
   const totalVal = projetos.reduce((acc, p) => acc + p.valor, 0);
   const totalRecebido = projetos.reduce((acc, p) => acc + (p.recebido || 0), 0);
-  
+
   const mConsolidadaEl = document.getElementById('db-margem-consolidada');
   if (mConsolidadaEl) mConsolidadaEl.textContent = fmtBRL(totalRecebido);
 
@@ -3833,7 +3872,7 @@ function renderDashboard() {
         const prazoStr = dias > 0 ? `Prazo: ${fmtDate(p.prazo)} · ${dias}d restantes` : `ATRASADO ${Math.abs(dias)}d`;
         const statusLabel = p.status === 'instalacao' ? 'Instalação' : p.status === 'ativo' ? 'Em produção' : p.status;
         const statusColor = p.status === 'instalacao' ? 'var(--status-liberado)' : p.status === 'ativo' ? 'var(--status-em-andamento)' : 'var(--ink-subtle)';
-        
+
         return `
           <div class="projeto-card" onclick="abrirProjeto('${p.id}')" style="cursor: pointer; padding: var(--sp-4); margin-bottom: var(--sp-2);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -3865,6 +3904,106 @@ function atualizarContadorProjetos() {
   }
 }
 
+async function garantirTarefasProjeto(projectId) {
+  if (!supabase || !projectId) return [];
+
+  // A função é idempotente: abrir/recarregar/editar um projeto nunca cria cópias.
+  const { data: existing, error: readError } = await supabase
+    .from('production_tasks')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('order', { ascending: true });
+
+  if (!readError && existing && existing.length > 0) return existing;
+  if (readError) console.warn('Não foi possível consultar tarefas existentes:', readError);
+
+  const { data: templates, error: templateError } = await supabase
+    .from('production_templates')
+    .select('id, stage_key, name, category, "order", depends_on_order')
+    .order('order', { ascending: true });
+  if (templateError) {
+    console.error('Template de produção não disponível:', templateError);
+    return [];
+  }
+  const templateIds = Object.fromEntries((templates || []).map(template => [template.stage_key, template.id]));
+
+  const tasksToInsert = (templates || []).map(etapa => ({
+    project_id: projectId,
+    template_id: templateIds[etapa.stage_key] || null,
+    name: etapa.name,
+    stage_key: etapa.stage_key,
+    category: etapa.category,
+    order: etapa.order,
+    depends_on_order: etapa.depends_on_order,
+    is_applicable: true,
+    status: etapa.order === 1 ? 'pending' : 'blocked'
+  }));
+
+  const { data, error } = await supabase
+    .from('production_tasks')
+    .insert(tasksToInsert)
+    .select();
+
+  if (!error) return data || [];
+
+  // Outra sessão pode ter criado as tarefas entre o SELECT e o INSERT.
+  const { data: afterRace } = await supabase
+    .from('production_tasks')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('order', { ascending: true });
+  if (afterRace && afterRace.length > 0) return afterRace;
+
+  console.error('Erro ao auto-criar tarefas operacionais:', error);
+  return [];
+}
+
+function atualizarProgressoEStatusLocal(p) {
+  if (!p.tasks || p.tasks.length === 0) return;
+  const tasks = p.tasks.sort((a, b) => a.order - b.order);
+  let previousApplicableComplete = true;
+  tasks.forEach(task => {
+    task.is_applicable = task.is_applicable !== false;
+    if (!task.is_applicable) {
+      task.status = 'not_applicable';
+      return;
+    }
+    if (task.status === 'completed') {
+      previousApplicableComplete = true;
+      return;
+    }
+    if (!previousApplicableComplete) task.status = 'blocked';
+    else if (task.status === 'blocked' || task.status === 'not_applicable') task.status = 'pending';
+    previousApplicableComplete = false;
+  });
+
+  const aplicaveis = tasks.filter(t => t.is_applicable);
+  const total = aplicaveis.length;
+  const concluidoCount = aplicaveis.filter(t => t.status === 'completed').length;
+  p.progresso = Math.round((concluidoCount / total) * 100);
+
+  if (p.progresso === 100) {
+    p.status = 'concluido';
+  } else {
+    const hasStarted = p.tasks.some(t => t.status === 'in_progress' || t.status === 'completed');
+    p.status = hasStarted ? 'producao' : 'ativo';
+  }
+
+  const etapaAtualTask = aplicaveis.find(t => t.status !== 'completed');
+  p.etapaAtual = etapaAtualTask ? etapaAtualTask.name : 'Concluído';
+}
+
+async function salvarProgressoEStatusNoBanco(p) {
+  if (!supabase) return;
+  await supabase
+    .from('projetos')
+    .update({
+      progresso: p.progresso,
+      status: p.status
+    })
+    .eq('id', p.id);
+}
+
 async function carregarProjetosDoBanco() {
   if (!supabase) {
     console.info('[Supabase] Cliente não inicializado. Usando lista vazia.');
@@ -3876,7 +4015,7 @@ async function carregarProjetosDoBanco() {
     atualizarContadorProjetos();
     return;
   }
-  
+
   try {
     const { data: dbProjetos, error: eProj } = await supabase
       .from('projetos')
@@ -3908,17 +4047,36 @@ async function carregarProjetosDoBanco() {
       .select('*');
     if (eParc) throw eParc;
 
+    let { data: dbTasks, error: eTasks } = await supabase
+      .from('production_tasks')
+      .select('*')
+      .order('order', { ascending: true });
+    if (eTasks) {
+      console.warn('Erro ao carregar production_tasks:', eTasks);
+    }
+
+    // Projetos antigos também recebem o fluxo padrão, uma única vez, no banco.
+    if (!eTasks) {
+      const idsSemTarefas = dbProjetos
+        .filter(p => !(dbTasks || []).some(t => t.project_id === p.id))
+        .map(p => p.id);
+      if (idsSemTarefas.length > 0) {
+        const tarefasGarantidas = await Promise.all(idsSemTarefas.map(id => garantirTarefasProjeto(id)));
+        dbTasks = [...(dbTasks || []), ...tarefasGarantidas.flat()];
+      }
+    }
+
     projetos = dbProjetos.map(p => {
       const cli = dbClientes.find(c => c.id === p.cliente_id) || {};
       const ambs = dbAmbientes.filter(a => a.projeto_id === p.id) || [];
       const parcs = dbParcelas.filter(x => x.projeto_id === p.id) || [];
-      
+
       const valorTotal = p.valor || 0;
       const valorRecebido = parcs.reduce((acc, curr) => {
         return acc + (curr.pago ? (curr.valor_parcela || curr.amount || (valorTotal * ((curr.percentual || 0) / 100))) : 0);
       }, 0);
 
-      return {
+      const projObj = {
         id: p.id,
         codigo: p.codigo || `P-${p.id}`,
         cliente: cli.nome || 'Cliente não identificado',
@@ -3953,12 +4111,21 @@ async function carregarProjetosDoBanco() {
           pago: x.pago
         })),
         custos: {
-          materiais: [],
+          materials: [],
           maoDeObra: [],
           indiretos: [],
           retrabalho: []
-        }
+        },
+        tasks: []
       };
+
+      // As tarefas vêm exclusivamente do Supabase; não há fallback mockado.
+      projObj.tasks = (dbTasks || [])
+        .filter(t => t.project_id === p.id)
+        .sort((a, b) => a.order - b.order);
+
+      atualizarProgressoEStatusLocal(projObj);
+      return projObj;
     });
 
     console.info('[Supabase] Projetos carregados do banco:', projetos);
@@ -4021,7 +4188,7 @@ async function restaurarSessaoGoogle() {
       const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
         headers: { Authorization: `Bearer ${session.token}` }
       });
-      
+
       if (res.status === 200) {
         const u = await res.json();
         googleAccessToken = session.token;
@@ -4297,13 +4464,13 @@ async function executarModificacoes() {
   const originalLabel = btn.textContent;
   btn.textContent = 'Sincronizando…';
   btn.disabled = true;
-  
+
   let ok = 0, fail = 0;
   for (const change of modalPendingChanges) {
     try {
       let url = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
       let method = 'POST';
-      
+
       if (change.action === 'update') {
         url += `/${change.eventId}`;
         method = 'PATCH';
@@ -4311,17 +4478,17 @@ async function executarModificacoes() {
         url += `/${change.eventId}`;
         method = 'DELETE';
       }
-      
+
       const options = {
         method: method,
         headers: { Authorization: `Bearer ${googleAccessToken}` }
       };
-      
+
       if (change.action !== 'delete') {
         options.headers['Content-Type'] = 'application/json';
         options.body = JSON.stringify(change.payload);
       }
-      
+
       const res = await fetch(url, options);
       if (res.ok) ok++; else {
         console.error('Erro na resposta da API do Google:', await res.text());
@@ -4332,11 +4499,11 @@ async function executarModificacoes() {
       fail++;
     }
   }
-  
+
   btn.textContent = originalLabel;
   btn.disabled = false;
   fecharModal();
-  
+
   let msg = '';
   if (modalPendingChanges[0] && modalPendingChanges[0].action === 'create') {
     msg = ok > 0 ? 'Compromisso criado com sucesso!' : 'Falha ao criar compromisso.';
@@ -4345,7 +4512,7 @@ async function executarModificacoes() {
   } else {
     msg = ok > 0 ? 'Compromisso excluído com sucesso!' : 'Falha ao excluir compromisso.';
   }
-  
+
   showToast(msg);
   limparCacheERenderizar();
   if (googleAccessToken) carregarEventos(); // Atualiza a barra lateral também se conectada
@@ -4416,9 +4583,9 @@ function validarCliente() {
   }
 
   wizard.cliente = {
-    nome, 
-    cpf: cpf || null, 
-    telefone: tel || null, 
+    nome,
+    cpf: cpf || null,
+    telefone: tel || null,
     endereco: end || null,
     nascimento: document.getElementById('cli-nascimento').value || null,
     email: document.getElementById('cli-email').value.trim() || null,
@@ -4430,7 +4597,7 @@ function validarCliente() {
 function validarProjeto() {
   const prazo = document.getElementById('prj-prazo').value || null;
   const valorStr = document.getElementById('prj-valor').value.trim();
-  
+
   let valor = null;
   if (valorStr) {
     valor = parseFloat(valorStr.replace(/[^\d,]/g, '').replace(',', '.'));
@@ -4445,7 +4612,7 @@ function validarProjeto() {
 
   wizard.projeto = {
     codigo: document.getElementById('prj-codigo').value,
-    prazo, 
+    prazo,
     valor,
     descricao: document.getElementById('prj-descricao').value.trim() || null,
     arquivo: arquivo,
@@ -4457,27 +4624,27 @@ function validarProjeto() {
 function validarPagamento() {
   const realizadoInput = document.querySelector('input[name="prj-pagamento-realizado"]:checked');
   const realizado = realizadoInput ? realizadoInput.value : 'nao';
-  
+
   if (realizado === 'sim') {
     const valorStr = document.getElementById('pag-valor').value.trim();
     const data = document.getElementById('pag-data').value;
-    
+
     if (!valorStr) {
       showToast('Informe o valor do pagamento.');
       return false;
     }
-    
+
     const valNumeric = parseFloat(valorStr.replace(/[^\d,]/g, '').replace(',', '.'));
     if (isNaN(valNumeric) || valNumeric <= 0) {
       showToast('Informe um valor de pagamento válido.');
       return false;
     }
-    
+
     if (!data) {
       showToast('Informe a data do pagamento.');
       return false;
     }
-    
+
     wizard.pagamento = {
       realizado: true,
       valor: valNumeric,
@@ -4730,7 +4897,7 @@ async function uploadArquivoSupabase(bucketName, path, file) {
   if (!supabase || !file) return { path: null, error: null };
   try {
     let { data, error } = await supabase.storage.from(bucketName).upload(path, file, { upsert: true });
-    
+
     if (error && (error.message?.includes('not found') || error.status === 404 || error.error === 'Bucket not found')) {
       console.info(`[Storage] Bucket "${bucketName}" não encontrado. Tentando criar...`);
       const { error: errCreate } = await supabase.storage.createBucket(bucketName, { public: true });
@@ -4740,7 +4907,7 @@ async function uploadArquivoSupabase(bucketName, path, file) {
         error = retry.error;
       }
     }
-    
+
     if (error) return { path: null, error };
     return { path: data.path, error: null };
   } catch (e) {
@@ -4775,7 +4942,7 @@ async function salvarProjetoNoBancoCompleto(payload) {
     })
     .select()
     .single();
-    
+
   if (e2) {
     // Rollback cliente
     await supabase.from('clientes').delete().eq('id', cliente.id);
@@ -4789,7 +4956,7 @@ async function salvarProjetoNoBancoCompleto(payload) {
     const extension = file.name.split('.').pop();
     const fileName = `project-file.${extension}`;
     const path = `projects/${prj.id}/${fileName}`;
-    
+
     const { path: uploadedPath, error: errUpload } = await uploadArquivoSupabase('arquivos', path, file);
     if (errUpload) {
       // Rollback projeto e cliente
@@ -4819,7 +4986,7 @@ async function salvarProjetoNoBancoCompleto(payload) {
     const extension = file.name.split('.').pop();
     const fileName = `contract-file.${extension}`;
     const path = `projects/${prj.id}/contract/${fileName}`;
-    
+
     const { path: uploadedPath, error: errUpload } = await uploadArquivoSupabase('arquivos', path, file);
     if (errUpload) {
       // Rollback projeto e cliente
@@ -4859,7 +5026,7 @@ async function salvarProjetoNoBancoCompleto(payload) {
       })
       .select()
       .single();
-      
+
     if (e4) {
       // Rollback projeto e cliente
       await supabase.from('projetos').delete().eq('id', prj.id);
@@ -4896,6 +5063,16 @@ async function salvarProjetoNoBancoCompleto(payload) {
         console.warn('Erro ao atualizar comprovante na parcela:', errUpdateParc);
       }
     }
+  }
+
+  // E. Garantir as tarefas operacionais iniciais (operação idempotente)
+  const tarefasCriadas = await garantirTarefasProjeto(prj.id);
+
+  if (!tarefasCriadas || tarefasCriadas.length === 0) {
+    // Rollback para garantir consistência
+    await supabase.from('projetos').delete().eq('id', prj.id);
+    await supabase.from('clientes').delete().eq('id', cliente.id);
+    return { error: { message: 'Falha ao criar tarefas operacionais de produção.' } };
   }
 
   return { data: prj };
@@ -4953,14 +5130,14 @@ function resetWizard() {
   wizard.cliente = { nome: '', cpf: '', nascimento: '', email: '', telefone: '', cep: '', endereco: '' };
   wizard.projeto = { codigo: '', prazo: '', valor: null, descricao: '', arquivo: null };
   wizard.pagamento = { realizado: false, valor: null, data: null, comprovante: null };
-  
+
   // Limpar inputs
-  document.querySelectorAll('#view-novo-projeto input').forEach(i => { 
+  document.querySelectorAll('#view-novo-projeto input').forEach(i => {
     if (!i.readOnly) {
       if (i.type === 'radio') {
         if (i.value === 'nao') i.checked = true;
       } else {
-        i.value = ''; 
+        i.value = '';
       }
     }
   });
@@ -4988,16 +5165,16 @@ function formatarDataParaInput(date) {
 
 async function buscarEventosPeriodo(inicio, fim) {
   if (!googleAccessToken) return [];
-  
+
   // Cache check
   if (cacheInicio && cacheFim && inicio.getTime() === cacheInicio.getTime() && fim.getTime() === cacheFim.getTime()) {
     return eventosCache;
   }
-  
+
   const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events` +
     `?timeMin=${inicio.toISOString()}&timeMax=${fim.toISOString()}` +
     `&maxResults=250&singleEvents=true&orderBy=startTime`;
-    
+
   try {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${googleAccessToken}` } });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -5016,7 +5193,7 @@ async function buscarEventosPeriodo(inicio, fim) {
 function calcularPeriodoFoco() {
   let inicio, fim;
   const foco = new Date(agendaDataFoco);
-  
+
   if (agendaVistaAtiva === 'dia') {
     inicio = new Date(foco.setHours(0, 0, 0, 0));
     fim = new Date(foco.setHours(23, 59, 59, 999));
@@ -5035,7 +5212,7 @@ function calcularPeriodoFoco() {
     inicio = new Date(primeiro);
     inicio.setDate(primeiro.getDate() + diffPrimeiro);
     inicio.setHours(0, 0, 0, 0);
-    
+
     const ultimo = new Date(foco.getFullYear(), foco.getMonth() + 1, 0);
     const diaUltimo = ultimo.getDay();
     const diffUltimo = diaUltimo === 0 ? 0 : 7 - diaUltimo;
@@ -5055,10 +5232,10 @@ function calcularPeriodoFoco() {
 function atualizarTituloPeriodo(inicio, fim) {
   const el = document.getElementById('agenda-periodo-titulo');
   if (!el) return;
-  
+
   const opcoesMes = { month: 'long', year: 'numeric' };
   const opcoesDia = { day: 'numeric', month: 'short' };
-  
+
   if (agendaVistaAtiva === 'dia') {
     el.textContent = agendaDataFoco.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
   } else if (agendaVistaAtiva === 'semana') {
@@ -5075,7 +5252,7 @@ async function inicializarAgenda() {
   document.querySelectorAll('.agenda-view-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.view === agendaVistaAtiva);
   });
-  
+
   await renderizarAgenda();
 }
 
@@ -5083,7 +5260,7 @@ async function renderizarAgenda() {
   const container = document.getElementById('agenda-calendario-container');
   const footer = document.getElementById('agenda-status-footer');
   if (!container) return;
-  
+
   // Render C: Conexão / Rodapé
   if (!googleAccessToken) {
     container.innerHTML = `
@@ -5102,7 +5279,7 @@ async function renderizarAgenda() {
     document.getElementById('agenda-periodo-titulo').textContent = 'Sem Conexão';
     return;
   }
-  
+
   // Renderizar o email conectado se disponível
   const timestamp = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   footer.innerHTML = `
@@ -5115,10 +5292,10 @@ async function renderizarAgenda() {
   // Obter período e buscar eventos
   const { inicio, fim } = calcularPeriodoFoco();
   atualizarTituloPeriodo(inicio, fim);
-  
+
   container.innerHTML = '<div style="padding:var(--sp-6);text-align:center;color:var(--ink-muted);">Carregando compromissos...</div>';
   const eventos = await buscarEventosPeriodo(inicio, fim);
-  
+
   if (agendaVistaAtiva === 'dia') {
     renderizarVistaDia(eventos, inicio);
   } else if (agendaVistaAtiva === 'semana') {
@@ -5166,22 +5343,22 @@ function calcularPosicaoEvento(ev) {
   if (!ev.start || (!ev.start.dateTime && !ev.start.date)) return null;
   const dStart = new Date(ev.start.dateTime || (ev.start.date + 'T06:00:00'));
   const dEnd = new Date(ev.end.dateTime || (ev.end.date + 'T22:00:00'));
-  
+
   const startMin = dStart.getHours() * 60 + dStart.getMinutes();
   const endMin = dEnd.getHours() * 60 + dEnd.getMinutes();
-  
+
   const minDiaInicio = 6 * 60; // 06:00
   const minDiaFim = 22 * 60; // 22:00
   const totalMin = minDiaFim - minDiaInicio; // 960 min
-  
+
   if (startMin >= minDiaFim || endMin <= minDiaInicio) return null;
-  
+
   const topMin = Math.max(startMin - minDiaInicio, 0);
   const duracaoMin = Math.min(endMin, minDiaFim) - (startMin < minDiaInicio ? minDiaInicio : startMin);
-  
+
   const topPct = (topMin / totalMin) * 100;
   const heightPct = Math.max((duracaoMin / totalMin) * 100, 3.5); // Garante altura mínima
-  
+
   return { top: topPct, height: heightPct };
 }
 
@@ -5196,20 +5373,20 @@ function formatarHoraRange(ev) {
 // Render Vistas individuais
 function renderizarVistaDia(eventos, inicioDia) {
   const container = document.getElementById('agenda-calendario-container');
-  
+
   // Filtra eventos do dia
   const doDia = eventos.filter(ev => {
     const dateStr = ev.start.dateTime || ev.start.date;
     const d = new Date(dateStr);
     return d.toDateString() === inicioDia.toDateString();
   });
-  
+
   let slotsHtml = '';
   for (let h = 6; h < 22; h++) {
     slotsHtml += `<div class="agenda-grid-time-label">${String(h).padStart(2, '0')}:00</div>`;
     slotsHtml += `<div class="agenda-grid-time-label">${String(h).padStart(2, '0')}:30</div>`;
   }
-  
+
   let cardsHtml = '';
   doDia.forEach(ev => {
     const pos = calcularPosicaoEvento(ev);
@@ -5222,12 +5399,12 @@ function renderizarVistaDia(eventos, inicioDia) {
       </div>
     `;
   });
-  
+
   let gridLines = '';
   for (let i = 0; i < 32; i++) {
     gridLines += `<div class="agenda-grid-line"></div>`;
   }
-  
+
   container.innerHTML = `
     <div class="agenda-grid-container">
       <div class="agenda-grid">
@@ -5237,15 +5414,15 @@ function renderizarVistaDia(eventos, inicioDia) {
             ${inicioDia.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric' })}
           </div>
         </div>
-        
+
         <div style="grid-column:1; display:contents;">
           ${slotsHtml}
         </div>
-        
+
         <div class="agenda-grid-day-column ${inicioDia.toDateString() === new Date().toDateString() ? 'today-highlight' : ''}" style="grid-column:2;" onclick="cliqueGridCelular(event, '${inicioDia.toISOString()}')">
           ${cardsHtml}
         </div>
-        
+
         <div class="agenda-grid-lines">
           ${gridLines}
         </div>
@@ -5256,17 +5433,17 @@ function renderizarVistaDia(eventos, inicioDia) {
 
 function renderizarVistaSemana(eventos, inicioSemana) {
   const container = document.getElementById('agenda-calendario-container');
-  
+
   let headerHtml = `<div class="agenda-grid-header-cell" style="grid-column: 1;">Horário</div>`;
   let columnsHtml = '';
-  
+
   const diasDaSemana = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(inicioSemana);
     d.setDate(inicioSemana.getDate() + i);
     diasDaSemana.push(d);
   }
-  
+
   diasDaSemana.forEach((dia, idx) => {
     const isHoje = dia.toDateString() === new Date().toDateString();
     headerHtml += `
@@ -5276,20 +5453,20 @@ function renderizarVistaSemana(eventos, inicioSemana) {
       </div>
     `;
   });
-  
+
   let slotsHtml = '';
   for (let h = 6; h < 22; h++) {
     slotsHtml += `<div class="agenda-grid-time-label">${String(h).padStart(2, '0')}:00</div>`;
     slotsHtml += `<div class="agenda-grid-time-label">${String(h).padStart(2, '0')}:30</div>`;
   }
-  
+
   diasDaSemana.forEach((dia, idx) => {
     const isHoje = dia.toDateString() === new Date().toDateString();
     const doDia = eventos.filter(ev => {
       const d = new Date(ev.start.dateTime || ev.start.date);
       return d.toDateString() === dia.toDateString();
     });
-    
+
     let cardsHtml = '';
     doDia.forEach(ev => {
       const pos = calcularPosicaoEvento(ev);
@@ -5302,32 +5479,32 @@ function renderizarVistaSemana(eventos, inicioSemana) {
         </div>
       `;
     });
-    
+
     columnsHtml += `
       <div class="agenda-grid-day-column ${isHoje ? 'today-highlight' : ''}" style="grid-column: ${idx + 2};" onclick="cliqueGridCelular(event, '${dia.toISOString()}')">
         ${cardsHtml}
       </div>
     `;
   });
-  
+
   let gridLines = '';
   for (let i = 0; i < 32; i++) {
     gridLines += `<div class="agenda-grid-line"></div>`;
   }
-  
+
   container.innerHTML = `
     <div class="agenda-grid-container">
       <div class="agenda-grid week">
         <div class="agenda-grid-header">
           ${headerHtml}
         </div>
-        
+
         <div style="grid-column:1; display:contents;">
           ${slotsHtml}
         </div>
-        
+
         ${columnsHtml}
-        
+
         <div class="agenda-grid-lines" style="top:57px;">
           ${gridLines}
         </div>
@@ -5338,26 +5515,26 @@ function renderizarVistaSemana(eventos, inicioSemana) {
 
 function renderizarVistaMes(eventos, inicioGrid, fimGrid) {
   const container = document.getElementById('agenda-calendario-container');
-  
+
   let headerHtml = '';
   const nomesDias = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
   nomesDias.forEach(nome => {
     headerHtml += `<div class="agenda-month-header-cell">${nome}</div>`;
   });
-  
+
   let cellsHtml = '';
   const d = new Date(inicioGrid);
-  
+
   while (d <= fimGrid) {
     const currentDay = new Date(d);
     const isHoje = currentDay.toDateString() === new Date().toDateString();
     const isOutroMes = currentDay.getMonth() !== agendaDataFoco.getMonth();
-    
+
     const doDia = eventos.filter(ev => {
       const dev = new Date(ev.start.dateTime || ev.start.date);
       return dev.toDateString() === currentDay.toDateString();
     });
-    
+
     let evTags = '';
     const maxVisiveis = 3;
     doDia.slice(0, maxVisiveis).forEach(ev => {
@@ -5370,7 +5547,7 @@ function renderizarVistaMes(eventos, inicioGrid, fimGrid) {
     if (doDia.length > maxVisiveis) {
       evTags += `<div class="agenda-month-more">+${doDia.length - maxVisiveis} mais</div>`;
     }
-    
+
     cellsHtml += `
       <div class="agenda-month-cell ${isHoje ? 'today-highlight' : ''} ${isOutroMes ? 'other-month' : ''}" onclick="cliqueCelularMes('${currentDay.toISOString()}')">
         <div class="agenda-month-cell-header">
@@ -5379,10 +5556,10 @@ function renderizarVistaMes(eventos, inicioGrid, fimGrid) {
         ${evTags}
       </div>
     `;
-    
+
     d.setDate(d.getDate() + 1);
   }
-  
+
   container.innerHTML = `
     <div class="agenda-month-grid">
       ${headerHtml}
@@ -5393,7 +5570,7 @@ function renderizarVistaMes(eventos, inicioGrid, fimGrid) {
 
 function renderizarVistaLista(eventos) {
   const container = document.getElementById('agenda-calendario-container');
-  
+
   if (eventos.length === 0) {
     container.innerHTML = `
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:250px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);gap:var(--sp-4);">
@@ -5403,7 +5580,7 @@ function renderizarVistaLista(eventos) {
     `;
     return;
   }
-  
+
   // Agrupa por dia
   const grupos = {};
   eventos.forEach(ev => {
@@ -5412,12 +5589,12 @@ function renderizarVistaLista(eventos) {
     if (!grupos[d]) grupos[d] = [];
     grupos[d].push(ev);
   });
-  
+
   let listHtml = '';
   Object.keys(grupos).forEach(key => {
     const dia = new Date(key);
     const labelDia = dia.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
-    
+
     let evItems = '';
     grupos[key].forEach(ev => {
       evItems += `
@@ -5430,7 +5607,7 @@ function renderizarVistaLista(eventos) {
         </div>
       `;
     });
-    
+
     listHtml += `
       <div class="agenda-list-day-group">
         <div class="agenda-list-day-header">${labelDia.charAt(0).toUpperCase() + labelDia.slice(1)}</div>
@@ -5440,14 +5617,14 @@ function renderizarVistaLista(eventos) {
       </div>
     `;
   });
-  
+
   container.innerHTML = `<div class="agenda-list-view">${listHtml}</div>`;
 }
 
 function cliqueGridCelular(e, dataIso) {
   // Se clicou direto no card, não abre criação
   if (e.target.closest('.agenda-event-card')) return;
-  
+
   const d = new Date(dataIso);
   // Calcula hora com base no clique
   const rect = e.currentTarget.getBoundingClientRect();
@@ -5456,17 +5633,17 @@ function cliqueGridCelular(e, dataIso) {
   const totalMinutos = (22 - 6) * 60; // 960 min
   const clickMinuto = Math.floor(pct * totalMinutos);
   const totalSlot = 6 * 60 + clickMinuto; // min de início do dia
-  
+
   // Arredonda para 30 minutos
   const slotArredondado = Math.floor(totalSlot / 30) * 30;
-  
+
   d.setHours(Math.floor(slotArredondado / 60));
   d.setMinutes(slotArredondado % 60);
   d.setSeconds(0);
-  
+
   const dFim = new Date(d);
   dFim.setMinutes(d.getMinutes() + 60);
-  
+
   abrirCriarCompromisso(d, dFim);
 }
 
@@ -5500,10 +5677,10 @@ function abrirCriarCompromisso(inicio, fim) {
   if (!fim) {
     termin.setHours(ini.getHours() + 1);
   }
-  
+
   document.getElementById('modal-compromisso-title').textContent = 'Novo compromisso';
   document.getElementById('modal-compromisso-subtitle').textContent = 'Preencha os detalhes para agendar no Google Agenda';
-  
+
   // Reseta campos
   document.getElementById('comp-id').value = '';
   document.getElementById('comp-titulo').value = '';
@@ -5518,7 +5695,7 @@ function abrirCriarCompromisso(inicio, fim) {
   document.getElementById('comp-descricao').readOnly = false;
   document.getElementById('comp-convidados').value = '';
   document.getElementById('comp-convidados').readOnly = false;
-  
+
   document.getElementById('modal-compromisso-footer').innerHTML = `
     <button class="btn btn-secondary" onclick="fecharModalCompromisso()">Cancelar</button>
     <button class="btn btn-primary" onclick="prepararCriarCompromisso()">Criar compromisso</button>
@@ -5529,10 +5706,10 @@ function abrirCriarCompromisso(inicio, fim) {
 function abrirVisualizarCompromisso(id) {
   const ev = eventosCache.find(x => x.id === id);
   if (!ev) return;
-  
+
   document.getElementById('modal-compromisso-title').textContent = 'Visualizar compromisso';
   document.getElementById('modal-compromisso-subtitle').textContent = 'Detalhes do evento salvo no Google Agenda';
-  
+
   document.getElementById('comp-id').value = ev.id;
   document.getElementById('comp-titulo').value = ev.summary || '';
   document.getElementById('comp-titulo').readOnly = true;
@@ -5544,11 +5721,11 @@ function abrirVisualizarCompromisso(id) {
   document.getElementById('comp-local').readOnly = true;
   document.getElementById('comp-descricao').value = ev.description || '';
   document.getElementById('comp-descricao').readOnly = true;
-  
+
   const emails = ev.attendees ? ev.attendees.map(a => a.email).join(', ') : '';
   document.getElementById('comp-convidados').value = emails;
   document.getElementById('comp-convidados').readOnly = true;
-  
+
   document.getElementById('modal-compromisso-footer').innerHTML = `
     <button class="btn btn-secondary" onclick="fecharModalCompromisso()">Fechar</button>
     <button class="btn btn-primary" onclick="abrirEditarCompromisso('${ev.id}')">Editar</button>
@@ -5559,17 +5736,17 @@ function abrirVisualizarCompromisso(id) {
 function abrirEditarCompromisso(id) {
   const ev = eventosCache.find(x => x.id === id);
   if (!ev) return;
-  
+
   document.getElementById('modal-compromisso-title').textContent = 'Editar compromisso';
   document.getElementById('modal-compromisso-subtitle').textContent = 'Ajuste os dados do compromisso';
-  
+
   document.getElementById('comp-titulo').readOnly = false;
   document.getElementById('comp-inicio').readOnly = false;
   document.getElementById('comp-fim').readOnly = false;
   document.getElementById('comp-local').readOnly = false;
   document.getElementById('comp-descricao').readOnly = false;
   document.getElementById('comp-convidados').readOnly = false;
-  
+
   document.getElementById('modal-compromisso-footer').innerHTML = `
     <button class="btn btn-secondary" style="margin-right: auto; background: var(--status-atrasado); color: var(--brand-ink);" onclick="prepararDeletarCompromisso('${ev.id}')">Excluir</button>
     <button class="btn btn-secondary" onclick="fecharModalCompromisso()">Cancelar</button>
@@ -5585,12 +5762,12 @@ function prepararCriarCompromisso() {
   const local = document.getElementById('comp-local').value.trim();
   const descricao = document.getElementById('comp-descricao').value.trim();
   const convidadosStr = document.getElementById('comp-convidados').value.trim();
-  
+
   if (!titulo || !inicio || !fim) {
     showToast('Por favor, preencha todos os campos obrigatórios.');
     return;
   }
-  
+
   const payload = {
     summary: titulo,
     location: local,
@@ -5598,13 +5775,13 @@ function prepararCriarCompromisso() {
     start: { dateTime: new Date(inicio).toISOString(), timeZone: 'America/Sao_Paulo' },
     end: { dateTime: new Date(fim).toISOString(), timeZone: 'America/Sao_Paulo' }
   };
-  
+
   if (convidadosStr) {
     payload.attendees = convidadosStr.split(',').map(email => ({ email: email.trim() }));
   }
-  
+
   fecharModalCompromisso();
-  
+
   modalPendingChanges = [{
     action: 'create',
     titulo: titulo,
@@ -5612,7 +5789,7 @@ function prepararCriarCompromisso() {
     depois: new Date(inicio).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }),
     payload: payload
   }];
-  
+
   abrirModalSync();
 }
 
@@ -5624,15 +5801,15 @@ function prepararSalvarCompromisso() {
   const local = document.getElementById('comp-local').value.trim();
   const descricao = document.getElementById('comp-descricao').value.trim();
   const convidadosStr = document.getElementById('comp-convidados').value.trim();
-  
+
   const original = eventosCache.find(x => x.id === id);
   if (!original) return;
-  
+
   if (!titulo || !inicio || !fim) {
     showToast('Por favor, preencha todos os campos obrigatórios.');
     return;
   }
-  
+
   const payload = {
     summary: titulo,
     location: local,
@@ -5640,18 +5817,18 @@ function prepararSalvarCompromisso() {
     start: { dateTime: new Date(inicio).toISOString(), timeZone: 'America/Sao_Paulo' },
     end: { dateTime: new Date(fim).toISOString(), timeZone: 'America/Sao_Paulo' }
   };
-  
+
   if (convidadosStr) {
     payload.attendees = convidadosStr.split(',').map(email => ({ email: email.trim() }));
   } else {
     payload.attendees = [];
   }
-  
+
   fecharModalCompromisso();
-  
+
   const antesStr = new Date(original.start.dateTime || original.start.date).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
   const depoisStr = new Date(inicio).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-  
+
   modalPendingChanges = [{
     action: 'update',
     eventId: id,
@@ -5660,18 +5837,18 @@ function prepararSalvarCompromisso() {
     depois: depoisStr,
     payload: payload
   }];
-  
+
   abrirModalSync();
 }
 
 function prepararDeletarCompromisso(id) {
   const original = eventosCache.find(x => x.id === id);
   if (!original) return;
-  
+
   fecharModalCompromisso();
-  
+
   const antesStr = new Date(original.start.dateTime || original.start.date).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-  
+
   modalPendingChanges = [{
     action: 'delete',
     eventId: id,
@@ -5679,7 +5856,7 @@ function prepararDeletarCompromisso(id) {
     antes: antesStr,
     depois: '(excluído)'
   }];
-  
+
   abrirModalSync();
 }
 
@@ -5707,8 +5884,21 @@ function renderProjetosLista() {
     const prazoStr = dias > 0 ? `Prazo: ${fmtDate(p.prazo)} · ${dias}d restantes` : `ATRASADO ${Math.abs(dias)}d`;
     const prazoCls = dias < 0 ? 'atrasado' : '';
     const recPct = p.recebido && p.valor ? Math.round((p.recebido / p.valor) * 100) : 0;
-    const statusLabel = p.status === 'instalacao' ? 'Instalação' : p.status === 'ativo' ? 'Em produção' : p.status;
-    const statusColor = p.status === 'instalacao' ? 'var(--status-liberado)' : p.status === 'ativo' ? 'var(--status-em-andamento)' : 'var(--ink-subtle)';
+    let statusLabel = p.status;
+    let statusColor = 'var(--ink-subtle)';
+    if (p.status === 'concluido') {
+      statusLabel = 'Concluído';
+      statusColor = 'var(--status-liberado)';
+    } else if (p.status === 'producao') {
+      statusLabel = `Em produção · ${p.etapaAtual || 'Conferência'}`;
+      statusColor = 'var(--status-em-andamento)';
+    } else if (p.status === 'ativo') {
+      statusLabel = `Pendente · ${p.etapaAtual || 'Conferência'}`;
+      statusColor = 'var(--ink-subtle)';
+    } else if (p.status === 'instalacao') {
+      statusLabel = 'Instalação';
+      statusColor = 'var(--status-liberado)';
+    }
     return `
       <button class="projeto-card" onclick="abrirProjeto('${p.id}')">
         <div class="card-top">
@@ -5753,6 +5943,326 @@ window.addEventListener('load', () => {
   bindWizardInputs();
   inicializarWelcome();
 });
+
+function renderAcompanhamentoProducao(projeto, container) {
+  if (!container) return;
+  if (!projeto.tasks || projeto.tasks.length === 0) {
+    container.innerHTML = `<div class="card" style="padding: var(--sp-4); color: var(--ink-muted);">Nenhuma tarefa de acompanhamento disponível.</div>`;
+    return;
+  }
+
+  atualizarProgressoEStatusLocal(projeto);
+  const aplicaveis = projeto.tasks.filter(t => t.is_applicable !== false);
+  const total = aplicaveis.length;
+  const concluidoCount = aplicaveis.filter(t => t.status === 'completed').length;
+  const pct = Math.round((concluidoCount / total) * 100);
+
+  // Status geral formatado
+  let statusLabel = 'Pendente';
+  let statusColor = 'var(--ink-subtle)';
+  if (projeto.status === 'concluido') {
+    statusLabel = 'Concluído';
+    statusColor = 'var(--status-liberado)';
+  } else if (projeto.status === 'producao') {
+    statusLabel = `Em produção · ${projeto.etapaAtual || 'Corte CNC'}`;
+    statusColor = 'var(--status-em-andamento)';
+  } else if (projeto.status === 'ativo') {
+    statusLabel = `Pendente · ${projeto.etapaAtual || 'Conferência'}`;
+    statusColor = 'var(--ink-subtle)';
+  }
+
+  // Acha a tarefa ativa atual (primeira não concluída)
+  const activeTask = projeto.tasks.find(t => t.is_applicable !== false && t.status !== 'completed');
+
+  const listHtml = projeto.tasks.map((t, index) => {
+    const isCompleted = t.status === 'completed';
+    const isInProgress = t.status === 'in_progress';
+    const isPending = t.status === 'pending';
+    const isBlocked = t.status === 'blocked';
+    const isNotApplicable = t.is_applicable === false;
+    const isActive = activeTask && activeTask.id === t.id;
+
+    let icon = isNotApplicable ? '—' : isBlocked ? '🔒' : '○';
+    let statusClass = 'pending';
+    let actionButton = '';
+
+    if (isCompleted) {
+      icon = '✓';
+      statusClass = 'completed';
+    } else if (isInProgress) {
+      icon = '→';
+      statusClass = 'in_progress';
+    } else if (isActive) {
+      icon = '→';
+      statusClass = 'active';
+    }
+
+    if (isNotApplicable) statusClass = 'not_applicable';
+    if (isBlocked) statusClass = 'blocked';
+
+    if (isActive) {
+      if (t.status === 'pending') {
+        actionButton = `<button class="btn btn-secondary" style="font-size:0.75rem; padding: var(--sp-1) var(--sp-3);" onclick="alterarStatusTarefa('${projeto.id}', '${t.id}', 'in_progress')">Iniciar etapa</button>`;
+      } else if (t.status === 'in_progress') {
+        actionButton = `<button class="btn btn-primary" style="font-size:0.75rem; padding: var(--sp-1) var(--sp-3);" onclick="alterarStatusTarefa('${projeto.id}', '${t.id}', 'completed')">Concluir etapa</button>`;
+      }
+    }
+
+    const applicabilityButton = !isCompleted && t.order !== 23
+      ? `<button class="btn btn-ghost" style="font-size:0.6875rem; padding:2px 6px;" onclick="alternarAplicabilidadeTarefa('${projeto.id}', '${t.id}')">${isNotApplicable ? 'Aplicável' : 'Não se aplica'}</button>`
+      : '';
+
+    let notesHtml = t.notes ? `<div style="font-size:0.75rem; color: var(--status-em-andamento); margin-top:2px;">Obs: ${t.notes}</div>` : '';
+
+    return `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-md); background: ${isActive ? 'color-mix(in oklch, var(--status-em-andamento) 6%, var(--surface))' : 'transparent'}; border: ${isActive ? '1px solid var(--status-em-andamento)' : '1px solid transparent'};">
+        <div style="display: flex; align-items: center; gap: var(--sp-3);">
+          <span style="font-size: 1.1rem; font-weight: bold; color: ${isCompleted ? 'var(--status-liberado)' : isInProgress ? 'var(--status-em-andamento)' : 'var(--ink-subtle)'};">${icon}</span>
+          <div>
+          <span style="font-weight: ${isActive ? '600' : 'normal'}; color: ${isCompleted ? 'var(--ink-muted)' : 'var(--ink-dark)'}; ${isCompleted ? 'text-decoration: line-through;' : ''}">${String(t.order).padStart(2, '0')} · ${t.name}<small style="display:block;color:var(--ink-muted);font-size:0.6875rem;">${t.category || 'PRODUÇÃO'}${isBlocked ? ' · Aguardando etapa anterior' : isNotApplicable ? ' · Não se aplica' : ''}</small></span>
+            ${notesHtml}
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; gap:var(--sp-2); align-items:center;">${applicabilityButton}${actionButton}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="card" style="padding: var(--sp-4);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-4);">
+        <div>
+          <h3 class="t-h3" style="margin: 0; font-family: var(--font-display);">Acompanhamento da Produção</h3>
+          <p class="t-small" style="color: var(--ink-muted); margin: 2px 0 0 0;">Etapas operacionais integradas com o Chão de Fábrica</p>
+        </div>
+        <span style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.07em; color:${statusColor}; padding:3px 8px; border-radius:10px; background:color-mix(in oklch,${statusColor} 12%,var(--surface)); flex-shrink:0">${statusLabel}</span>
+      </div>
+
+      <div style="margin-bottom: var(--sp-5);">
+        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: var(--sp-2);">
+          <span style="color: var(--ink-muted);">Progresso da fabricação</span>
+          <strong>${pct}% (${concluidoCount} de ${total} aplicáveis concluídas)</strong>
+        </div>
+        <div class="progresso-bar" style="height: 10px;">
+          <div class="progresso-fill" style="width: ${pct}%; background: var(--status-em-andamento);"></div>
+        </div>
+      </div>
+
+      <div class="stack stack-2">
+        ${listHtml}
+      </div>
+    </div>
+  `;
+}
+
+async function alterarStatusTarefa(projetoId, taskId, novoStatus) {
+  if (!supabase) {
+    showToast('Erro: Supabase não configurado');
+    return;
+  }
+  if (tarefaMutationBusy) return;
+  tarefaMutationBusy = true;
+
+  const p = projetos.find(x => x.id === projetoId);
+  if (!p) return;
+
+  const t = p.tasks.find(x => x.id === taskId);
+  if (!t) return;
+  const activeTask = p.tasks.find(x => x.is_applicable !== false && x.status !== 'completed');
+  if (t.id !== activeTask?.id || t.status === 'blocked' || t.is_applicable === false) {
+    showToast('Essa etapa ainda está bloqueada pelo fluxo operacional.');
+    return;
+  }
+
+  const updates = {
+    status: novoStatus,
+    updated_at: new Date().toISOString()
+  };
+
+  if (novoStatus === 'in_progress') {
+    updates.started_at = new Date().toISOString();
+  } else if (novoStatus === 'completed') {
+    updates.completed_at = new Date().toISOString();
+  }
+
+  // Optimistic update
+  t.status = novoStatus;
+  if (novoStatus === 'in_progress') t.started_at = updates.started_at;
+  if (novoStatus === 'completed') t.completed_at = updates.completed_at;
+
+  atualizarProgressoEStatusLocal(p);
+
+  const prodContainer = document.getElementById('producao-acompanhamento');
+  if (prodContainer) renderAcompanhamentoProducao(p, prodContainer);
+  renderProjetosLista();
+  renderDashboard();
+  renderChao();
+
+  try {
+    const { error: eTask } = await supabase
+      .from('production_tasks')
+      .update(updates)
+      .eq('id', taskId);
+
+    if (eTask) throw eTask;
+
+    const results = await Promise.all(p.tasks.map(task =>
+      supabase.from('production_tasks').update({
+        status: task.status,
+        is_applicable: task.is_applicable !== false,
+        updated_at: task.id === taskId ? updates.updated_at : new Date().toISOString()
+      }).eq('id', task.id)
+    ));
+    const failed = results.find(result => result.error);
+    if (failed) throw failed.error;
+    await salvarProgressoEStatusNoBanco(p);
+    showToast(`Etapa "${t.name}" atualizada.`);
+  } catch (err) {
+    console.error('Erro ao atualizar status da tarefa:', err);
+    showToast('Erro ao sincronizar com o Supabase. Recarregando...');
+    await carregarProjetosDoBanco();
+  } finally {
+    tarefaMutationBusy = false;
+  }
+}
+
+async function alternarAplicabilidadeTarefa(projetoId, taskId) {
+  if (!supabase) return;
+  if (tarefaMutationBusy) return;
+  const p = projetos.find(x => x.id === projetoId);
+  const task = p?.tasks.find(x => x.id === taskId);
+  if (!p || !task || task.status === 'completed' || task.order === 23) return;
+  tarefaMutationBusy = true;
+
+  task.is_applicable = task.is_applicable === false;
+  atualizarProgressoEStatusLocal(p);
+  renderAcompanhamentoProducao(p, document.getElementById('producao-acompanhamento'));
+  renderProjetosLista();
+  renderDashboard();
+  renderChao();
+
+  try {
+    const results = await Promise.all(p.tasks.map(item =>
+      supabase.from('production_tasks').update({
+        status: item.status,
+        is_applicable: item.is_applicable !== false,
+        updated_at: new Date().toISOString()
+      }).eq('id', item.id)
+    ));
+    const failed = results.find(result => result.error);
+    if (failed) throw failed.error;
+    await salvarProgressoEStatusNoBanco(p);
+    showToast(task.is_applicable ? `Etapa "${task.name}" reativada.` : `Etapa "${task.name}" marcada como não aplicável.`);
+  } catch (err) {
+    console.error('Erro ao atualizar aplicabilidade da tarefa:', err);
+    showToast('Erro ao sincronizar a aplicabilidade. Recarregando...');
+    await carregarProjetosDoBanco();
+  } finally {
+    tarefaMutationBusy = false;
+  }
+}
+
+// Permite ao Chão de Fábrica reposicionar um projeto no fluxo compartilhado.
+// As etapas anteriores ficam concluídas e as posteriores permanecem pendentes.
+async function moverProjetoParaEtapa(projetoId, targetTaskId) {
+  if (!supabase || !targetTaskId) return;
+  if (tarefaMutationBusy) return;
+  const p = projetos.find(x => x.id === projetoId);
+  if (!p || !p.tasks || !p.tasks.length) return;
+
+  const target = p.tasks.find(t => t.id === targetTaskId);
+  if (!target || target.is_applicable === false || target.status === 'completed') return;
+  const current = p.tasks.find(t => t.is_applicable !== false && t.status !== 'completed');
+  if (current && target.order > current.order) {
+    showToast(`Conclua "${current.name}" antes de avançar para "${target.name}".`);
+    renderChao();
+    return;
+  }
+  tarefaMutationBusy = true;
+  if (!confirm(`Mover ${p.codigo} para "${target.name}"? As etapas anteriores serão registradas como concluídas.`)) {
+    renderChao();
+    tarefaMutationBusy = false;
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const updates = p.tasks.map(task => {
+    if (task.is_applicable === false) {
+      return { task, values: { status: 'not_applicable', updated_at: now } };
+    }
+    if (task.order < target.order) {
+      return { task, values: { status: 'completed', completed_at: task.completed_at || now, updated_at: now } };
+    }
+    if (task.id === target.id) {
+      return { task, values: { status: 'in_progress', started_at: task.started_at || now, completed_at: null, updated_at: now } };
+    }
+    return { task, values: { status: 'blocked', started_at: null, completed_at: null, updated_at: now } };
+  });
+
+  updates.forEach(({ task, values }) => Object.assign(task, values));
+  atualizarProgressoEStatusLocal(p);
+  renderProjetosLista();
+  renderDashboard();
+  renderChao();
+  const prodContainer = document.getElementById('producao-acompanhamento');
+  if (prodContainer) renderAcompanhamentoProducao(p, prodContainer);
+
+  try {
+    const results = await Promise.all(updates.map(({ task, values }) =>
+      supabase.from('production_tasks').update({ ...values, is_applicable: task.is_applicable !== false }).eq('id', task.id)
+    ));
+    const failed = results.find(result => result.error);
+    if (failed) throw failed.error;
+    await salvarProgressoEStatusNoBanco(p);
+    showToast(`Projeto movido para "${target.name}".`);
+  } catch (err) {
+    console.error('Erro ao mover projeto no Chão de Fábrica:', err);
+    showToast('Erro ao sincronizar a etapa. Recarregando...');
+    await carregarProjetosDoBanco();
+  } finally {
+    tarefaMutationBusy = false;
+  }
+}
+
+function fecharModalDetalheTarefa() {
+  document.getElementById('modal-detalhe-tarefa')?.classList.remove('open');
+}
+
+function abrirDetalheTarefa(projetoId, taskId) {
+  const projeto = projetos.find(item => item.id === projetoId);
+  const tarefa = projeto?.tasks.find(item => item.id === taskId);
+  if (!projeto || !tarefa) return;
+
+  const statusLabels = {
+    pending: 'Pendente',
+    in_progress: 'Em andamento',
+    completed: 'Concluída',
+    blocked: 'Bloqueada',
+    not_applicable: 'Não aplicável'
+  };
+  const started = tarefa.started_at ? new Date(tarefa.started_at).toLocaleString('pt-BR') : '—';
+  const completed = tarefa.completed_at ? new Date(tarefa.completed_at).toLocaleString('pt-BR') : '—';
+  document.getElementById('modal-tarefa-title').textContent = tarefa.name;
+  document.getElementById('modal-tarefa-subtitle').textContent = `${projeto.cliente} · ${projeto.codigo}`;
+  document.getElementById('modal-tarefa-body').innerHTML = `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4);">
+      <div><small style="color:var(--ink-muted);">Etapa</small><strong style="display:block;">${String(tarefa.order).padStart(2, '0')} · ${tarefa.name}</strong></div>
+      <div><small style="color:var(--ink-muted);">Categoria</small><strong style="display:block;">${tarefa.category || '—'}</strong></div>
+      <div><small style="color:var(--ink-muted);">Status</small><strong style="display:block;">${statusLabels[tarefa.status] || tarefa.status}</strong></div>
+      <div><small style="color:var(--ink-muted);">Progresso do projeto</small><strong style="display:block;">${projeto.progresso}%</strong></div>
+      <div><small style="color:var(--ink-muted);">Início</small><strong style="display:block;">${started}</strong></div>
+      <div><small style="color:var(--ink-muted);">Conclusão</small><strong style="display:block;">${completed}</strong></div>
+    </div>
+    <div style="margin-top:var(--sp-4);"><small style="color:var(--ink-muted);">Observações</small><p style="margin:4px 0 0;">${tarefa.notes || 'Nenhuma observação registrada.'}</p></div>
+  `;
+  document.getElementById('modal-tarefa-footer').innerHTML = `
+    <button class="btn btn-secondary" onclick="fecharModalDetalheTarefa()">Fechar</button>
+    <button class="btn btn-primary" onclick="fecharModalDetalheTarefa(); abrirProjeto('${projeto.id}')">Ver projeto</button>
+  `;
+  document.getElementById('modal-detalhe-tarefa').classList.add('open');
+}
 
 /* Renderiza ambientes de um projeto específico no container dado */
 function renderAmbientesForProjeto(projeto, container) {
@@ -5841,12 +6351,12 @@ function switchTab(btn, camada) {
 
 function renderCustosView() {
   const proj = projetos.find(p => p.id === projetoSelecionadoId) || projetos[0];
-  
+
   const nomeEl = document.getElementById('custos-projeto-nome');
   const receitaEl = document.getElementById('custos-receita');
   const acumuladoEl = document.getElementById('custos-acumulado');
   const margemEl = document.getElementById('custos-margem');
-  
+
   const cardMatEl = document.getElementById('custos-card-materiais');
   const cardMaoEl = document.getElementById('custos-card-mao-obra');
   const cardIndEl = document.getElementById('custos-card-indiretos');
@@ -5861,7 +6371,7 @@ function renderCustosView() {
     if (cardMaoEl) cardMaoEl.textContent = 'R$ 0';
     if (cardIndEl) cardIndEl.textContent = 'R$ 0';
     if (cardRetEl) cardRetEl.textContent = 'R$ 0';
-    
+
     const container = document.getElementById('custo-linhas');
     if (container) container.innerHTML = `<div style="padding: var(--sp-4); text-align: center; color: var(--ink-muted);">Nenhum projeto cadastrado no sistema.</div>`;
     return;
@@ -5869,19 +6379,19 @@ function renderCustosView() {
 
   if (nomeEl) nomeEl.textContent = `Custos · ${proj.cliente}`;
   if (receitaEl) receitaEl.textContent = fmtBRL(proj.valor);
-  
+
   // Tudo inicia zerado e limpo para novos lançamentos
   const matVal = 0;
   const maoVal = 0;
   const indVal = 0;
   const retVal = 0;
   const totalCusto = matVal + maoVal + indVal + retVal;
-  
+
   const margemReal = proj.valor > 0 ? ((proj.valor - totalCusto) / proj.valor) * 100 : 0;
 
   if (acumuladoEl) acumuladoEl.textContent = fmtBRL(totalCusto);
   if (margemEl) margemEl.textContent = `${margemReal.toFixed(1)}%`;
-  
+
   if (cardMatEl) cardMatEl.textContent = fmtBRL(matVal);
   if (cardMaoEl) cardMaoEl.textContent = fmtBRL(maoVal);
   if (cardIndEl) cardIndEl.textContent = fmtBRL(indVal);
@@ -5895,46 +6405,82 @@ function renderChao() {
   const container = document.getElementById('chao-grid');
   if (!container) return;
 
-  const projeto = projetos[0];
-  if (!projeto || !projeto.ambientes) {
-    container.innerHTML = `<div style="grid-column: 1 / -1; padding: var(--sp-8); text-align: center; color: var(--ink-muted);">Nenhum trabalho pendente no galpão.</div>`;
+  container.style.display = 'flex';
+  container.style.flexDirection = 'row';
+  container.style.gap = 'var(--sp-4)';
+  container.style.overflowX = 'auto';
+  container.style.paddingBottom = 'var(--sp-4)';
+  container.style.alignItems = 'flex-start';
+
+  const etapasNomes = [...new Map(
+    projetos.flatMap(projeto => projeto.tasks || [])
+      .filter(task => task.name && task.is_applicable !== false)
+      .sort((a, b) => a.order - b.order)
+      .map(task => [task.order, task.name])
+  ).values()];
+
+  if (etapasNomes.length === 0) {
+    container.innerHTML = `<div style="padding:var(--sp-6); color:var(--ink-muted);">Nenhuma tarefa operacional disponível no Supabase.</div>`;
     return;
   }
 
-  const etapas = [];
-  projeto.ambientes.forEach(amb => {
-    if (amb.etapas) {
-      amb.etapas.forEach(et => {
-        if (et.status === 'andamento' || et.status === 'liberado') {
-          etapas.push({ ...et, ambiente: amb.nome, projeto: projeto.cliente });
-        }
-      });
-    }
-  });
+  let columnsHtml = etapasNomes.map((etapaNome, index) => {
+    const projetosNaEtapa = projetos.filter(p => {
+      if (p.status === 'concluido') return false;
+      const activeTask = p.tasks.find(t => t.is_applicable !== false && t.status !== 'completed');
+      return activeTask && activeTask.name === etapaNome;
+    });
 
-  if (etapas.length === 0) {
-    container.innerHTML = `<div style="grid-column: 1 / -1; padding: var(--sp-8); text-align: center; color: var(--ink-muted);">Nenhuma etapa de produção ativa no momento.</div>`;
-    return;
-  }
+    const cardsHtml = projetosNaEtapa.map(p => {
+      const activeTask = p.tasks.find(t => t.name === etapaNome && t.is_applicable !== false);
+      const isPending = activeTask.status === 'pending';
+      const isInProgress = activeTask.status === 'in_progress';
 
-  container.innerHTML = etapas.map(et => `
-    <div class="chao-etapa" tabindex="0">
-      <div class="projeto-nome">${et.projeto}</div>
-      <div class="etapa-titulo">${et.nome}</div>
-      <div class="ambiente">${et.ambiente} · ${et.responsavel}</div>
-      <div class="tempo">
-        <div>
-          <div class="t-micro" style="margin-bottom: 4px;">Em execução</div>
-          <div class="tempo-atual">${et.status === 'andamento' ? '2h 14min' : '—'}</div>
+      let actionButton = '';
+      if (isPending) {
+        actionButton = `<button class="btn btn-secondary" style="width:100%; font-size:0.875rem; padding: var(--sp-2) 0; margin-top: var(--sp-3);" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${activeTask.id}', 'in_progress')">Iniciar</button>`;
+      } else if (isInProgress) {
+        actionButton = `<button class="btn btn-primary" style="width:100%; font-size:0.875rem; padding: var(--sp-2) 0; margin-top: var(--sp-3);" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${activeTask.id}', 'completed')">Concluir</button>`;
+      }
+
+      const moverOptions = p.tasks.map(task =>
+        `<option value="${task.id}" ${task.id === activeTask.id ? 'selected' : ''}>${task.order}. ${task.name}</option>`
+      ).join('');
+
+      return `
+        <div class="chao-etapa" onclick="abrirDetalheTarefa('${p.id}', '${activeTask.id}')" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--sp-3); cursor: pointer; min-width: 0; flex-shrink: 0; width: 100%;">
+          <div class="projeto-nome" style="font-size: 0.75rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sp-1);">${p.cliente}</div>
+          <div class="etapa-titulo" style="font-family: var(--font-display); font-size: 1.125rem; font-weight: 500; letter-spacing: -0.01em; margin-bottom: var(--sp-2);">${activeTask.name}</div>
+          <div style="font-size:0.75rem;color:var(--ink-muted);margin-bottom:var(--sp-2);">${p.codigo} · ${p.progresso}% do projeto</div>
+          <div style="font-size: 0.8125rem; color: ${isInProgress ? 'var(--status-em-andamento)' : 'var(--ink-subtle)'}; display: flex; align-items: center; gap: 6px; font-weight: 500;">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background: ${isInProgress ? 'var(--status-em-andamento)' : 'var(--ink-subtle)'};"></span>
+            ${isInProgress ? 'Em andamento' : 'Pendente'}
+          </div>
+          ${actionButton}
+          <select class="select" style="font-size:0.75rem; width:100%; margin-top:var(--sp-2);" aria-label="Mover projeto para outra etapa" onclick="event.stopPropagation()" onchange="event.stopPropagation(); moverProjetoParaEtapa('${p.id}', this.value)">
+            ${moverOptions}
+          </select>
         </div>
-        <div>
-          <div class="t-micro" style="margin-bottom: 4px; text-align: right;">Estimado</div>
-          <div class="tempo-estimado">4h 30min</div>
+      `;
+    }).join('');
+
+    const count = projetosNaEtapa.length;
+    const headerColor = count > 0 ? 'var(--accent)' : 'var(--ink-subtle)';
+
+    return `
+      <div style="flex: 0 0 280px; display: flex; flex-direction: column; gap: var(--sp-3); min-height: 480px; background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--sp-3); max-height: calc(100vh - 250px); overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: var(--sp-2); margin-bottom: var(--sp-1);">
+          <span style="font-family: var(--font-display); font-size: 0.95rem; font-weight: 600; color: ${headerColor}; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 200px;" title="${etapaNome}">${index + 1}. ${etapaNome}</span>
+          <span style="font-size: 0.75rem; background: var(--border); padding: 1px 6px; border-radius: 10px; font-weight: 600; color: var(--ink-dark);">${count}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--sp-3); overflow-y: auto;">
+          ${count === 0 ? `<div style="text-align: center; color: var(--ink-muted); font-size: 0.8125rem; padding: var(--sp-4) 0;">Vazia</div>` : cardsHtml}
         </div>
       </div>
-      <button class="btn-concluir" onclick="concluirEtapa(this, '${et.nome}')">Marcar concluída</button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+
+  container.innerHTML = columnsHtml;
 }
 
 /* ============================================================================
@@ -6060,14 +6606,14 @@ function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') === 'dark';
   const newTheme = isDark ? 'light' : 'dark';
-  
+
   html.setAttribute('data-theme', newTheme);
   localStorage.setItem('alpha-theme', newTheme);
-  
+
   // Atualizar label e ícone
   const label = document.getElementById('theme-label');
   const icon = document.getElementById('theme-icon');
-  
+
   if (newTheme === 'dark') {
     label.textContent = 'Escuro';
     icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
@@ -6189,6 +6735,12 @@ function abrirProjeto(id) {
     tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--ink-muted); padding: var(--sp-4) 0;">Nenhum pagamento registrado ainda.</td></tr>`;
   }
 
+  // Renderiza acompanhamento da produção
+  const prodContainer = document.getElementById('producao-acompanhamento');
+  if (prodContainer) {
+    renderAcompanhamentoProducao(p, prodContainer);
+  }
+
   // Renderiza ambientes se o projeto tiver
   const ambContainer = document.getElementById('ambientes-lista');
   if (p.ambientes && p.ambientes.length > 0) {
@@ -6209,22 +6761,22 @@ function substituirContrato(id) {
     const file = e.target.files[0];
     if (!file) return;
     showToast('Enviando contrato...');
-    
+
     const p = projetos.find(x => x.id === id);
     if (p && p.contrato_url) {
       await supabase.storage.from('arquivos').remove([p.contrato_url]);
     }
-    
+
     const extension = file.name.split('.').pop();
     const fileName = `contract-${Date.now()}.${extension}`;
     const path = `projects/${id}/contract/${fileName}`;
-    
+
     const { path: uploadedPath, error } = await uploadArquivoSupabase('arquivos', path, file);
     if (error) {
       showToast('Erro no upload: ' + error.message);
       return;
     }
-    
+
     const { error: errUpdate } = await supabase
       .from('projetos')
       .update({
@@ -6233,7 +6785,7 @@ function substituirContrato(id) {
         contract_file_path: uploadedPath
       })
       .eq('id', id);
-      
+
     if (errUpdate) {
       showToast('Erro ao vincular contrato: ' + errUpdate.message);
     } else {
@@ -6251,7 +6803,7 @@ async function removerContrato(id) {
   if (p && p.contrato_url) {
     await supabase.storage.from('arquivos').remove([p.contrato_url]);
   }
-  
+
   const { error } = await supabase
     .from('projetos')
     .update({
@@ -6260,7 +6812,7 @@ async function removerContrato(id) {
       contract_file_path: null
     })
     .eq('id', id);
-    
+
   if (error) {
     showToast('Erro ao remover contrato: ' + error.message);
   } else {
@@ -6278,22 +6830,22 @@ function substituirProjetoArquivo(id) {
     const file = e.target.files[0];
     if (!file) return;
     showToast('Enviando arquivo do projeto...');
-    
+
     const p = projetos.find(x => x.id === id);
     if (p && p.project_file_path) {
       await supabase.storage.from('arquivos').remove([p.project_file_path]);
     }
-    
+
     const extension = file.name.split('.').pop();
     const fileName = `project-${Date.now()}.${extension}`;
     const path = `projects/${id}/${fileName}`;
-    
+
     const { path: uploadedPath, error } = await uploadArquivoSupabase('arquivos', path, file);
     if (error) {
       showToast('Erro no upload: ' + error.message);
       return;
     }
-    
+
     const { error: errUpdate } = await supabase
       .from('projetos')
       .update({
@@ -6301,7 +6853,7 @@ function substituirProjetoArquivo(id) {
         arquivo_url: uploadedPath
       })
       .eq('id', id);
-      
+
     if (errUpdate) {
       showToast('Erro ao vincular arquivo: ' + errUpdate.message);
     } else {
@@ -6319,7 +6871,7 @@ async function removerProjetoArquivo(id) {
   if (p && p.project_file_path) {
     await supabase.storage.from('arquivos').remove([p.project_file_path]);
   }
-  
+
   const { error } = await supabase
     .from('projetos')
     .update({
@@ -6327,7 +6879,7 @@ async function removerProjetoArquivo(id) {
       arquivo_url: null
     })
     .eq('id', id);
-    
+
   if (error) {
     showToast('Erro ao remover arquivo: ' + error.message);
   } else {
@@ -6345,17 +6897,17 @@ function substituirComprovante(projId, entId) {
     const file = e.target.files[0];
     if (!file) return;
     showToast('Enviando comprovante...');
-    
+
     const extension = file.name.split('.').pop();
     const fileName = `receipt-${Date.now()}.${extension}`;
     const path = `projects/${projId}/payments/${entId}/${fileName}`;
-    
+
     const { path: uploadedPath, error } = await uploadArquivoSupabase('arquivos', path, file);
     if (error) {
       showToast('Erro no upload: ' + error.message);
       return;
     }
-    
+
     const { error: errUpdate } = await supabase
       .from('parcelas_pagamento')
       .update({
@@ -6364,7 +6916,7 @@ function substituirComprovante(projId, entId) {
         receipt_file_path: uploadedPath
       })
       .eq('id', entId);
-      
+
     if (errUpdate) {
       showToast('Erro ao vincular comprovante: ' + errUpdate.message);
     } else {
@@ -6403,7 +6955,7 @@ function fecharModalEntrada() {
 async function salvarEntradaFinanceira() {
   const btn = document.getElementById('btn-salvar-entrada');
   if (btn.disabled) return;
-  
+
   const entId = document.getElementById('ent-id').value;
   const valorStr = document.getElementById('ent-valor').value.trim();
   const data = document.getElementById('ent-data').value;
@@ -6464,7 +7016,7 @@ async function salvarEntradaFinanceira() {
       const extension = file.name.split('.').pop();
       const fileName = `receipt-${Date.now()}.${extension}`;
       const path = `projects/${projetoSelecionadoId}/payments/${resId}/${fileName}`;
-      
+
       if (isEdit) {
         const e = p.entradas.find(x => x.id === entId);
         if (e && e.comprovante_url) {
@@ -6514,7 +7066,7 @@ async function excluirEntradaFinanceira(entId) {
       .from('parcelas_pagamento')
       .delete()
       .eq('id', entId);
-      
+
     if (error) throw error;
 
     showToast('Entrada excluída com sucesso.');
@@ -6534,7 +7086,7 @@ function abrirModalEditarProjeto() {
   document.getElementById('edit-cli-cpf').value = p.cliente_cpf || '';
   document.getElementById('edit-cli-telefone').value = p.cliente_telefone || '';
   document.getElementById('edit-cli-endereco').value = p.cliente_endereco || '';
-  
+
   const valorInput = document.getElementById('edit-prj-valor');
   if (p.valor) {
     valorInput.value = 'R$ ' + parseFloat(p.valor).toFixed(2).replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
@@ -6655,7 +7207,7 @@ async function excluirProjetoAtual() {
   if (!projetoSelecionadoId) return;
   const p = projetos.find(x => x.id === projetoSelecionadoId);
   if (!p) return;
-  
+
   if (!confirm(`Tem certeza que deseja EXCLUIR o projeto "${p.codigo} — ${p.cliente}" e todos os seus ambientes, pagamentos e arquivos permanentemente? Esta ação não pode ser desfeita.`)) {
     return;
   }
