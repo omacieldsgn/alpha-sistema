@@ -1216,6 +1216,184 @@ p { text-wrap: pretty; }
 }
 .chao-etapa .btn-concluir:hover { background: var(--accent); }
 
+/* Acompanhamento de produção --------------------------------------------- */
+.production-card { padding: var(--sp-4); }
+.production-header,
+.production-summary-line,
+.production-stage,
+.production-stage-main,
+.production-stage-actions,
+.chao-column-header,
+.chao-card-status {
+  display: flex;
+  align-items: center;
+}
+.production-header {
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+.production-heading { min-width: 0; }
+.production-heading h3 {
+  margin: 0;
+  font-family: var(--font-display);
+}
+.production-heading p { color: var(--ink-muted); margin: 2px 0 0; }
+.production-status {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 3px 8px;
+  border-radius: 10px;
+}
+.production-summary { margin-bottom: var(--sp-5); }
+.production-summary-line {
+  justify-content: space-between;
+  gap: var(--sp-4);
+  font-size: 0.875rem;
+  margin-bottom: var(--sp-2);
+}
+.production-summary-line span { color: var(--ink-muted); }
+.production-list { display: grid; gap: var(--sp-2); }
+.production-stage {
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+}
+.production-stage.is-active {
+  background: color-mix(in oklch, var(--status-em-andamento) 6%, var(--surface));
+  border-color: var(--status-em-andamento);
+}
+.production-stage-main { gap: var(--sp-3); min-width: 0; }
+.production-stage-icon {
+  flex: 0 0 1.1rem;
+  color: var(--ink-subtle);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+}
+.production-stage.is-completed .production-stage-icon { color: var(--status-liberado); }
+.production-stage.is-in-progress .production-stage-icon { color: var(--status-em-andamento); }
+.production-stage-copy { min-width: 0; }
+.production-stage-name {
+  color: var(--ink-dark);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.production-stage.is-active .production-stage-name { font-weight: 600; }
+.production-stage.is-completed .production-stage-name {
+  color: var(--ink-muted);
+  text-decoration: line-through;
+}
+.production-stage-meta,
+.production-stage-note {
+  display: block;
+  font-size: 0.6875rem;
+  overflow-wrap: anywhere;
+}
+.production-stage-meta { color: var(--ink-muted); }
+.production-stage-note { color: var(--status-em-andamento); margin-top: 2px; }
+.production-stage-actions {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+.production-stage-actions .btn {
+  font-size: 0.75rem;
+  padding: var(--sp-1) var(--sp-3);
+}
+.production-stage-actions .btn-ghost { font-size: 0.6875rem; padding: 2px 6px; }
+
+/* Quadro do chão de fábrica ------------------------------------------------ */
+.chao-board {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  overflow-x: auto;
+  padding: 0 0 var(--sp-4);
+  scroll-snap-type: x proximity;
+}
+.chao-column {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-height: 480px;
+  max-height: calc(100vh - 250px);
+  padding: var(--sp-3);
+  overflow-y: auto;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  scroll-snap-align: start;
+}
+.chao-column-header {
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--border);
+}
+.chao-column-title {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-subtle);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chao-column-title.has-tasks { color: var(--accent); }
+.chao-count {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--border);
+  color: var(--ink-dark);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.chao-column-cards { display: grid; gap: var(--sp-3); }
+.chao-empty {
+  padding: var(--sp-4) 0;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+.chao-etapa { width: 100%; min-width: 0; padding: var(--sp-3); }
+.chao-task-progress {
+  margin-bottom: var(--sp-2);
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+}
+.chao-card-status { gap: 6px; color: var(--ink-subtle); font-size: 0.8125rem; font-weight: 500; }
+.chao-card-status.is-in-progress { color: var(--status-em-andamento); }
+.chao-card-status::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.chao-etapa .chao-action { width: 100%; margin-top: var(--sp-3); padding: var(--sp-2) 0; font-size: 0.875rem; justify-content: center; }
+.chao-etapa .chao-select { width: 100%; margin-top: var(--sp-2); font-size: 0.75rem; }
+
+@media (max-width: 768px) {
+  .production-header { align-items: flex-start; flex-direction: column; }
+  .production-status { max-width: 100%; white-space: normal; }
+  .production-summary-line { align-items: flex-start; flex-direction: column; gap: var(--sp-1); }
+  .production-stage { align-items: flex-start; flex-direction: column; }
+  .production-stage-actions { width: 100%; justify-content: flex-start; }
+  .chao-board { margin-right: calc(var(--sp-4) * -1); padding-right: var(--sp-4); }
+  .chao-column { flex-basis: min(86vw, 320px); min-height: 0; max-height: none; }
+}
+
 /* Utilitários ------------------------------------------------------------- */
 .stack { display: flex; flex-direction: column; }
 .stack-1 { gap: var(--sp-1); } .stack-2 { gap: var(--sp-2); } .stack-3 { gap: var(--sp-3); }
@@ -1516,7 +1694,7 @@ p { text-wrap: pretty; }
   padding: var(--sp-3);
   background: var(--surface-2);
   border-radius: var(--radius-md);
-  border-left: 3px solid var(--accent);
+  border: 1px solid color-mix(in oklch, var(--accent) 42%, var(--border));
 }
 .modal-list-item .titulo { font-size: 0.9375rem; font-weight: 500; margin-bottom: 4px; }
 .modal-list-item .change {
@@ -2354,7 +2532,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   padding: 6px var(--sp-3);
   border-radius: var(--radius-sm);
   background: color-mix(in oklch, var(--brand) 8%, var(--surface));
-  border-left: 3px solid var(--brand);
+  border: 1px solid color-mix(in oklch, var(--brand) 48%, var(--border));
   color: var(--ink);
   overflow: hidden;
   display: flex;
@@ -3936,7 +4114,7 @@ async function garantirTarefasProjeto(projectId) {
     order: etapa.order,
     depends_on_order: etapa.depends_on_order,
     is_applicable: true,
-    status: etapa.order === 1 ? 'pending' : 'blocked'
+    status: 'pending'
   }));
 
   const { data, error } = await supabase
@@ -3961,20 +4139,14 @@ async function garantirTarefasProjeto(projectId) {
 function atualizarProgressoEStatusLocal(p) {
   if (!p.tasks || p.tasks.length === 0) return;
   const tasks = p.tasks.sort((a, b) => a.order - b.order);
-  let previousApplicableComplete = true;
   tasks.forEach(task => {
     task.is_applicable = task.is_applicable !== false;
     if (!task.is_applicable) {
       task.status = 'not_applicable';
-      return;
+    } else if (task.status === 'blocked') {
+      // A ordem é apenas organizacional; nenhuma etapa bloqueia outra.
+      task.status = 'pending';
     }
-    if (task.status === 'completed') {
-      previousApplicableComplete = true;
-      return;
-    }
-    if (!previousApplicableComplete) task.status = 'blocked';
-    else if (task.status === 'blocked' || task.status === 'not_applicable') task.status = 'pending';
-    previousApplicableComplete = false;
   });
 
   const aplicaveis = tasks.filter(t => t.is_applicable);
@@ -3989,7 +4161,7 @@ function atualizarProgressoEStatusLocal(p) {
     p.status = hasStarted ? 'producao' : 'ativo';
   }
 
-  const etapaAtualTask = aplicaveis.find(t => t.status !== 'completed');
+  const etapaAtualTask = aplicaveis.find(t => t.status === 'in_progress') || aplicaveis.find(t => t.status === 'pending');
   p.etapaAtual = etapaAtualTask ? etapaAtualTask.name : 'Concluído';
 }
 
@@ -6000,49 +6172,58 @@ function renderAcompanhamentoProducao(projeto, container) {
     if (isNotApplicable) statusClass = 'not_applicable';
     if (isBlocked) statusClass = 'blocked';
 
-    if (isActive) {
+    if (!isNotApplicable) {
       if (t.status === 'pending') {
-        actionButton = `<button class="btn btn-secondary" style="font-size:0.75rem; padding: var(--sp-1) var(--sp-3);" onclick="alterarStatusTarefa('${projeto.id}', '${t.id}', 'in_progress')">Iniciar etapa</button>`;
+        actionButton = `<button class="btn btn-secondary" style="font-size:0.75rem; padding: var(--sp-1) var(--sp-3);" onclick="event.stopPropagation(); alterarStatusTarefa('${projeto.id}', '${t.id}', 'in_progress')">Iniciar</button>`;
       } else if (t.status === 'in_progress') {
-        actionButton = `<button class="btn btn-primary" style="font-size:0.75rem; padding: var(--sp-1) var(--sp-3);" onclick="alterarStatusTarefa('${projeto.id}', '${t.id}', 'completed')">Concluir etapa</button>`;
+        actionButton = `<button class="btn btn-primary" style="font-size:0.75rem; padding: var(--sp-1) var(--sp-3);" onclick="event.stopPropagation(); alterarStatusTarefa('${projeto.id}', '${t.id}', 'completed')">Concluir</button>`;
       }
     }
 
     const applicabilityButton = !isCompleted && t.order !== 23
       ? `<button class="btn btn-ghost" style="font-size:0.6875rem; padding:2px 6px;" onclick="alternarAplicabilidadeTarefa('${projeto.id}', '${t.id}')">${isNotApplicable ? 'Aplicável' : 'Não se aplica'}</button>`
       : '';
+    const renameButton = !isCompleted
+      ? `<button class="btn btn-ghost" style="font-size:0.6875rem; padding:2px 6px;" onclick="event.stopPropagation(); editarNomeTarefa('${projeto.id}', '${t.id}')">Editar nome</button>`
+      : '';
 
-    let notesHtml = t.notes ? `<div style="font-size:0.75rem; color: var(--status-em-andamento); margin-top:2px;">Obs: ${t.notes}</div>` : '';
+    const notesHtml = t.notes ? `<span class="production-stage-note">Obs: ${t.notes}</span>` : '';
+    const stateClasses = [
+      isActive ? 'is-active' : '',
+      isCompleted ? 'is-completed' : '',
+      isInProgress ? 'is-in-progress' : '',
+      isNotApplicable ? 'is-not-applicable' : ''
+    ].filter(Boolean).join(' ');
+    const stateMeta = `${t.category || 'PRODUÇÃO'}${isBlocked ? ' · Aguardando etapa anterior' : isNotApplicable ? ' · Não se aplica' : ''}`;
 
     return `
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-md); background: ${isActive ? 'color-mix(in oklch, var(--status-em-andamento) 6%, var(--surface))' : 'transparent'}; border: ${isActive ? '1px solid var(--status-em-andamento)' : '1px solid transparent'};">
-        <div style="display: flex; align-items: center; gap: var(--sp-3);">
-          <span style="font-size: 1.1rem; font-weight: bold; color: ${isCompleted ? 'var(--status-liberado)' : isInProgress ? 'var(--status-em-andamento)' : 'var(--ink-subtle)'};">${icon}</span>
-          <div>
-          <span style="font-weight: ${isActive ? '600' : 'normal'}; color: ${isCompleted ? 'var(--ink-muted)' : 'var(--ink-dark)'}; ${isCompleted ? 'text-decoration: line-through;' : ''}">${String(t.order).padStart(2, '0')} · ${t.name}<small style="display:block;color:var(--ink-muted);font-size:0.6875rem;">${t.category || 'PRODUÇÃO'}${isBlocked ? ' · Aguardando etapa anterior' : isNotApplicable ? ' · Não se aplica' : ''}</small></span>
+      <div class="production-stage ${stateClasses}">
+        <div class="production-stage-main">
+          <span class="production-stage-icon" aria-hidden="true">${icon}</span>
+          <div class="production-stage-copy">
+            <span class="production-stage-name">${String(t.order).padStart(2, '0')} · ${t.name}</span>
+            <small class="production-stage-meta">${stateMeta}</small>
             ${notesHtml}
           </div>
         </div>
-        <div>
-          <div style="display:flex; gap:var(--sp-2); align-items:center;">${applicabilityButton}${actionButton}</div>
-        </div>
+        <div class="production-stage-actions">${renameButton}${applicabilityButton}${actionButton}</div>
       </div>
     `;
   }).join('');
 
   container.innerHTML = `
-    <div class="card" style="padding: var(--sp-4);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--sp-4);">
-        <div>
-          <h3 class="t-h3" style="margin: 0; font-family: var(--font-display);">Acompanhamento da Produção</h3>
-          <p class="t-small" style="color: var(--ink-muted); margin: 2px 0 0 0;">Etapas operacionais integradas com o Chão de Fábrica</p>
+    <div class="card production-card">
+      <div class="production-header">
+        <div class="production-heading">
+          <h3 class="t-h3">Acompanhamento da Produção</h3>
+          <p class="t-small">Etapas operacionais integradas com o Chão de Fábrica</p>
         </div>
-        <span style="font-size:0.75rem; font-weight:600; text-transform:uppercase; letter-spacing:0.07em; color:${statusColor}; padding:3px 8px; border-radius:10px; background:color-mix(in oklch,${statusColor} 12%,var(--surface)); flex-shrink:0">${statusLabel}</span>
+        <span class="production-status" style="color:${statusColor}; background:color-mix(in oklch,${statusColor} 12%,var(--surface));">${statusLabel}</span>
       </div>
 
-      <div style="margin-bottom: var(--sp-5);">
-        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: var(--sp-2);">
-          <span style="color: var(--ink-muted);">Progresso da fabricação</span>
+      <div class="production-summary">
+        <div class="production-summary-line">
+          <span>Progresso da fabricação</span>
           <strong>${pct}% (${concluidoCount} de ${total} aplicáveis concluídas)</strong>
         </div>
         <div class="progresso-bar" style="height: 10px;">
@@ -6050,7 +6231,7 @@ function renderAcompanhamentoProducao(projeto, container) {
         </div>
       </div>
 
-      <div class="stack stack-2">
+      <div class="production-list">
         ${listHtml}
       </div>
     </div>
@@ -6070,9 +6251,8 @@ async function alterarStatusTarefa(projetoId, taskId, novoStatus) {
 
   const t = p.tasks.find(x => x.id === taskId);
   if (!t) return;
-  const activeTask = p.tasks.find(x => x.is_applicable !== false && x.status !== 'completed');
-  if (t.id !== activeTask?.id || t.status === 'blocked' || t.is_applicable === false) {
-    showToast('Essa etapa ainda está bloqueada pelo fluxo operacional.');
+  if (t.status === 'completed' || t.status === 'blocked' || t.is_applicable === false) {
+    showToast('Essa etapa não está disponível para alteração.');
     return;
   }
 
@@ -6164,8 +6344,38 @@ async function alternarAplicabilidadeTarefa(projetoId, taskId) {
   }
 }
 
-// Permite ao Chão de Fábrica reposicionar um projeto no fluxo compartilhado.
-// As etapas anteriores ficam concluídas e as posteriores permanecem pendentes.
+async function editarNomeTarefa(projetoId, taskId) {
+  if (!supabase || tarefaMutationBusy) return;
+  const projeto = projetos.find(item => item.id === projetoId);
+  const tarefa = projeto?.tasks.find(item => item.id === taskId);
+  if (!projeto || !tarefa || tarefa.status === 'completed') return;
+
+  const novoNome = prompt('Nome da etapa:', tarefa.name)?.trim();
+  if (!novoNome || novoNome === tarefa.name) return;
+
+  tarefaMutationBusy = true;
+  try {
+    const { error } = await supabase
+      .from('production_tasks')
+      .update({ name: novoNome, updated_at: new Date().toISOString() })
+      .eq('id', tarefa.id);
+    if (error) throw error;
+    tarefa.name = novoNome;
+    renderAcompanhamentoProducao(projeto, document.getElementById('producao-acompanhamento'));
+    renderProjetosLista();
+    renderDashboard();
+    renderChao();
+    showToast('Nome da etapa atualizado.');
+  } catch (err) {
+    console.error('Erro ao editar nome da etapa:', err);
+    showToast('Não foi possível atualizar o nome da etapa.');
+    await carregarProjetosDoBanco();
+  } finally {
+    tarefaMutationBusy = false;
+  }
+}
+
+// Permite iniciar qualquer etapa aplicável diretamente pelo Chão de Fábrica.
 async function moverProjetoParaEtapa(projetoId, targetTaskId) {
   if (!supabase || !targetTaskId) return;
   if (tarefaMutationBusy) return;
@@ -6174,32 +6384,18 @@ async function moverProjetoParaEtapa(projetoId, targetTaskId) {
 
   const target = p.tasks.find(t => t.id === targetTaskId);
   if (!target || target.is_applicable === false || target.status === 'completed') return;
-  const current = p.tasks.find(t => t.is_applicable !== false && t.status !== 'completed');
-  if (current && target.order > current.order) {
-    showToast(`Conclua "${current.name}" antes de avançar para "${target.name}".`);
-    renderChao();
-    return;
-  }
   tarefaMutationBusy = true;
-  if (!confirm(`Mover ${p.codigo} para "${target.name}"? As etapas anteriores serão registradas como concluídas.`)) {
+  if (!confirm(`Iniciar a etapa "${target.name}" para o projeto ${p.codigo}?`)) {
     renderChao();
     tarefaMutationBusy = false;
     return;
   }
 
   const now = new Date().toISOString();
-  const updates = p.tasks.map(task => {
-    if (task.is_applicable === false) {
-      return { task, values: { status: 'not_applicable', updated_at: now } };
-    }
-    if (task.order < target.order) {
-      return { task, values: { status: 'completed', completed_at: task.completed_at || now, updated_at: now } };
-    }
-    if (task.id === target.id) {
-      return { task, values: { status: 'in_progress', started_at: task.started_at || now, completed_at: null, updated_at: now } };
-    }
-    return { task, values: { status: 'blocked', started_at: null, completed_at: null, updated_at: now } };
-  });
+  const updates = [{
+    task: target,
+    values: { status: 'in_progress', started_at: target.started_at || now, completed_at: null, updated_at: now }
+  }];
 
   updates.forEach(({ task, values }) => Object.assign(task, values));
   atualizarProgressoEStatusLocal(p);
@@ -6405,12 +6601,7 @@ function renderChao() {
   const container = document.getElementById('chao-grid');
   if (!container) return;
 
-  container.style.display = 'flex';
-  container.style.flexDirection = 'row';
-  container.style.gap = 'var(--sp-4)';
-  container.style.overflowX = 'auto';
-  container.style.paddingBottom = 'var(--sp-4)';
-  container.style.alignItems = 'flex-start';
+  container.classList.add('chao-board');
 
   const etapasNomes = [...new Map(
     projetos.flatMap(projeto => projeto.tasks || [])
@@ -6425,56 +6616,48 @@ function renderChao() {
   }
 
   let columnsHtml = etapasNomes.map((etapaNome, index) => {
-    const projetosNaEtapa = projetos.filter(p => {
-      if (p.status === 'concluido') return false;
-      const activeTask = p.tasks.find(t => t.is_applicable !== false && t.status !== 'completed');
-      return activeTask && activeTask.name === etapaNome;
-    });
+    const tarefasNaEtapa = projetos.flatMap(p => (p.tasks || [])
+      .filter(task => task.name === etapaNome && task.is_applicable !== false && task.status !== 'completed' && task.status !== 'not_applicable')
+      .map(task => ({ p, task })));
 
-    const cardsHtml = projetosNaEtapa.map(p => {
-      const activeTask = p.tasks.find(t => t.name === etapaNome && t.is_applicable !== false);
+    const cardsHtml = tarefasNaEtapa.map(({ p, task: activeTask }) => {
       const isPending = activeTask.status === 'pending';
       const isInProgress = activeTask.status === 'in_progress';
 
       let actionButton = '';
       if (isPending) {
-        actionButton = `<button class="btn btn-secondary" style="width:100%; font-size:0.875rem; padding: var(--sp-2) 0; margin-top: var(--sp-3);" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${activeTask.id}', 'in_progress')">Iniciar</button>`;
+        actionButton = `<button class="btn btn-secondary chao-action" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${activeTask.id}', 'in_progress')">Iniciar</button>`;
       } else if (isInProgress) {
-        actionButton = `<button class="btn btn-primary" style="width:100%; font-size:0.875rem; padding: var(--sp-2) 0; margin-top: var(--sp-3);" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${activeTask.id}', 'completed')">Concluir</button>`;
+        actionButton = `<button class="btn btn-primary chao-action" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${activeTask.id}', 'completed')">Concluir</button>`;
       }
 
-      const moverOptions = p.tasks.map(task =>
+      const moverOptions = p.tasks.filter(task => task.is_applicable !== false && task.status !== 'completed').map(task =>
         `<option value="${task.id}" ${task.id === activeTask.id ? 'selected' : ''}>${task.order}. ${task.name}</option>`
       ).join('');
 
       return `
-        <div class="chao-etapa" onclick="abrirDetalheTarefa('${p.id}', '${activeTask.id}')" style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--sp-3); cursor: pointer; min-width: 0; flex-shrink: 0; width: 100%;">
-          <div class="projeto-nome" style="font-size: 0.75rem; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--sp-1);">${p.cliente}</div>
-          <div class="etapa-titulo" style="font-family: var(--font-display); font-size: 1.125rem; font-weight: 500; letter-spacing: -0.01em; margin-bottom: var(--sp-2);">${activeTask.name}</div>
-          <div style="font-size:0.75rem;color:var(--ink-muted);margin-bottom:var(--sp-2);">${p.codigo} · ${p.progresso}% do projeto</div>
-          <div style="font-size: 0.8125rem; color: ${isInProgress ? 'var(--status-em-andamento)' : 'var(--ink-subtle)'}; display: flex; align-items: center; gap: 6px; font-weight: 500;">
-            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background: ${isInProgress ? 'var(--status-em-andamento)' : 'var(--ink-subtle)'};"></span>
-            ${isInProgress ? 'Em andamento' : 'Pendente'}
-          </div>
+        <div class="chao-etapa" onclick="abrirDetalheTarefa('${p.id}', '${activeTask.id}')">
+          <div class="projeto-nome">${p.cliente}</div>
+          <div class="etapa-titulo">${activeTask.name}</div>
+          <div class="chao-task-progress">${p.codigo} · ${p.progresso}% do projeto</div>
+          <div class="chao-card-status ${isInProgress ? 'is-in-progress' : ''}">${isInProgress ? 'Em andamento' : 'Pendente'}</div>
           ${actionButton}
-          <select class="select" style="font-size:0.75rem; width:100%; margin-top:var(--sp-2);" aria-label="Mover projeto para outra etapa" onclick="event.stopPropagation()" onchange="event.stopPropagation(); moverProjetoParaEtapa('${p.id}', this.value)">
+          <select class="select chao-select" aria-label="Mover projeto para outra etapa" onclick="event.stopPropagation()" onchange="event.stopPropagation(); moverProjetoParaEtapa('${p.id}', this.value)">
             ${moverOptions}
           </select>
         </div>
       `;
     }).join('');
 
-    const count = projetosNaEtapa.length;
-    const headerColor = count > 0 ? 'var(--accent)' : 'var(--ink-subtle)';
-
+    const count = tarefasNaEtapa.length;
     return `
-      <div style="flex: 0 0 280px; display: flex; flex-direction: column; gap: var(--sp-3); min-height: 480px; background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--sp-3); max-height: calc(100vh - 250px); overflow-y: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: var(--sp-2); margin-bottom: var(--sp-1);">
-          <span style="font-family: var(--font-display); font-size: 0.95rem; font-weight: 600; color: ${headerColor}; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 200px;" title="${etapaNome}">${index + 1}. ${etapaNome}</span>
-          <span style="font-size: 0.75rem; background: var(--border); padding: 1px 6px; border-radius: 10px; font-weight: 600; color: var(--ink-dark);">${count}</span>
+      <div class="chao-column">
+        <div class="chao-column-header">
+          <span class="chao-column-title ${count > 0 ? 'has-tasks' : ''}" title="${etapaNome}">${index + 1}. ${etapaNome}</span>
+          <span class="chao-count">${count}</span>
         </div>
-        <div style="display: flex; flex-direction: column; gap: var(--sp-3); overflow-y: auto;">
-          ${count === 0 ? `<div style="text-align: center; color: var(--ink-muted); font-size: 0.8125rem; padding: var(--sp-4) 0;">Vazia</div>` : cardsHtml}
+        <div class="chao-column-cards">
+          ${count === 0 ? `<div class="chao-empty">Vazia</div>` : cardsHtml}
         </div>
       </div>
     `;
