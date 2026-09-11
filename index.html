@@ -36,7 +36,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,360&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,360&family=Archivo:wght@400;450;500;600;700&display=swap" rel="stylesheet">
 
 <!-- External libraries -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -96,8 +96,10 @@
 
   --ease: cubic-bezier(0.25, 1, 0.5, 1);
 
-  --font-display: 'Fraunces', Georgia, serif;
+  /* Uma família carrega o sistema. O serif é voz de marca, não tipografia de UI. */
   --font-ui: 'Archivo', system-ui, -apple-system, sans-serif;
+  --font-display: 'Archivo', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Fraunces', Georgia, serif;
 
   /* Z-index scale */
   --z-dropdown: 100;
@@ -164,46 +166,58 @@ input, select, textarea { font: inherit; color: inherit; }
 h1, h2, h3, h4, h5 { font-weight: inherit; text-wrap: balance; }
 p { text-wrap: pretty; }
 
-/* Tipografia -------------------------------------------------------------- */
+/* Tipografia --------------------------------------------------------------
+   Escala 1.25 sobre base 15px. Uma família (Archivo) carrega todo o sistema;
+   a hierarquia vem de peso + cor, não de tamanho. O serif fica reservado aos
+   momentos de marca — saudação e boas-vindas — via .t-voice.
+   -------------------------------------------------------------------------- */
 .t-hero {
-  font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  font-weight: 340;
-  line-height: 1.05;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.75rem, 3.2vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.028em;
+  text-wrap: balance;
 }
 .t-h1 {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 360;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
 }
 .t-h2 {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 340;
-  line-height: 1.2;
-  letter-spacing: -0.015em;
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.018em;
+  text-wrap: balance;
 }
 .t-h3 {
-  font-size: 1.125rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
   line-height: 1.3;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.012em;
 }
-.t-body { font-size: 0.9375rem; line-height: 1.55; }
-.t-small { font-size: 0.8125rem; font-weight: 500; line-height: 1.45; }
+.t-body { font-size: 0.9375rem; line-height: 1.55; text-wrap: pretty; }
+.t-small { font-size: 0.8125rem; font-weight: 450; line-height: 1.45; }
 .t-micro {
   font-size: 0.6875rem;
   font-weight: 600;
   line-height: 1.3;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-subtle);
+  color: var(--ink-muted);
 }
 .t-num { font-variant-numeric: tabular-nums; }
 .t-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* Voz da marca — o único lugar onde o serif aparece */
+.t-voice {
+  font-family: var(--font-serif);
+  font-weight: 340;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+}
 
 /* Layout base ------------------------------------------------------------- */
 .app {
@@ -215,25 +229,40 @@ p { text-wrap: pretty; }
 [data-mode="chao"] .app { grid-template-columns: 1fr; }
 [data-mode="chao"] .sidebar { display: none; }
 
-/* Sidebar ----------------------------------------------------------------- */
+/* Sidebar -----------------------------------------------------------------
+   Três faixas: marca (fixa) · nav (a que cede e rola) · rodapé (fixo).
+   min-height:0 no nav é o que permite o scroll dentro de um flex container.
+   -------------------------------------------------------------------------- */
 .sidebar {
   background: var(--surface);
   border-right: 1px solid var(--border);
-  padding: var(--sp-6) var(--sp-4);
+  padding: var(--sp-4) var(--sp-3) var(--sp-3);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-6);
+  gap: var(--sp-4);
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow: hidden;
 }
 .brand-mark {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
   padding: 0 var(--sp-2);
+  flex: 0 0 auto;
 }
+.sidebar .brand-home img { max-width: 132px; max-height: 56px; }
 .brand-mark img, .brand-mark svg { flex: 0 0 auto; }
+.brand-home {
+  width: 100%;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: opacity 160ms var(--ease);
+}
+.brand-home:hover { opacity: 0.72; }
+.brand-home:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.brand-home:active { opacity: 0.6; }
 .brand-mark .wordmark {
   font-family: var(--font-display);
   font-size: 1.125rem;
@@ -254,31 +283,50 @@ p { text-wrap: pretty; }
 .nav {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: 2px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  margin: 0 calc(var(--sp-1) * -1);
+  padding: 0 var(--sp-1);
 }
+.nav::-webkit-scrollbar { width: 6px; }
+.nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.nav::-webkit-scrollbar-track { background: transparent; }
+
 .nav-label {
   padding: 0 var(--sp-3);
-  margin-bottom: var(--sp-2);
+  margin-bottom: var(--sp-1);
+  font-size: 0.625rem;
+  letter-spacing: 0.07em;
 }
+.nav-group + .nav-group { margin-top: var(--sp-4); }
+
 .nav-item {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  padding: var(--sp-3);
+  padding: 9px var(--sp-3);
   border-radius: var(--radius-md);
   color: var(--ink-muted);
   text-align: left;
   width: 100%;
+  font-size: 0.875rem;
+  line-height: 1.2;
   transition: background 120ms var(--ease), color 120ms var(--ease);
 }
 .nav-item:hover { background: var(--surface-2); color: var(--ink); }
+.nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .nav-item[aria-current="page"] {
   background: var(--surface-2);
   color: var(--ink);
-  font-weight: 500;
+  font-weight: 600;
 }
 .nav-item .dot {
-  width: 6px; height: 6px;
+  width: 5px; height: 5px;
   border-radius: 50%;
   background: var(--ink-subtle);
   flex: 0 0 auto;
@@ -289,47 +337,64 @@ p { text-wrap: pretty; }
   margin-left: auto;
   font-size: 0.625rem;
   font-weight: 600;
-  padding: 2px 6px;
+  padding: 1px 6px;
   border-radius: 10px;
   background: var(--status-atrasado);
   color: var(--brand-ink);
+  font-variant-numeric: tabular-nums;
 }
 
+/* Rodapé — modo e tema numa linha só, para não roubar altura do nav */
 .sidebar-footer {
-  margin-top: auto;
-  padding-top: var(--sp-4);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-2);
+  padding-top: var(--sp-3);
   border-top: 1px solid var(--border);
 }
 .mode-switch {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
-  padding: var(--sp-3);
+  justify-content: space-between;
+  gap: var(--sp-2);
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px var(--sp-3);
   border-radius: var(--radius-md);
   background: var(--surface-2);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--ink-muted);
   cursor: pointer;
   transition: background 120ms var(--ease);
 }
 .mode-switch:hover { background: var(--surface-warm); color: var(--ink); }
-.mode-switch strong { color: var(--ink); font-weight: 500; }
+.mode-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mode-switch strong {
+  color: var(--ink);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .theme-switch {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-3);
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 38px;
+  padding: 0;
   border-radius: var(--radius-md);
   background: var(--surface-2);
-  font-size: 0.8125rem;
   color: var(--ink-muted);
   cursor: pointer;
   transition: background 120ms var(--ease), color 120ms var(--ease);
-  margin-top: var(--sp-2);
 }
 .theme-switch:hover { background: var(--surface-warm); color: var(--ink); }
-.theme-switch svg { width: 18px; height: 18px; }
+.theme-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.theme-switch svg { width: 17px; height: 17px; }
+.theme-switch #theme-label { display: none; }
 
 /* Main -------------------------------------------------------------------- */
 .main {
@@ -472,7 +537,7 @@ p { text-wrap: pretty; }
 .termometro .hero-number {
   font-family: var(--font-display);
   font-size: clamp(2.5rem, 4vw, 3.5rem);
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1;
   letter-spacing: -0.025em;
   color: var(--ink);
@@ -503,7 +568,7 @@ p { text-wrap: pretty; }
 .kpi .value {
   font-family: var(--font-display);
   font-size: 1.75rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -620,7 +685,9 @@ p { text-wrap: pretty; }
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--sp-3);
+  min-width: 0;
 }
+.projeto-card .card-top > div:first-child { min-width: 0; flex: 1; }
 .projeto-card .card-codigo {
   font-size: 0.6875rem;
   font-weight: 600;
@@ -631,15 +698,25 @@ p { text-wrap: pretty; }
 .projeto-card .card-cliente {
   font-family: var(--font-display);
   font-size: 1.25rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--ink);
   margin-top: 2px;
+  line-height: 1.2;
+  word-break: normal;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .projeto-card .card-endereco {
   font-size: 0.8125rem;
   color: var(--ink-muted);
   margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .projeto-card .card-financeiro {
   display: flex;
@@ -671,7 +748,7 @@ p { text-wrap: pretty; }
 .projeto-card .card-progresso-label .pct {
   font-family: var(--font-display);
   font-size: 1.375rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.015em;
 }
 .projeto-card .card-prazo {
@@ -752,7 +829,7 @@ p { text-wrap: pretty; }
   padding-bottom: var(--sp-3);
   border-bottom: 1px solid var(--border);
 }
-.ambiente-header h3 { font-family: var(--font-display); font-size: 1.375rem; font-weight: 400; letter-spacing: -0.015em; }
+.ambiente-header h3 { font-family: var(--font-display); font-size: 1.375rem; font-weight: 600; letter-spacing: -0.015em; }
 .ambiente-header .percentual { font-size: 0.8125rem; color: var(--ink-subtle); font-variant-numeric: tabular-nums; }
 
 /* Motor de liberação — cadeia de etapas com o mark angular como conector */
@@ -992,43 +1069,53 @@ p { text-wrap: pretty; }
 }
 @media (max-width: 900px) { .custos-header { grid-template-columns: repeat(2, 1fr); } }
 
+.custos-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.custos-actions .select { min-width: 200px; max-width: 280px; }
+
 .camada-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: var(--sp-5);
-  position: relative;
-  overflow: hidden;
+  padding: var(--sp-4);
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease), background 160ms var(--ease);
 }
-.camada-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 3px;
-  height: 100%;
-  background: var(--accent);
+.camada-card:hover { border-color: var(--border-strong); }
+.camada-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.camada-card.is-active {
+  border-color: var(--ink);
+  background: var(--surface-2);
 }
-.camada-card[data-camada="materiais"]::before { background: var(--accent); }
-.camada-card[data-camada="mao-obra"]::before { background: var(--brand); }
-.camada-card[data-camada="indiretos"]::before { background: var(--surface-warm); }
-.camada-card[data-camada="retrabalho"]::before { background: var(--status-atrasado); }
-
 .camada-card .label {
   font-size: 0.6875rem;
-  color: var(--ink-subtle);
+  font-weight: 600;
+  color: var(--ink-muted);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   margin-bottom: var(--sp-3);
 }
+.camada-card.is-active .label { color: var(--ink); }
 .camada-card .valor {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 400;
+  font-size: 1.5rem;
+  font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  color: var(--ink);
 }
-.camada-card .pct { font-size: 0.75rem; color: var(--ink-muted); margin-top: var(--sp-2); }
+.camada-card .pct {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-top: var(--sp-2);
+  font-variant-numeric: tabular-nums;
+}
 
 .margem-hero {
   background: var(--deep);
@@ -1052,7 +1139,7 @@ p { text-wrap: pretty; }
 .margem-hero .item .num {
   font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.025em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -1071,9 +1158,9 @@ p { text-wrap: pretty; }
 }
 .custo-tabela-header, .custo-tabela-row {
   display: grid;
-  grid-template-columns: 2fr 1.5fr 1fr auto;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1fr) auto 64px;
   gap: var(--sp-4);
-  padding: var(--sp-4) var(--sp-5);
+  padding: var(--sp-3) var(--sp-5);
   align-items: center;
 }
 .custo-tabela-header {
@@ -1099,8 +1186,139 @@ p { text-wrap: pretty; }
 }
 .custo-tabela-row .valor {
   font-variant-numeric: tabular-nums;
-  font-weight: 500;
+  font-weight: 600;
   text-align: right;
+  white-space: nowrap;
+}
+.custo-col-item { min-width: 0; }
+.custo-tabela-row .item-nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.custo-na { color: var(--ink-subtle); }
+
+/* Ações por linha — visíveis no hover/foco, sempre presentes no toque */
+.custo-row-actions {
+  display: flex;
+  gap: 2px;
+  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity 140ms var(--ease);
+}
+.custo-tabela-row:hover .custo-row-actions,
+.custo-row-actions:focus-within { opacity: 1; }
+@media (hover: none) { .custo-row-actions { opacity: 1; } }
+
+.custo-icon-btn {
+  width: 28px; height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--ink-subtle);
+  font-size: 0.875rem;
+  line-height: 1;
+  transition: background 140ms var(--ease), color 140ms var(--ease);
+}
+.custo-icon-btn:hover { background: var(--surface-warm); color: var(--ink); }
+.custo-icon-btn.is-del:hover { color: var(--status-atrasado); }
+.custo-icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.custo-tabela-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: var(--sp-3) var(--sp-5);
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+.custo-tabela-footer strong {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.custo-vazio {
+  padding: var(--sp-7) var(--sp-5);
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+}
+.custo-vazio p { margin-bottom: var(--sp-4); }
+.custo-vazio strong { color: var(--ink); font-weight: 600; }
+
+.margem-hero .num.is-negativo { color: var(--status-atrasado); }
+
+/* Consolidado por projeto (visão de empresa) ------------------------------ */
+.empresa-bloco { margin-bottom: var(--sp-6); }
+.empresa-bloco-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-3);
+  flex-wrap: wrap;
+}
+.empresa-bloco-head .t-small { color: var(--ink-muted); }
+
+.empresa-tabela {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.empresa-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) repeat(4, minmax(88px, 1fr));
+  gap: var(--sp-3);
+  align-items: center;
+  width: 100%;
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--ink);
+  transition: background 120ms var(--ease);
+}
+.empresa-row:last-child { border-bottom: none; }
+button.empresa-row { cursor: pointer; }
+button.empresa-row:hover { background: var(--surface-2); }
+button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.empresa-row--head {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  background: var(--surface-2);
+}
+.ta-r { text-align: right; }
+.empresa-row .t-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.empresa-row .is-negativo { color: var(--status-atrasado); font-weight: 600; }
+
+.empresa-proj { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.empresa-cod {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ink-subtle);
+  letter-spacing: 0.04em;
+}
+.empresa-cliente {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ambiente-tag.is-projeto {
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--border);
+  font-weight: 600;
 }
 
 /* Tabs de camada ---------------------------------------------------------- */
@@ -1123,8 +1341,309 @@ p { text-wrap: pretty; }
 .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
 
 /* ============================================================================
-   VIEW: CHÃO DE FÁBRICA (dark theme)
+   VIEW: MEU DIA (dark theme)
    ============================================================================ */
+.md-container {
+  padding: var(--sp-6) var(--sp-7);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+.md-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sp-5);
+  margin-bottom: var(--sp-5);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--border);
+}
+.md-header-left { min-width: 0; }
+.md-header-left .t-micro { margin-bottom: var(--sp-2); }
+.md-titulo {
+  font-family: var(--font-serif);
+  font-size: 2.25rem;
+  font-weight: 340;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  color: var(--ink);
+  margin-bottom: var(--sp-1);
+  text-wrap: balance;
+}
+.md-date {
+  font-size: 0.9375rem;
+  color: var(--ink-muted);
+  text-transform: capitalize;
+}
+.md-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-shrink: 0;
+}
+.md-clock {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+.md-cta { white-space: nowrap; padding: var(--sp-3) var(--sp-5); font-weight: 600; }
+
+/* Filtros */
+.md-filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+}
+.md-segment {
+  display: inline-flex;
+  padding: 4px;
+  gap: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.md-seg-btn {
+  padding: 6px 14px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  border-radius: calc(var(--radius-md) - 4px);
+  transition: background 120ms var(--ease), color 120ms var(--ease);
+}
+.md-seg-btn:hover { color: var(--ink); }
+.md-seg-btn.is-active {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+.md-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.md-toggle input { accent-color: var(--brand); }
+
+/* Layout de 2 colunas */
+.md-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  gap: var(--sp-5);
+  align-items: start;
+}
+.md-side { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
+.md-main { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-3); }
+
+.md-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5);
+}
+.md-block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+.md-block-head--main { margin-bottom: var(--sp-2); padding: 0 var(--sp-1); }
+.md-block-title {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.md-pill {
+  padding: 2px 10px;
+  min-width: 26px;
+  text-align: center;
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.md-hint { font-size: 0.8125rem; color: var(--ink-subtle); }
+.md-link-btn {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--accent);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 120ms var(--ease);
+}
+.md-link-btn:hover { background: var(--surface-2); }
+
+/* Foco cards */
+.md-foco-list { display: flex; flex-direction: column; gap: var(--sp-3); }
+.md-foco-empty, .md-comp-empty {
+  padding: var(--sp-4) var(--sp-3);
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--ink-subtle);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+}
+.md-foco-card {
+  padding: var(--sp-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--status-em-andamento);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 120ms var(--ease), border-color 120ms var(--ease);
+}
+.md-foco-card:hover { background: var(--surface-warm); border-color: var(--brand); }
+.md-foco-card .md-fc-cliente {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--sp-1);
+}
+.md-foco-card .md-fc-titulo {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+.md-foco-card .md-fc-meta {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-bottom: var(--sp-3);
+}
+.md-foco-card .md-fc-actions { display: flex; gap: var(--sp-2); }
+.md-foco-card .md-fc-actions .btn { flex: 1; font-size: 0.8125rem; padding: 8px 10px; }
+
+/* Compromissos */
+.md-compromissos { display: flex; flex-direction: column; gap: var(--sp-2); }
+.md-comp-item {
+  display: grid;
+  grid-template-columns: 62px 1fr auto;
+  gap: var(--sp-3);
+  align-items: start;
+  padding: var(--sp-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color 120ms var(--ease);
+}
+.md-comp-item:hover { border-color: var(--brand); }
+.md-comp-item.is-done { opacity: 0.55; }
+.md-comp-item.is-done .md-comp-titulo { text-decoration: line-through; }
+.md-comp-item.is-late { border-left: 3px solid var(--status-atrasado); }
+.md-comp-hora {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+.md-comp-hora .md-comp-diahint {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 0.625rem;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+  font-weight: 600;
+}
+.md-comp-body { min-width: 0; }
+.md-comp-titulo {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.3;
+  margin-bottom: 2px;
+}
+.md-comp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.md-comp-tag {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  border: 1px solid var(--border);
+}
+.md-comp-tag.is-projeto { color: var(--accent); border-color: var(--accent); background: transparent; }
+.md-comp-tag.is-interno { color: var(--brand); border-color: var(--brand); background: transparent; }
+.md-comp-tag.is-alta { color: var(--status-atrasado); border-color: var(--status-atrasado); }
+.md-comp-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.md-comp-icon-btn {
+  width: 30px; height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--ink-subtle);
+  font-size: 0.875rem;
+  transition: background 120ms var(--ease), color 120ms var(--ease);
+}
+.md-comp-icon-btn:hover { background: var(--surface); color: var(--ink); }
+.md-comp-icon-btn.is-check:hover { color: var(--status-liberado); }
+.md-comp-icon-btn.is-del:hover { color: var(--status-atrasado); }
+
+/* Modal compromisso local */
+#modal-compromisso-local .modal { max-width: 520px; }
+.md-tipo-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+  padding: 4px;
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+}
+.md-tipo-tab {
+  padding: 10px 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  text-align: center;
+  border-radius: calc(var(--radius-md) - 4px);
+  transition: background 120ms var(--ease), color 120ms var(--ease);
+}
+.md-tipo-tab.is-active {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+/* Responsivo */
+@media (max-width: 960px) {
+  .md-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .md-container { padding: var(--sp-5) var(--sp-4); }
+  .md-header { flex-direction: column; }
+  .md-titulo { font-size: 1.875rem; }
+  .md-clock { font-size: 2rem; }
+  .md-cta { width: 100%; }
+  .md-header-right { width: 100%; justify-content: space-between; }
+}
+
 .chao-container {
   padding: var(--sp-7);
   max-width: 1400px;
@@ -1141,7 +1660,7 @@ p { text-wrap: pretty; }
 .chao-header .titulo {
   font-family: var(--font-display);
   font-size: 2.5rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 .chao-header .relogio {
@@ -1160,30 +1679,40 @@ p { text-wrap: pretty; }
 .chao-etapa {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--sp-5);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
   cursor: pointer;
-  transition: transform 120ms var(--ease), border-color 120ms var(--ease);
+  transition: border-color 160ms var(--ease), background 160ms var(--ease);
 }
 .chao-etapa:hover, .chao-etapa:focus-visible {
   border-color: var(--brand);
-  transform: translateY(-2px);
+  background: var(--surface-2);
   outline: none;
 }
 .chao-etapa .projeto-nome {
   font-size: 0.75rem;
   color: var(--ink-muted);
-  margin-bottom: var(--sp-2);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  margin-bottom: var(--sp-1);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .chao-etapa .etapa-titulo {
-  font-family: var(--font-display);
-  font-size: 1.625rem;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  margin-bottom: var(--sp-3);
-  line-height: 1.15;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  margin-bottom: var(--sp-2);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-family: var(--font-ui);
 }
 .chao-etapa .ambiente { font-size: 0.9375rem; color: var(--ink-muted); margin-bottom: var(--sp-4); }
 .chao-etapa .tempo {
@@ -1313,23 +1842,24 @@ p { text-wrap: pretty; }
 .chao-board {
   display: flex;
   align-items: flex-start;
-  gap: var(--sp-4);
+  gap: var(--sp-3);
   overflow-x: auto;
-  padding: 0 0 var(--sp-4);
+  padding: var(--sp-1) 0 var(--sp-4);
   scroll-snap-type: x proximity;
+  scrollbar-color: var(--border-strong) transparent;
 }
 .chao-column {
-  flex: 0 0 280px;
+  flex: 0 0 300px;
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
-  min-height: 480px;
-  max-height: calc(100vh - 250px);
+  min-height: 320px;
+  max-height: calc(100vh - 240px);
   padding: var(--sp-3);
   overflow-y: auto;
-  background: var(--surface-subtle);
+  background: color-mix(in oklch, var(--surface) 60%, transparent);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   scroll-snap-align: start;
 }
 .chao-column-header {
@@ -1337,52 +1867,89 @@ p { text-wrap: pretty; }
   gap: var(--sp-2);
   padding-bottom: var(--sp-2);
   border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: inherit;
+  z-index: 1;
 }
 .chao-column-title {
   min-width: 0;
-  overflow: hidden;
-  color: var(--ink-subtle);
-  font-family: var(--font-display);
-  font-size: 0.95rem;
+  flex: 1;
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
   font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
-.chao-column-title.has-tasks { color: var(--accent); }
+.chao-column-title.has-tasks { color: var(--ink); }
 .chao-count {
   flex: 0 0 auto;
-  padding: 1px 6px;
+  padding: 2px 8px;
+  min-width: 24px;
+  text-align: center;
   border-radius: 10px;
-  background: var(--border);
-  color: var(--ink-dark);
-  font-size: 0.75rem;
-  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 0.6875rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.chao-column-cards { display: grid; gap: var(--sp-3); }
+.chao-column-title.has-tasks + .chao-count { background: var(--brand); color: var(--brand-ink); }
+.chao-column-cards { display: grid; gap: var(--sp-2); }
 .chao-empty {
-  padding: var(--sp-4) 0;
-  color: var(--ink-muted);
-  font-size: 0.8125rem;
+  padding: var(--sp-3) 0;
+  color: var(--ink-subtle);
+  font-size: 0.75rem;
   text-align: center;
+  font-style: italic;
 }
 .chao-etapa { width: 100%; min-width: 0; padding: var(--sp-3); }
 .chao-task-progress {
   margin-bottom: var(--sp-2);
-  color: var(--ink-muted);
-  font-size: 0.75rem;
+  color: var(--ink-subtle);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.chao-card-status { gap: 6px; color: var(--ink-subtle); font-size: 0.8125rem; font-weight: 500; }
+.chao-card-status { gap: 6px; color: var(--ink-subtle); font-size: 0.75rem; font-weight: 500; }
 .chao-card-status.is-in-progress { color: var(--status-em-andamento); }
 .chao-card-status::before {
   content: '';
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: currentColor;
+  flex-shrink: 0;
 }
-.chao-etapa .chao-action { width: 100%; margin-top: var(--sp-3); padding: var(--sp-2) 0; font-size: 0.875rem; justify-content: center; }
-.chao-etapa .chao-select { width: 100%; margin-top: var(--sp-2); font-size: 0.75rem; }
+.chao-etapa .chao-action {
+  width: 100%;
+  margin-top: var(--sp-3);
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+}
+.chao-etapa .chao-select {
+  width: 100%;
+  margin-top: var(--sp-2);
+  padding: 6px 8px;
+  font-size: 0.6875rem;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.chao-etapa .chao-select:hover { border-color: var(--brand); color: var(--ink); }
 
 @media (max-width: 768px) {
   .production-header { align-items: flex-start; flex-direction: column; }
@@ -1390,8 +1957,19 @@ p { text-wrap: pretty; }
   .production-summary-line { align-items: flex-start; flex-direction: column; gap: var(--sp-1); }
   .production-stage { align-items: flex-start; flex-direction: column; }
   .production-stage-actions { width: 100%; justify-content: flex-start; }
-  .chao-board { margin-right: calc(var(--sp-4) * -1); padding-right: var(--sp-4); }
-  .chao-column { flex-basis: min(86vw, 320px); min-height: 0; max-height: none; }
+  .chao-board {
+    margin-left: calc(var(--sp-4) * -1);
+    margin-right: calc(var(--sp-4) * -1);
+    padding-left: var(--sp-4);
+    padding-right: var(--sp-4);
+    scroll-snap-type: x mandatory;
+  }
+  .chao-column {
+    flex-basis: min(84vw, 300px);
+    min-height: 0;
+    max-height: none;
+  }
+  .chao-etapa .etapa-titulo { font-size: 0.9375rem; }
 }
 
 /* Utilitários ------------------------------------------------------------- */
@@ -1528,7 +2106,7 @@ p { text-wrap: pretty; }
 .wizard-title {
   font-family: var(--font-display);
   font-size: 1.75rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.02em;
   margin-bottom: var(--sp-2);
 }
@@ -1669,7 +2247,7 @@ p { text-wrap: pretty; }
 .modal-header h3 {
   font-family: var(--font-display);
   font-size: 1.375rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.015em;
   margin-bottom: var(--sp-2);
 }
@@ -1868,7 +2446,7 @@ p { text-wrap: pretty; }
 }
 
 .welcome-greeting {
-  font-family: var(--font-display);
+  font-family: var(--font-serif);
   font-size: 2.5rem;
   font-weight: 340;
   letter-spacing: -0.02em;
@@ -1954,7 +2532,7 @@ p { text-wrap: pretty; }
 .auth-title {
   font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: -0.02em;
   margin-bottom: var(--sp-2);
 }
@@ -2303,6 +2881,33 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   .tabs { overflow-x: auto; white-space: nowrap; }
   .tab { flex: 0 0 auto; }
 
+  .custos-actions { width: 100%; }
+  .custos-actions .select { flex: 1 1 100%; max-width: none; }
+  .custos-actions .btn { flex: 1; }
+
+  /* Consolidado vira cartão por projeto: rótulo + valor em pares */
+  .empresa-row--head { display: none; }
+  .empresa-row {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-2) var(--sp-3);
+    padding: var(--sp-4);
+  }
+  .empresa-proj { grid-column: 1 / -1; margin-bottom: var(--sp-1); }
+  .empresa-row > div:not(.empresa-proj) { text-align: left; }
+  .empresa-row > div:not(.empresa-proj)::before {
+    display: block;
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-subtle);
+    margin-bottom: 1px;
+  }
+  .empresa-row > div:nth-child(2)::before { content: 'Receita'; }
+  .empresa-row > div:nth-child(3)::before { content: 'Custo'; }
+  .empresa-row > div:nth-child(4)::before { content: 'Resultado'; }
+  .empresa-row > div:nth-child(5)::before { content: 'Margem'; }
+
   .custo-tabela-header { display: none; }
   .custo-tabela-row {
     grid-template-columns: 1fr auto;
@@ -2313,7 +2918,8 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   .custo-tabela-row > div:nth-child(1) { grid-column: 1 / -1; }
   .custo-tabela-row > div:nth-child(2) { grid-column: 1; }
   .custo-tabela-row > div:nth-child(3) { grid-column: 1; font-size: 0.75rem; }
-  .custo-tabela-row .valor { grid-column: 2; grid-row: 2 / span 2; align-self: center; font-size: 1rem; }
+  .custo-tabela-row .valor { grid-column: 2; grid-row: 2; align-self: center; font-size: 1rem; }
+  .custo-row-actions { grid-column: 2; grid-row: 3; align-self: center; }
 
   /* Chão de fábrica */
   .chao-container { padding: var(--sp-5) var(--sp-4); }
@@ -2325,8 +2931,6 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   .chao-header .titulo { font-size: 1.75rem; }
   .chao-header .relogio { font-size: 2.25rem; align-self: flex-end; }
   .chao-grid { grid-template-columns: 1fr; gap: var(--sp-4); }
-  .chao-etapa { padding: var(--sp-5); }
-  .chao-etapa .etapa-titulo { font-size: 1.375rem; }
 
   /* Botão back sticky no mobile */
   .back-btn.visible { margin-bottom: var(--sp-4); }
@@ -2835,9 +3439,9 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 
   <!-- Mobile top bar -->
   <header class="topbar">
-    <div class="brand-mark">
-      <img src="SIMBOLO SISTEMA .svg" width="82" height="82" alt="Alpha Móveis" aria-hidden="true" style="flex: 0 0 auto; object-fit: contain;">
-    </div>
+    <button class="brand-mark brand-home" onclick="irParaInicio()" aria-label="Ir para o painel inicial">
+      <img src="SIMBOLO SISTEMA .svg" width="82" height="82" alt="Alpha Móveis" style="flex: 0 0 auto; object-fit: contain;">
+    </button>
     <button class="hamburger" onclick="toggleDrawer()" aria-label="Abrir menu">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <line x1="4" y1="7" x2="20" y2="7"/>
@@ -2852,42 +3456,48 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 
   <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="brand-mark">
+    <button class="brand-mark brand-home" onclick="irParaInicio()" aria-label="Ir para o painel inicial">
       <!-- Símbolo isolado da marca — arquivo SVG externo -->
       <img src="SIMBOLO SISTEMA .svg" alt="Alpha Móveis" style="width: 100%; height: auto; display: block; object-fit: contain; max-width: 180px; margin: 0 auto;">
-    </div>
+    </button>
 
     <nav class="nav">
-      <div class="nav-label t-micro">Operação</div>
-      <button class="nav-item" data-view="painel" aria-current="page">
-        <span class="dot"></span> Painel
-      </button>
-      <button class="nav-item" data-view="projetos">
-        <span class="dot"></span> Projetos
-        <span class="badge" id="projetos-badge" style="display: none;"></span>
-      </button>
-      <button class="nav-item" data-view="novo-projeto">
-        <span class="dot"></span> Novo projeto
-      </button>
-      <button class="nav-item" data-view="agenda">
-        <span class="dot"></span> Agenda
-      </button>
-      <button class="nav-item" data-view="custos">
-        <span class="dot"></span> Custos
-      </button>
+      <div class="nav-group">
+        <div class="nav-label t-micro">Operação</div>
+        <button class="nav-item" data-view="painel" aria-current="page">
+          <span class="dot"></span> Painel
+        </button>
+        <button class="nav-item" data-view="projetos">
+          <span class="dot"></span> Projetos
+          <span class="badge" id="projetos-badge" style="display: none;"></span>
+        </button>
+        <button class="nav-item" data-view="novo-projeto">
+          <span class="dot"></span> Novo projeto
+        </button>
+        <button class="nav-item" data-view="agenda">
+          <span class="dot"></span> Agenda
+        </button>
+        <button class="nav-item" data-view="custos">
+          <span class="dot"></span> Financeiro
+        </button>
+      </div>
 
-      <div class="nav-label t-micro" style="margin-top: var(--sp-5);">Equipe</div>
-      <button class="nav-item" data-view="chao">
-        <span class="dot"></span> Chão de Fábrica
-      </button>
+      <div class="nav-group">
+        <div class="nav-label t-micro">Equipe</div>
+        <button class="nav-item" data-view="chao">
+          <span class="dot"></span> Meu Dia
+        </button>
+      </div>
 
-      <div class="nav-label t-micro" style="margin-top: var(--sp-5);">Integrações</div>
-      <button class="nav-item" data-view="integracao-agenda">
-        <span class="dot"></span> Google Agenda
-      </button>
-      <button class="nav-item" data-view="configuracao">
-        <span class="dot"></span> Configuração
-      </button>
+      <div class="nav-group">
+        <div class="nav-label t-micro">Integrações</div>
+        <button class="nav-item" data-view="integracao-agenda">
+          <span class="dot"></span> Google Agenda
+        </button>
+        <button class="nav-item" data-view="configuracao">
+          <span class="dot"></span> Configuração
+        </button>
+      </div>
     </nav>
 
     <div class="sidebar-footer">
@@ -2895,8 +3505,8 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         <span>Modo</span>
         <strong id="mode-label">Gestor</strong>
       </button>
-      <button class="theme-switch" onclick="toggleTheme()" aria-label="Alternar tema">
-        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button class="theme-switch" onclick="toggleTheme()" aria-label="Alternar tema claro e escuro" title="Alternar tema">
+        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <!-- Ícone de lua (dark mode) -->
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
@@ -2923,7 +3533,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       <header class="page-header">
         <div>
           <div class="eyebrow t-micro">Painel do gestor</div>
-          <h1 class="t-hero">Boa tarde, Jhonata.</h1>
+          <h1 class="t-hero t-voice" style="font-size: clamp(2rem, 4vw, 2.75rem);">Boa tarde, Jhonata.</h1>
           <p class="lede" id="dashboard-lede">Carregando informações do painel...</p>
         </div>
         <div class="stack stack-2" style="align-items: flex-end;">
@@ -2973,7 +3583,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       <!-- Projetos ativos -->
       <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-4);">
         <h2 class="t-h2">Projetos ativos</h2>
-        <button class="btn btn-ghost">Ver todos os projetos →</button>
+        <button class="btn btn-ghost" onclick="switchView('projetos')">Ver todos os projetos →</button>
       </div>
       <div class="projetos-lista" id="projetos-lista">
         <!-- populado por JS -->
@@ -3156,12 +3766,13 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
     <section class="view" id="view-custos">
       <header class="page-header">
         <div>
-          <div class="eyebrow t-micro" id="custos-projeto-nome">Custos</div>
-          <h1 class="t-hero">Rastreabilidade ponta a ponta</h1>
-          <p class="lede">Cada real gasto no projeto ancora em um ambiente e uma etapa. As quatro camadas — material, mão de obra, indiretos e retrabalho — se somam para revelar a margem real, não a projetada.</p>
+          <h1 class="t-hero">Financeiro</h1>
+          <p class="lede" id="custos-lede">Cada real gasto ancora em um ambiente e uma etapa. As quatro camadas somadas revelam a margem real — não a projetada.</p>
         </div>
-        <div>
-          <button class="btn btn-secondary">Exportar planilha</button>
+        <div class="custos-actions">
+          <select class="select" id="custos-projeto-seletor" aria-label="Escopo financeiro" onchange="selecionarProjetoCustos(this.value)"></select>
+          <button class="btn btn-secondary" onclick="exportarCustosCSV()">Exportar CSV</button>
+          <button class="btn btn-primary" id="custos-btn-lancar" onclick="abrirNovoCusto()">+ Lançar custo</button>
         </div>
       </header>
 
@@ -3170,61 +3781,75 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         <div class="item">
           <div class="lbl">Receita contratada</div>
           <div class="num" id="custos-receita">R$ 0</div>
-          <div class="desc">Com base no valor contratado do projeto</div>
+          <div class="desc">Valor contratado do projeto</div>
         </div>
         <div class="item">
           <div class="lbl">Custo acumulado</div>
           <div class="num" id="custos-acumulado">R$ 0</div>
-          <div class="desc">Real, das 4 camadas somadas até hoje</div>
+          <div class="desc">Soma real das 4 camadas</div>
         </div>
         <div class="item">
           <div class="lbl">Margem real</div>
           <div class="num" id="custos-margem">0%</div>
-          <div class="desc">Baseado nos lançamentos de custo reais</div>
+          <div class="desc" id="custos-margem-desc">Sem lançamentos ainda</div>
         </div>
       </div>
 
       <!-- Camadas -->
       <div class="custos-header">
-        <div class="camada-card" data-camada="materiais">
+        <button class="camada-card" data-camada="materiais" onclick="selecionarCamada('materiais')">
           <div class="label">Materiais</div>
           <div class="valor" id="custos-card-materiais">R$ 0</div>
-          <div class="pct">MDF, ferragens, vidro</div>
-        </div>
-        <div class="camada-card" data-camada="mao-obra">
+          <div class="pct" id="custos-pct-materiais">MDF, ferragens, vidro</div>
+        </button>
+        <button class="camada-card" data-camada="mao-obra" onclick="selecionarCamada('mao-obra')">
           <div class="label">Mão de obra</div>
           <div class="valor" id="custos-card-mao-obra">R$ 0</div>
-          <div class="pct">Horas de PJ registradas</div>
-        </div>
-        <div class="camada-card" data-camada="indiretos">
-          <div class="label">Indiretos (rateio)</div>
+          <div class="pct" id="custos-pct-mao-obra">Horas de PJ registradas</div>
+        </button>
+        <button class="camada-card" data-camada="indiretos" onclick="selecionarCamada('indiretos')">
+          <div class="label">Indiretos</div>
           <div class="valor" id="custos-card-indiretos">R$ 0</div>
-          <div class="pct">Energia, aluguel galpão</div>
-        </div>
-        <div class="camada-card" data-camada="retrabalho">
+          <div class="pct" id="custos-pct-indiretos">Energia, aluguel galpão</div>
+        </button>
+        <button class="camada-card" data-camada="retrabalho" onclick="selecionarCamada('retrabalho')">
           <div class="label">Retrabalho</div>
           <div class="valor" id="custos-card-retrabalho">R$ 0</div>
-          <div class="pct">Ocorrências de refabricação</div>
-        </div>
+          <div class="pct" id="custos-pct-retrabalho">Ocorrências de refabricação</div>
+        </button>
       </div>
 
+      <!-- Consolidado por projeto — apenas na visão de empresa -->
+      <section class="empresa-bloco" id="custos-empresa-bloco" hidden>
+        <div class="empresa-bloco-head">
+          <h2 class="t-h2">Por projeto</h2>
+          <span class="t-small" id="custos-empresa-resumo"></span>
+        </div>
+        <div class="empresa-tabela" id="custos-empresa-tabela"></div>
+      </section>
+
       <!-- Tabs -->
-      <div class="tabs">
-        <button class="tab" aria-selected="true" onclick="switchTab(this, 'materiais')">Materiais</button>
-        <button class="tab" aria-selected="false" onclick="switchTab(this, 'mao-obra')">Mão de obra</button>
-        <button class="tab" aria-selected="false" onclick="switchTab(this, 'indiretos')">Indiretos</button>
-        <button class="tab" aria-selected="false" onclick="switchTab(this, 'retrabalho')">Retrabalho</button>
+      <div class="tabs" id="custos-tabs">
+        <button class="tab" data-camada="materiais" aria-selected="true" onclick="selecionarCamada('materiais')">Materiais</button>
+        <button class="tab" data-camada="mao-obra" aria-selected="false" onclick="selecionarCamada('mao-obra')">Mão de obra</button>
+        <button class="tab" data-camada="indiretos" aria-selected="false" onclick="selecionarCamada('indiretos')">Indiretos</button>
+        <button class="tab" data-camada="retrabalho" aria-selected="false" onclick="selecionarCamada('retrabalho')">Retrabalho</button>
       </div>
 
       <!-- Tabela de itens -->
       <div class="custo-tabela" id="custo-tabela">
         <div class="custo-tabela-header">
           <div>Item</div>
-          <div>Ambiente / Etapa</div>
-          <div>Fornecedor / Origem</div>
+          <div>Ambiente</div>
+          <div>Fornecedor</div>
           <div style="text-align: right;">Valor</div>
+          <div></div>
         </div>
         <div id="custo-linhas"><!-- populado por JS --></div>
+        <div class="custo-tabela-footer" id="custo-tabela-footer" hidden>
+          <span>Total da camada</span>
+          <strong id="custo-camada-total">R$ 0</strong>
+        </div>
       </div>
     </section>
 
@@ -3510,20 +4135,66 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
     </section>
 
     <!-- =========================================================================
-         VIEW: CHÃO DE FÁBRICA (dark auto)
+         VIEW: MEU DIA (dark auto) — foco no colaborador
          ========================================================================= -->
     <section class="view" id="view-chao">
-      <div class="chao-container">
-        <div class="chao-header">
-          <div>
-            <div class="t-micro" style="margin-bottom: var(--sp-2);">Fila do galpão</div>
-            <div class="titulo">Bom trabalho, equipe.</div>
+      <div class="md-container">
+        <header class="md-header">
+          <div class="md-header-left">
+            <div class="t-micro" id="md-eyebrow">Meu Dia</div>
+            <h1 class="md-titulo" id="md-greeting">Bom trabalho, equipe.</h1>
+            <div class="md-date" id="md-date">—</div>
           </div>
-          <div class="relogio" id="relogio">14:32</div>
+          <div class="md-header-right">
+            <div class="md-clock" id="relogio">--:--</div>
+            <button class="btn btn-primary md-cta" onclick="abrirNovoCompromissoLocal()">
+              <span aria-hidden="true">+</span> Novo compromisso
+            </button>
+          </div>
+        </header>
+
+        <div class="md-filters" role="toolbar" aria-label="Filtros">
+          <div class="md-segment" role="tablist" aria-label="Recorte de tempo">
+            <button class="md-seg-btn is-active" data-md-scope="hoje" onclick="setMdScope('hoje')">Hoje</button>
+            <button class="md-seg-btn" data-md-scope="semana" onclick="setMdScope('semana')">Esta semana</button>
+            <button class="md-seg-btn" data-md-scope="tudo" onclick="setMdScope('tudo')">Tudo</button>
+          </div>
+          <label class="md-toggle">
+            <input type="checkbox" id="md-toggle-empty" onchange="renderChao()">
+            <span>Ver etapas vazias</span>
+          </label>
         </div>
 
-        <div class="chao-grid" id="chao-grid">
-          <!-- populado por JS -->
+        <div class="md-grid">
+          <!-- Coluna esquerda: Foco + Compromissos -->
+          <aside class="md-side">
+            <section class="md-block" id="md-foco-block">
+              <div class="md-block-head">
+                <h2 class="md-block-title">Foco agora</h2>
+                <span class="md-pill" id="md-foco-count">0</span>
+              </div>
+              <div class="md-foco-list" id="md-foco-list"></div>
+            </section>
+
+            <section class="md-block" id="md-compromissos-block">
+              <div class="md-block-head">
+                <h2 class="md-block-title">Compromissos</h2>
+                <button class="md-link-btn" onclick="abrirNovoCompromissoLocal()">+ Novo</button>
+              </div>
+              <div class="md-compromissos" id="md-compromissos-list"></div>
+            </section>
+          </aside>
+
+          <!-- Coluna direita: Fluxo -->
+          <section class="md-main">
+            <div class="md-block-head md-block-head--main">
+              <h2 class="md-block-title">Fluxo de produção</h2>
+              <span class="md-hint" id="md-board-hint">— etapas ativas</span>
+            </div>
+            <div class="chao-board" id="chao-grid">
+              <!-- populado por JS -->
+            </div>
+          </section>
         </div>
       </div>
     </section>
@@ -3724,6 +4395,144 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   </div>
 </div>
 
+<!-- Modal Lançamento de Custo -->
+<div class="modal-backdrop" id="modal-custo" style="display:none;">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="custo-modal-title">
+    <div class="modal-header">
+      <div>
+        <h3 id="custo-modal-title">Lançar custo</h3>
+        <p id="custo-modal-subtitle">Registre uma despesa real do projeto</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="form-custo" onsubmit="event.preventDefault(); salvarCusto();">
+        <input type="hidden" id="custo-id">
+        <div class="modal-form-grid" style="display:grid; gap: var(--sp-4);">
+
+          <div class="modal-field" id="custo-projeto-field" hidden>
+            <label for="custo-projeto" class="field-label">Projeto *</label>
+            <select id="custo-projeto" class="select"></select>
+          </div>
+
+          <div class="modal-field">
+            <label for="custo-camada" class="field-label">Camada *</label>
+            <select id="custo-camada" class="select">
+              <option value="materiais">Materiais</option>
+              <option value="mao-obra">Mão de obra</option>
+              <option value="indiretos">Indiretos</option>
+              <option value="retrabalho">Retrabalho</option>
+            </select>
+          </div>
+
+          <div class="modal-field">
+            <label for="custo-item" class="field-label">Item *</label>
+            <input type="text" id="custo-item" required placeholder="Ex: Chapa MDF 18mm branco">
+          </div>
+
+          <div class="modal-form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap: var(--sp-3);">
+            <div class="modal-field">
+              <label for="custo-valor" class="field-label">Valor (R$) *</label>
+              <input type="number" id="custo-valor" required min="0" step="0.01" placeholder="0,00">
+            </div>
+            <div class="modal-field">
+              <label for="custo-data" class="field-label">Data *</label>
+              <input type="date" id="custo-data" required>
+            </div>
+          </div>
+
+          <div class="modal-form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap: var(--sp-3);">
+            <div class="modal-field">
+              <label for="custo-ambiente" class="field-label">Ambiente</label>
+              <input type="text" id="custo-ambiente" placeholder="Ex: Cozinha" list="custo-ambientes-sugestoes">
+              <datalist id="custo-ambientes-sugestoes"></datalist>
+            </div>
+            <div class="modal-field">
+              <label for="custo-origem" class="field-label">Fornecedor / Origem</label>
+              <input type="text" id="custo-origem" placeholder="Ex: Leo Madeiras">
+            </div>
+          </div>
+
+          <div class="modal-field">
+            <label for="custo-desc" class="field-label">Observação</label>
+            <input type="text" id="custo-desc" placeholder="Detalhe opcional (nota fiscal, quantidade…)">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer" id="custo-modal-footer">
+      <button class="btn btn-ghost" type="button" onclick="fecharModalCusto()">Cancelar</button>
+      <button class="btn btn-primary" type="button" onclick="salvarCusto()">Salvar lançamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Compromisso Local (Meu Dia) -->
+<div class="modal-backdrop" id="modal-compromisso-local" style="display:none;">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mdcl-title">
+    <div class="modal-header">
+      <div class="icon">🗓️</div>
+      <div>
+        <h3 id="mdcl-title">Novo compromisso</h3>
+        <p id="mdcl-subtitle">Registre uma tarefa pontual ou uma reunião</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="form-compromisso-local" onsubmit="event.preventDefault();">
+        <input type="hidden" id="mdcl-id">
+        <div class="modal-form-grid" style="display:grid; gap: var(--sp-4);">
+
+          <div class="modal-field">
+            <label class="field-label" style="font-weight:500; margin-bottom: var(--sp-2);">Tipo</label>
+            <div class="md-tipo-tabs">
+              <button type="button" class="md-tipo-tab is-active" data-mdcl-tipo="projeto" onclick="setMdclTipo('projeto')">Vinculado a projeto</button>
+              <button type="button" class="md-tipo-tab" data-mdcl-tipo="interno" onclick="setMdclTipo('interno')">Interno / Empresa</button>
+            </div>
+          </div>
+
+          <div class="modal-field" id="mdcl-projeto-field">
+            <label for="mdcl-projeto" class="field-label" style="font-weight:500;">Projeto *</label>
+            <select id="mdcl-projeto" class="select"></select>
+          </div>
+
+          <div class="modal-field">
+            <label for="mdcl-titulo" class="field-label" style="font-weight:500;">Título *</label>
+            <input type="text" id="mdcl-titulo" required placeholder="Ex: Alinhar medidas com o cliente">
+          </div>
+
+          <div class="modal-form-row-2" style="display:grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3);">
+            <div class="modal-field">
+              <label for="mdcl-data" class="field-label" style="font-weight:500;">Data *</label>
+              <input type="date" id="mdcl-data" required>
+            </div>
+            <div class="modal-field">
+              <label for="mdcl-hora" class="field-label" style="font-weight:500;">Horário</label>
+              <input type="time" id="mdcl-hora">
+            </div>
+          </div>
+
+          <div class="modal-field">
+            <label for="mdcl-prioridade" class="field-label" style="font-weight:500;">Prioridade</label>
+            <select id="mdcl-prioridade" class="select">
+              <option value="normal">Normal</option>
+              <option value="alta">Alta</option>
+              <option value="baixa">Baixa</option>
+            </select>
+          </div>
+
+          <div class="modal-field">
+            <label for="mdcl-descricao" class="field-label" style="font-weight:500;">Observações</label>
+            <textarea id="mdcl-descricao" rows="3" placeholder="Detalhes adicionais (opcional)"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer" id="mdcl-footer">
+      <button class="btn btn-ghost" type="button" onclick="fecharCompromissoLocal()">Cancelar</button>
+      <button class="btn btn-primary" type="button" onclick="salvarCompromissoLocal()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast">
   <div class="check">✓</div>
@@ -3874,7 +4683,12 @@ function initSupabase() {
     supabase = window.createSupabaseClient(cfg.supabaseUrl, cfg.supabaseKey);
     console.info('[Supabase] Cliente inicializado');
     configurarRealtimeProducao();
-    carregarProjetosDoBanco();
+    // Projetos primeiro: custos e compromissos referenciam projeto por id.
+    carregarProjetosDoBanco().then(async () => {
+      await Promise.all([carregarCustos(), carregarCompromissosLocais()]);
+      renderCustosView();
+      renderChao();
+    });
   } catch (e) {
     console.error('[Supabase] Erro ao inicializar:', e);
     supabase = null;
@@ -4048,17 +4862,24 @@ function renderDashboard() {
       listaEl.innerHTML = projetos.map(p => {
         const dias = diasAte(p.prazo);
         const prazoStr = dias > 0 ? `Prazo: ${fmtDate(p.prazo)} · ${dias}d restantes` : `ATRASADO ${Math.abs(dias)}d`;
-        const statusLabel = p.status === 'instalacao' ? 'Instalação' : p.status === 'ativo' ? 'Em produção' : p.status;
-        const statusColor = p.status === 'instalacao' ? 'var(--status-liberado)' : p.status === 'ativo' ? 'var(--status-em-andamento)' : 'var(--ink-subtle)';
+        const statusMap = {
+          'instalacao': { label: 'Instalação', color: 'var(--status-liberado)' },
+          'ativo': { label: 'Pendente', color: 'var(--ink-subtle)' },
+          'producao': { label: 'Em produção', color: 'var(--status-em-andamento)' },
+          'concluido': { label: 'Concluído', color: 'var(--status-liberado)' }
+        };
+        const statusInfo = statusMap[p.status] || { label: p.status, color: 'var(--ink-subtle)' };
+        const statusLabel = statusInfo.label;
+        const statusColor = statusInfo.color;
 
         return `
           <div class="projeto-card" onclick="abrirProjeto('${p.id}')" style="cursor: pointer; padding: var(--sp-4); margin-bottom: var(--sp-2);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <strong style="font-size: 1rem;">${p.cliente}</strong>
-                <div style="font-size: 0.75rem; color: var(--ink-muted); margin-top: 2px;">${p.codigo} · ${prazoStr}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); min-width: 0;">
+              <div style="min-width: 0; flex: 1;">
+                <strong style="font-size: 1rem; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.cliente}</strong>
+                <div style="font-size: 0.75rem; color: var(--ink-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.codigo} · ${prazoStr}</div>
               </div>
-              <span style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:${statusColor};padding:3px 8px;border-radius:10px;background:color-mix(in oklch,${statusColor} 12%,var(--surface)); flex-shrink: 0;">${statusLabel}</span>
+              <span style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:${statusColor};padding:3px 8px;border-radius:10px;background:color-mix(in oklch,${statusColor} 12%,var(--surface));flex-shrink:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4;">${statusLabel}</span>
             </div>
             <div style="margin-top: var(--sp-3);">
               <div class="progresso-bar"><div class="progresso-fill" style="width: ${p.progresso}%"></div></div>
@@ -6079,7 +6900,7 @@ function renderProjetosLista() {
             <div class="card-cliente">${p.cliente}</div>
             <div class="card-endereco">${p.endereco}</div>
           </div>
-          <span style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:${statusColor};padding:3px 8px;border-radius:10px;background:color-mix(in oklch,${statusColor} 12%,var(--surface));flex-shrink:0">${statusLabel}</span>
+          <span style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:${statusColor};padding:3px 8px;border-radius:10px;background:color-mix(in oklch,${statusColor} 12%,var(--surface));flex-shrink:1;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4">${statusLabel}</span>
         </div>
         <div class="card-financeiro">
           <div class="card-financeiro-item">
@@ -6509,99 +7330,877 @@ function renderAmbientes() {
 
 
 let camadaAtiva = 'materiais';
-function renderCustos() {
-  const container = document.getElementById('custo-linhas');
-  if (!container) return;
+/* ============================================================================
+   FINANCEIRO — lançamentos de custo por camada, sincronizados no Supabase
+   (tabela public.custos, uma linha por lançamento, ligada ao projeto).
+   ============================================================================ */
+const CAMADAS = ['materiais', 'mao-obra', 'indiretos', 'retrabalho'];
+const CAMADA_LABELS = {
+  'materiais': 'Materiais',
+  'mao-obra': 'Mão de obra',
+  'indiretos': 'Indiretos',
+  'retrabalho': 'Retrabalho'
+};
+let custosLancamentos = [];
 
-  const projeto = projetos.find(x => x.id === projetoSelecionadoId) || projetos[0];
-  if (!projeto || !projeto.custos) {
-    container.innerHTML = `<div style="padding: var(--sp-4); text-align: center; color: var(--ink-muted);">Nenhum custo lançado.</div>`;
-    return;
-  }
-
-  const itens = projeto.custos[camadaAtiva === 'mao-obra' ? 'maoDeObra' : camadaAtiva] || [];
-  if (itens.length === 0) {
-    container.innerHTML = `<div style="padding: var(--sp-4); text-align: center; color: var(--ink-muted);">Nenhum item nesta categoria.</div>`;
-    return;
-  }
-
-  container.innerHTML = itens.map(i => `
-    <div class="custo-tabela-row">
-      <div>
-        <div class="item-nome">${i.item}</div>
-        <div class="item-desc">${i.desc}</div>
-      </div>
-      <div><span class="ambiente-tag">${i.ambiente}</span></div>
-      <div class="t-small" style="color: var(--ink-muted);">${i.origem}</div>
-      <div class="valor t-num">${fmtBRL(i.valor)}</div>
-    </div>
-  `).join('');
+/* Converte a linha do Supabase para o formato usado na UI. */
+function custoDaLinha(row) {
+  return {
+    id: row.id,
+    projetoId: row.projeto_id,
+    camada: row.camada,
+    item: row.item,
+    valor: Number(row.valor) || 0,
+    data: row.data,
+    ambiente: row.ambiente || '',
+    origem: row.origem || '',
+    desc: row.descricao || ''
+  };
 }
 
-function switchTab(btn, camada) {
-  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', 'false'));
-  btn.setAttribute('aria-selected', 'true');
+async function carregarCustos() {
+  if (!supabase) { custosLancamentos = []; return; }
+  try {
+    const { data, error } = await supabase
+      .from('custos')
+      .select('*')
+      .order('data', { ascending: false });
+    if (error) throw error;
+    custosLancamentos = (data || []).map(custoDaLinha);
+  } catch (e) {
+    console.error('Erro ao carregar custos do Supabase:', e);
+    custosLancamentos = [];
+    showToast('Não foi possível carregar os custos.');
+  }
+}
+function custosDoProjeto(projetoId) {
+  return custosLancamentos.filter(c => c.projetoId === projetoId);
+}
+function totalPorCamada(projetoId, camada) {
+  return custosDoProjeto(projetoId)
+    .filter(c => c.camada === camada)
+    .reduce((acc, c) => acc + (Number(c.valor) || 0), 0);
+}
+
+/* Escopo da aba: '__empresa__' consolida todos os projetos ativos. */
+const ESCOPO_EMPRESA = '__empresa__';
+let custosEscopo = ESCOPO_EMPRESA;
+
+function escopoEhEmpresa() { return custosEscopo === ESCOPO_EMPRESA; }
+
+/* Projetos que entram no consolidado: tudo que não está concluído. */
+function projetosAtivosFinanceiro() {
+  return projetos.filter(p => p.status !== 'concluido');
+}
+
+/* Projeto ativo da aba — null quando o escopo é a empresa inteira. */
+function projetoCustosAtivo() {
+  if (escopoEhEmpresa()) return null;
+  return projetos.find(p => p.id === custosEscopo) || null;
+}
+
+/* Universo de projetos do escopo corrente. */
+function projetosDoEscopo() {
+  if (escopoEhEmpresa()) return projetosAtivosFinanceiro();
+  const p = projetoCustosAtivo();
+  return p ? [p] : [];
+}
+
+function selecionarProjetoCustos(id) {
+  custosEscopo = id;
+  if (id !== ESCOPO_EMPRESA) projetoSelecionadoId = id;
+  renderCustosView();
+}
+
+/* Totais agregados sobre um conjunto de projetos. */
+function totalCamadaEscopo(camada) {
+  const ids = new Set(projetosDoEscopo().map(p => p.id));
+  return custosLancamentos
+    .filter(c => ids.has(c.projetoId) && c.camada === camada)
+    .reduce((acc, c) => acc + (Number(c.valor) || 0), 0);
+}
+function lancamentosDoEscopo() {
+  const ids = new Set(projetosDoEscopo().map(p => p.id));
+  return custosLancamentos.filter(c => ids.has(c.projetoId));
+}
+function receitaDoEscopo() {
+  return projetosDoEscopo().reduce((acc, p) => acc + (Number(p.valor) || 0), 0);
+}
+
+function selecionarCamada(camada) {
   camadaAtiva = camada;
+  document.querySelectorAll('#custos-tabs .tab').forEach(t => {
+    t.setAttribute('aria-selected', String(t.getAttribute('data-camada') === camada));
+  });
+  document.querySelectorAll('.camada-card').forEach(c => {
+    c.classList.toggle('is-active', c.getAttribute('data-camada') === camada);
+  });
   renderCustos();
+}
+/* Mantido para compatibilidade com chamadas antigas de switchTab */
+function switchTab(btn, camada) { selecionarCamada(camada); }
+
+/* --- Modal de lançamento --- */
+function abrirNovoCusto() {
+  if (projetos.length === 0) { showToast('Cadastre um projeto antes de lançar custos.'); return; }
+  const proj = projetoCustosAtivo();
+
+  document.getElementById('custo-modal-title').textContent = 'Lançar custo';
+  document.getElementById('custo-modal-subtitle').textContent = proj
+    ? `Despesa real de ${proj.cliente}`
+    : 'Escolha a que projeto esta despesa pertence';
+  document.getElementById('custo-id').value = '';
+  document.getElementById('custo-camada').value = camadaAtiva || 'materiais';
+  document.getElementById('custo-item').value = '';
+  document.getElementById('custo-valor').value = '';
+  document.getElementById('custo-data').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('custo-ambiente').value = '';
+  document.getElementById('custo-origem').value = '';
+  document.getElementById('custo-desc').value = '';
+  preencherProjetosCusto(proj ? proj.id : null);
+  preencherSugestoesAmbiente(proj);
+  abrirModalCusto();
+}
+
+function abrirEditarCusto(id) {
+  const c = custosLancamentos.find(x => x.id === id);
+  if (!c) return;
+
+  document.getElementById('custo-modal-title').textContent = 'Editar lançamento';
+  document.getElementById('custo-modal-subtitle').textContent = 'Ajuste os dados da despesa';
+  document.getElementById('custo-id').value = c.id;
+  document.getElementById('custo-camada').value = c.camada;
+  document.getElementById('custo-item').value = c.item || '';
+  document.getElementById('custo-valor').value = c.valor ?? '';
+  document.getElementById('custo-data').value = c.data || '';
+  document.getElementById('custo-ambiente').value = c.ambiente || '';
+  document.getElementById('custo-origem').value = c.origem || '';
+  document.getElementById('custo-desc').value = c.desc || '';
+  preencherProjetosCusto(c.projetoId);
+  preencherSugestoesAmbiente(projetos.find(p => p.id === c.projetoId));
+  abrirModalCusto();
+}
+
+/* O seletor de projeto no modal só é necessário quando o escopo não define um. */
+function preencherProjetosCusto(selecionadoId) {
+  const sel = document.getElementById('custo-projeto');
+  const campo = document.getElementById('custo-projeto-field');
+  if (!sel || !campo) return;
+
+  sel.innerHTML = projetos
+    .slice()
+    .sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
+    .map(p => `<option value="${p.id}" ${p.id === selecionadoId ? 'selected' : ''}>${p.codigo} · ${p.cliente}</option>`)
+    .join('');
+
+  // Mostra o campo sempre que o escopo é a empresa (não há projeto implícito)
+  campo.hidden = !escopoEhEmpresa() && !!projetoCustosAtivo();
+  sel.onchange = () => preencherSugestoesAmbiente(projetos.find(p => p.id === sel.value));
+}
+
+function preencherSugestoesAmbiente(proj) {
+  const dl = document.getElementById('custo-ambientes-sugestoes');
+  if (!dl) return;
+  // Sem projeto definido (escopo de empresa) não há ambientes a sugerir.
+  const nomes = (proj?.ambientes || []).map(a => a.nome).filter(Boolean);
+  dl.innerHTML = nomes.map(n => `<option value="${n}"></option>`).join('');
+}
+
+function abrirModalCusto() {
+  const m = document.getElementById('modal-custo');
+  if (!m) return;
+  m.style.display = 'flex';
+  requestAnimationFrame(() => m.classList.add('open'));
+  setTimeout(() => document.getElementById('custo-item')?.focus(), 120);
+}
+function fecharModalCusto() {
+  const m = document.getElementById('modal-custo');
+  if (!m) return;
+  m.classList.remove('open');
+  setTimeout(() => { m.style.display = 'none'; }, 200);
+}
+
+async function salvarCusto() {
+  // No escopo de empresa o projeto vem do seletor do modal.
+  const projetoId = escopoEhEmpresa() || !projetoCustosAtivo()
+    ? document.getElementById('custo-projeto').value
+    : projetoCustosAtivo().id;
+  const proj = projetos.find(p => p.id === projetoId);
+  if (!proj) { showToast('Selecione um projeto.'); return; }
+
+  const id = document.getElementById('custo-id').value;
+  const camada = document.getElementById('custo-camada').value;
+  const item = document.getElementById('custo-item').value.trim();
+  const valor = parseFloat(document.getElementById('custo-valor').value);
+  const data = document.getElementById('custo-data').value;
+  const ambiente = document.getElementById('custo-ambiente').value.trim();
+  const origem = document.getElementById('custo-origem').value.trim();
+  const desc = document.getElementById('custo-desc').value.trim();
+
+  if (!item) { showToast('Informe o item.'); return; }
+  if (!Number.isFinite(valor) || valor < 0) { showToast('Informe um valor válido.'); return; }
+  if (!data) { showToast('Informe a data.'); return; }
+
+  if (!supabase) { showToast('Erro: Supabase não configurado.'); return; }
+
+  const payload = {
+    projeto_id: proj.id,
+    camada, item, valor, data,
+    ambiente: ambiente || null,
+    origem: origem || null,
+    descricao: desc || null,
+    updated_at: new Date().toISOString()
+  };
+
+  const btn = document.querySelector('#custo-modal-footer .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+
+  try {
+    if (id) {
+      const { data: row, error } = await supabase
+        .from('custos').update(payload).eq('id', id).select().single();
+      if (error) throw error;
+      const i = custosLancamentos.findIndex(x => x.id === id);
+      if (i >= 0) custosLancamentos[i] = custoDaLinha(row);
+      showToast('Lançamento atualizado.');
+    } else {
+      const { data: row, error } = await supabase
+        .from('custos').insert(payload).select().single();
+      if (error) throw error;
+      custosLancamentos.unshift(custoDaLinha(row));
+      showToast('Custo lançado.');
+    }
+    fecharModalCusto();
+    camadaAtiva = camada;
+    renderCustosView();
+  } catch (e) {
+    console.error('Erro ao salvar custo:', e);
+    showToast('Não foi possível salvar o lançamento.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Salvar lançamento'; }
+  }
+}
+
+async function excluirCusto(id) {
+  const c = custosLancamentos.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Excluir o lançamento "${c.item}" (${fmtBRL(c.valor)})?`)) return;
+  if (!supabase) { showToast('Erro: Supabase não configurado.'); return; }
+
+  // Otimista: tira da tela já, devolve se o banco recusar.
+  const backup = custosLancamentos.slice();
+  custosLancamentos = custosLancamentos.filter(x => x.id !== id);
+  renderCustosView();
+
+  const { error } = await supabase.from('custos').delete().eq('id', id);
+  if (error) {
+    console.error('Erro ao excluir custo:', error);
+    custosLancamentos = backup;
+    renderCustosView();
+    showToast('Não foi possível excluir o lançamento.');
+    return;
+  }
+  showToast('Lançamento excluído.');
+}
+
+function exportarCustosCSV() {
+  const itens = lancamentosDoEscopo();
+  if (itens.length === 0) { showToast('Nenhum custo lançado para exportar.'); return; }
+
+  const byId = Object.fromEntries(projetos.map(p => [p.id, p]));
+  const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const linhas = [
+    ['Projeto', 'Cliente', 'Camada', 'Item', 'Ambiente', 'Fornecedor', 'Observação', 'Data', 'Valor'].map(esc).join(';'),
+    ...itens
+      .slice()
+      .sort((a, b) => (a.projetoId || '').localeCompare(b.projetoId || '') || (a.data || '').localeCompare(b.data || ''))
+      .map(c => {
+        const p = byId[c.projetoId] || {};
+        return [
+          p.codigo, p.cliente, CAMADA_LABELS[c.camada] || c.camada,
+          c.item, c.ambiente, c.origem, c.desc, c.data,
+          Number(c.valor || 0).toFixed(2).replace('.', ',')
+        ].map(esc).join(';');
+      })
+  ];
+
+  // BOM para o Excel reconhecer os acentos
+  const blob = new Blob(['﻿' + linhas.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const proj = projetoCustosAtivo();
+  a.href = url;
+  a.download = proj ? `financeiro-${proj.codigo || 'projeto'}.csv` : 'financeiro-empresa.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast(`${itens.length} lançamento${itens.length === 1 ? '' : 's'} exportado${itens.length === 1 ? '' : 's'}.`);
+}
+
+/* --- Render --- */
+function renderCustos() {
+  const container = document.getElementById('custo-linhas');
+  const footer = document.getElementById('custo-tabela-footer');
+  if (!container) return;
+
+  if (projetos.length === 0) {
+    container.innerHTML = `<div class="custo-vazio">Nenhum projeto cadastrado no sistema.</div>`;
+    if (footer) footer.hidden = true;
+    return;
+  }
+
+  const empresa = escopoEhEmpresa();
+  const byId = Object.fromEntries(projetos.map(p => [p.id, p]));
+
+  const itens = lancamentosDoEscopo()
+    .filter(c => c.camada === camadaAtiva)
+    .sort((a, b) => (b.data || '').localeCompare(a.data || ''));
+
+  if (itens.length === 0) {
+    container.innerHTML = `
+      <div class="custo-vazio">
+        <p>Nenhum lançamento em <strong>${CAMADA_LABELS[camadaAtiva]}</strong>${empresa ? ' em nenhum projeto ativo' : ''} ainda.</p>
+        <button class="btn btn-secondary" onclick="abrirNovoCusto()">Lançar o primeiro</button>
+      </div>`;
+    if (footer) footer.hidden = true;
+    return;
+  }
+
+  // Na visão de empresa a segunda coluna mostra o projeto; na de projeto, o ambiente.
+  container.innerHTML = itens.map(c => {
+    const p = byId[c.projetoId];
+    const segunda = empresa
+      ? (p ? `<span class="ambiente-tag is-projeto">${p.codigo}</span>` : '<span class="custo-na">—</span>')
+      : (c.ambiente ? `<span class="ambiente-tag">${c.ambiente}</span>` : '<span class="custo-na">—</span>');
+    const meta = [c.desc, empresa && c.ambiente ? c.ambiente : '', c.data ? fmtDate(c.data) : '']
+      .filter(Boolean).join(' · ') || '—';
+    return `
+    <div class="custo-tabela-row">
+      <div class="custo-col-item">
+        <div class="item-nome">${c.item}</div>
+        <div class="item-desc">${meta}</div>
+      </div>
+      <div>${segunda}</div>
+      <div class="t-small" style="color: var(--ink-muted);">${c.origem || '—'}</div>
+      <div class="valor t-num">${fmtBRL(c.valor)}</div>
+      <div class="custo-row-actions">
+        <button class="custo-icon-btn" title="Editar" aria-label="Editar lançamento" onclick="abrirEditarCusto('${c.id}')">✎</button>
+        <button class="custo-icon-btn is-del" title="Excluir" aria-label="Excluir lançamento" onclick="excluirCusto('${c.id}')">×</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const hdr = document.querySelector('#custo-tabela .custo-tabela-header > div:nth-child(2)');
+  if (hdr) hdr.textContent = empresa ? 'Projeto' : 'Ambiente';
+
+  const total = itens.reduce((acc, c) => acc + (Number(c.valor) || 0), 0);
+  if (footer) {
+    footer.hidden = false;
+    document.getElementById('custo-camada-total').textContent = fmtBRL(total);
+  }
+}
+
+/* Consolidado por projeto — a leitura que a visão de empresa existe para dar. */
+function renderConsolidadoEmpresa() {
+  const bloco = document.getElementById('custos-empresa-bloco');
+  const tabela = document.getElementById('custos-empresa-tabela');
+  const resumo = document.getElementById('custos-empresa-resumo');
+  if (!bloco || !tabela) return;
+
+  if (!escopoEhEmpresa()) { bloco.hidden = true; return; }
+  bloco.hidden = false;
+
+  const ativos = projetosAtivosFinanceiro();
+  if (ativos.length === 0) {
+    tabela.innerHTML = `<div class="custo-vazio">Nenhum projeto ativo no momento.</div>`;
+    if (resumo) resumo.textContent = '';
+    return;
+  }
+
+  const linhas = ativos.map(p => {
+    const custo = CAMADAS.reduce((acc, c) => acc + totalPorCamada(p.id, c), 0);
+    const receita = Number(p.valor) || 0;
+    const margem = receita > 0 ? ((receita - custo) / receita) * 100 : null;
+    const n = custosDoProjeto(p.id).length;
+    return { p, custo, receita, margem, resultado: receita - custo, n };
+  }).sort((a, b) => b.receita - a.receita);
+
+  const comLancamento = linhas.filter(l => l.n > 0).length;
+  if (resumo) {
+    resumo.textContent = `${ativos.length} projeto${ativos.length === 1 ? '' : 's'} ativo${ativos.length === 1 ? '' : 's'} · ${comLancamento} com custo lançado`;
+  }
+
+  tabela.innerHTML = `
+    <div class="empresa-row empresa-row--head">
+      <div>Projeto</div>
+      <div class="ta-r">Receita</div>
+      <div class="ta-r">Custo</div>
+      <div class="ta-r">Resultado</div>
+      <div class="ta-r">Margem</div>
+    </div>
+    ${linhas.map(l => `
+      <button class="empresa-row" onclick="selecionarProjetoCustos('${l.p.id}')" title="Ver só este projeto">
+        <div class="empresa-proj">
+          <span class="empresa-cod">${l.p.codigo || '—'}</span>
+          <span class="empresa-cliente">${l.p.cliente}</span>
+        </div>
+        <div class="ta-r t-num">${fmtBRL(l.receita)}</div>
+        <div class="ta-r t-num ${l.custo > 0 ? '' : 'custo-na'}">${fmtBRL(l.custo)}</div>
+        <div class="ta-r t-num ${l.resultado < 0 ? 'is-negativo' : ''}">${fmtBRL(l.resultado)}</div>
+        <div class="ta-r t-num ${l.margem !== null && l.margem < 0 ? 'is-negativo' : ''}">${l.margem === null ? '—' : l.margem.toFixed(1) + '%'}</div>
+      </button>
+    `).join('')}
+  `;
 }
 
 function renderCustosView() {
-  const proj = projetos.find(p => p.id === projetoSelecionadoId) || projetos[0];
+  const seletor = document.getElementById('custos-projeto-seletor');
+  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
 
-  const nomeEl = document.getElementById('custos-projeto-nome');
-  const receitaEl = document.getElementById('custos-receita');
-  const acumuladoEl = document.getElementById('custos-acumulado');
-  const margemEl = document.getElementById('custos-margem');
+  // Seletor de escopo: empresa no topo, projetos abaixo.
+  if (seletor) {
+    if (projetos.length === 0) {
+      seletor.innerHTML = '<option value="">Nenhum projeto</option>';
+      seletor.disabled = true;
+    } else {
+      const nAtivos = projetosAtivosFinanceiro().length;
+      seletor.disabled = false;
+      seletor.innerHTML = `
+        <option value="${ESCOPO_EMPRESA}" ${escopoEhEmpresa() ? 'selected' : ''}>Empresa · ${nAtivos} projeto${nAtivos === 1 ? '' : 's'} ativo${nAtivos === 1 ? '' : 's'}</option>
+        <optgroup label="Por projeto">
+          ${projetos.slice()
+            .sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
+            .map(p => `<option value="${p.id}" ${custosEscopo === p.id ? 'selected' : ''}>${p.codigo} · ${p.cliente}</option>`)
+            .join('')}
+        </optgroup>`;
+    }
+  }
 
-  const cardMatEl = document.getElementById('custos-card-materiais');
-  const cardMaoEl = document.getElementById('custos-card-mao-obra');
-  const cardIndEl = document.getElementById('custos-card-indiretos');
-  const cardRetEl = document.getElementById('custos-card-retrabalho');
-
-  if (!proj) {
-    if (nomeEl) nomeEl.textContent = 'Custos · Nenhum projeto selecionado';
-    if (receitaEl) receitaEl.textContent = 'R$ 0';
-    if (acumuladoEl) acumuladoEl.textContent = 'R$ 0';
-    if (margemEl) margemEl.textContent = '0%';
-    if (cardMatEl) cardMatEl.textContent = 'R$ 0';
-    if (cardMaoEl) cardMaoEl.textContent = 'R$ 0';
-    if (cardIndEl) cardIndEl.textContent = 'R$ 0';
-    if (cardRetEl) cardRetEl.textContent = 'R$ 0';
-
-    const container = document.getElementById('custo-linhas');
-    if (container) container.innerHTML = `<div style="padding: var(--sp-4); text-align: center; color: var(--ink-muted);">Nenhum projeto cadastrado no sistema.</div>`;
+  if (projetos.length === 0) {
+    set('custos-receita', 'R$ 0');
+    set('custos-acumulado', 'R$ 0');
+    set('custos-margem', '—');
+    set('custos-margem-desc', 'Nenhum projeto cadastrado');
+    CAMADAS.forEach(c => set(`custos-card-${c}`, 'R$ 0'));
+    renderConsolidadoEmpresa();
+    renderCustos();
     return;
   }
 
-  if (nomeEl) nomeEl.textContent = `Custos · ${proj.cliente}`;
-  if (receitaEl) receitaEl.textContent = fmtBRL(proj.valor);
+  const empresa = escopoEhEmpresa();
+  const proj = projetoCustosAtivo();
+  const escopoProjs = projetosDoEscopo();
 
-  // Tudo inicia zerado e limpo para novos lançamentos
-  const matVal = 0;
-  const maoVal = 0;
-  const indVal = 0;
-  const retVal = 0;
-  const totalCusto = matVal + maoVal + indVal + retVal;
+  const totais = Object.fromEntries(CAMADAS.map(c => [c, totalCamadaEscopo(c)]));
+  const totalCusto = CAMADAS.reduce((acc, c) => acc + totais[c], 0);
+  const receita = receitaDoEscopo();
+  const margemReal = receita > 0 ? ((receita - totalCusto) / receita) * 100 : 0;
 
-  const margemReal = proj.valor > 0 ? ((proj.valor - totalCusto) / proj.valor) * 100 : 0;
+  // Copy que muda com o escopo — o leitor precisa saber o que está vendo.
+  set('custos-lede', empresa
+    ? `Situação consolidada de ${escopoProjs.length} projeto${escopoProjs.length === 1 ? '' : 's'} ativo${escopoProjs.length === 1 ? '' : 's'}. Receita contratada contra custo real das quatro camadas.`
+    : 'Cada real gasto ancora em um ambiente e uma etapa. As quatro camadas somadas revelam a margem real — não a projetada.');
 
-  if (acumuladoEl) acumuladoEl.textContent = fmtBRL(totalCusto);
-  if (margemEl) margemEl.textContent = `${margemReal.toFixed(1)}%`;
+  const receitaDesc = document.querySelector('#custos-receita + .desc');
+  if (receitaDesc) receitaDesc.textContent = empresa ? 'Soma dos contratos ativos' : 'Valor contratado do projeto';
 
-  if (cardMatEl) cardMatEl.textContent = fmtBRL(matVal);
-  if (cardMaoEl) cardMaoEl.textContent = fmtBRL(maoVal);
-  if (cardIndEl) cardIndEl.textContent = fmtBRL(indVal);
-  if (cardRetEl) cardRetEl.textContent = fmtBRL(retVal);
+  set('custos-receita', fmtBRL(receita));
+  set('custos-acumulado', fmtBRL(totalCusto));
+  set('custos-margem', receita > 0 ? `${margemReal.toFixed(1)}%` : '—');
+  set('custos-margem-desc',
+    totalCusto === 0 ? 'Sem lançamentos ainda'
+    : receita === 0 ? 'Defina o valor do contrato'
+    : `${fmtBRL(receita - totalCusto)} de resultado`);
 
-  renderCustos();
+  const margemEl = document.getElementById('custos-margem');
+  if (margemEl) margemEl.classList.toggle('is-negativo', totalCusto > 0 && margemReal < 0);
+
+  const btnLancar = document.getElementById('custos-btn-lancar');
+  if (btnLancar) btnLancar.textContent = empresa ? '+ Lançar custo' : `+ Lançar em ${proj?.codigo || 'projeto'}`;
+
+  const lancEscopo = lancamentosDoEscopo();
+  CAMADAS.forEach(c => {
+    set(`custos-card-${c}`, fmtBRL(totais[c]));
+    const pctEl = document.getElementById(`custos-pct-${c}`);
+    if (pctEl) {
+      const share = totalCusto > 0 ? (totais[c] / totalCusto) * 100 : 0;
+      const n = lancEscopo.filter(x => x.camada === c).length;
+      pctEl.textContent = n === 0
+        ? 'Sem lançamentos'
+        : `${n} lançamento${n === 1 ? '' : 's'} · ${share.toFixed(0)}% do custo`;
+    }
+  });
+
+  renderConsolidadoEmpresa();
+  selecionarCamada(camadaAtiva || 'materiais');
 }
 
-/* Chão de fábrica — dark queue */
-function renderChao() {
-  const container = document.getElementById('chao-grid');
-  if (!container) return;
+/* ============================================================================
+   MEU DIA — compromissos (sincronizados no Supabase)
+   ============================================================================ */
+let compromissosLocais = [];
+let mdScope = 'hoje'; // 'hoje' | 'semana' | 'tudo'
+let mdclEditingTipo = 'projeto';
 
-  container.classList.add('chao-board');
+/* Converte a linha do Supabase para o formato usado na UI. */
+function compromissoDaLinha(row) {
+  return {
+    id: row.id,
+    tipo: row.tipo,
+    projetoId: row.projeto_id,
+    titulo: row.titulo,
+    data: row.data,
+    hora: row.hora ? String(row.hora).slice(0, 5) : '', // "14:00:00" -> "14:00"
+    prioridade: row.prioridade || 'normal',
+    descricao: row.descricao || '',
+    concluido: !!row.concluido
+  };
+}
+
+async function carregarCompromissosLocais() {
+  if (!supabase) { compromissosLocais = []; return; }
+  try {
+    const { data, error } = await supabase
+      .from('compromissos')
+      .select('*')
+      .order('data', { ascending: true });
+    if (error) throw error;
+    compromissosLocais = (data || []).map(compromissoDaLinha);
+  } catch (e) {
+    console.error('Erro ao carregar compromissos do Supabase:', e);
+    compromissosLocais = [];
+  }
+}
+
+function abrirNovoCompromissoLocal() {
+  const modal = document.getElementById('modal-compromisso-local');
+  if (!modal) return;
+  document.getElementById('mdcl-title').textContent = 'Novo compromisso';
+  document.getElementById('mdcl-subtitle').textContent = 'Registre uma tarefa pontual ou uma reunião';
+  document.getElementById('mdcl-id').value = '';
+  document.getElementById('mdcl-titulo').value = '';
+  const hoje = new Date();
+  document.getElementById('mdcl-data').value = hoje.toISOString().slice(0, 10);
+  document.getElementById('mdcl-hora').value = '';
+  document.getElementById('mdcl-prioridade').value = 'normal';
+  document.getElementById('mdcl-descricao').value = '';
+  setMdclTipo('projeto');
+  popularProjetosCompromissoLocal();
+  modal.style.display = 'flex';
+  requestAnimationFrame(() => modal.classList.add('open'));
+}
+function abrirEditarCompromissoLocal(id) {
+  const c = compromissosLocais.find(x => x.id === id);
+  if (!c) return;
+  const modal = document.getElementById('modal-compromisso-local');
+  document.getElementById('mdcl-title').textContent = 'Editar compromisso';
+  document.getElementById('mdcl-subtitle').textContent = 'Ajuste os detalhes do compromisso';
+  document.getElementById('mdcl-id').value = c.id;
+  document.getElementById('mdcl-titulo').value = c.titulo || '';
+  document.getElementById('mdcl-data').value = c.data || '';
+  document.getElementById('mdcl-hora').value = c.hora || '';
+  document.getElementById('mdcl-prioridade').value = c.prioridade || 'normal';
+  document.getElementById('mdcl-descricao').value = c.descricao || '';
+  setMdclTipo(c.tipo || 'projeto');
+  popularProjetosCompromissoLocal(c.projetoId);
+  modal.style.display = 'flex';
+  requestAnimationFrame(() => modal.classList.add('open'));
+}
+function fecharCompromissoLocal() {
+  const modal = document.getElementById('modal-compromisso-local');
+  if (!modal) return;
+  modal.classList.remove('open');
+  setTimeout(() => { modal.style.display = 'none'; }, 200);
+}
+function setMdclTipo(tipo) {
+  mdclEditingTipo = tipo;
+  document.querySelectorAll('#modal-compromisso-local .md-tipo-tab').forEach(el => {
+    el.classList.toggle('is-active', el.getAttribute('data-mdcl-tipo') === tipo);
+  });
+  const projField = document.getElementById('mdcl-projeto-field');
+  if (projField) projField.style.display = tipo === 'projeto' ? '' : 'none';
+}
+function popularProjetosCompromissoLocal(selecionadoId) {
+  const sel = document.getElementById('mdcl-projeto');
+  if (!sel) return;
+  if (!projetos || projetos.length === 0) {
+    sel.innerHTML = '<option value="">Nenhum projeto cadastrado</option>';
+    return;
+  }
+  const opts = projetos
+    .slice()
+    .sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
+    .map(p => `<option value="${p.id}" ${p.id === selecionadoId ? 'selected' : ''}>${p.codigo} · ${p.cliente}</option>`)
+    .join('');
+  sel.innerHTML = opts;
+}
+async function salvarCompromissoLocal() {
+  const id = document.getElementById('mdcl-id').value;
+  const titulo = document.getElementById('mdcl-titulo').value.trim();
+  const data = document.getElementById('mdcl-data').value;
+  const hora = document.getElementById('mdcl-hora').value;
+  const prioridade = document.getElementById('mdcl-prioridade').value;
+  const descricao = document.getElementById('mdcl-descricao').value.trim();
+  const projetoId = mdclEditingTipo === 'projeto' ? document.getElementById('mdcl-projeto').value : null;
+
+  if (!titulo) { showToast('Informe o título do compromisso.'); return; }
+  if (!data) { showToast('Informe a data.'); return; }
+  if (mdclEditingTipo === 'projeto' && !projetoId) { showToast('Selecione um projeto.'); return; }
+  if (!supabase) { showToast('Erro: Supabase não configurado.'); return; }
+
+  const payload = {
+    tipo: mdclEditingTipo,
+    projeto_id: projetoId,
+    titulo, data,
+    hora: hora || null,
+    prioridade,
+    descricao: descricao || null,
+    updated_at: new Date().toISOString()
+  };
+
+  const btn = document.querySelector('#mdcl-footer .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+
+  try {
+    if (id) {
+      const { data: row, error } = await supabase
+        .from('compromissos').update(payload).eq('id', id).select().single();
+      if (error) throw error;
+      const i = compromissosLocais.findIndex(x => x.id === id);
+      if (i >= 0) compromissosLocais[i] = compromissoDaLinha(row);
+      showToast('Compromisso atualizado.');
+    } else {
+      const { data: row, error } = await supabase
+        .from('compromissos').insert(payload).select().single();
+      if (error) throw error;
+      compromissosLocais.push(compromissoDaLinha(row));
+      showToast('Compromisso criado.');
+    }
+    fecharCompromissoLocal();
+    renderChao();
+  } catch (e) {
+    console.error('Erro ao salvar compromisso:', e);
+    showToast('Não foi possível salvar o compromisso.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Salvar'; }
+  }
+}
+
+async function alternarConclusaoCompromisso(id) {
+  const c = compromissosLocais.find(x => x.id === id);
+  if (!c || !supabase) return;
+
+  const novo = !c.concluido;
+  c.concluido = novo; // otimista
+  renderChao();
+
+  const { error } = await supabase.from('compromissos').update({
+    concluido: novo,
+    concluido_em: novo ? new Date().toISOString() : null,
+    updated_at: new Date().toISOString()
+  }).eq('id', id);
+
+  if (error) {
+    console.error('Erro ao atualizar compromisso:', error);
+    c.concluido = !novo;
+    renderChao();
+    showToast('Não foi possível atualizar o compromisso.');
+    return;
+  }
+  showToast(novo ? 'Compromisso concluído.' : 'Compromisso reaberto.');
+}
+
+async function excluirCompromissoLocal(id) {
+  const c = compromissosLocais.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Excluir o compromisso "${c.titulo}"?`)) return;
+  if (!supabase) { showToast('Erro: Supabase não configurado.'); return; }
+
+  const backup = compromissosLocais.slice();
+  compromissosLocais = compromissosLocais.filter(x => x.id !== id);
+  renderChao();
+
+  const { error } = await supabase.from('compromissos').delete().eq('id', id);
+  if (error) {
+    console.error('Erro ao excluir compromisso:', error);
+    compromissosLocais = backup;
+    renderChao();
+    showToast('Não foi possível excluir o compromisso.');
+    return;
+  }
+  showToast('Compromisso excluído.');
+}
+
+function setMdScope(scope) {
+  mdScope = scope;
+  document.querySelectorAll('.md-seg-btn').forEach(el => {
+    el.classList.toggle('is-active', el.getAttribute('data-md-scope') === scope);
+  });
+  renderChao();
+}
+
+/* Helpers de data */
+function _startOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+function _endOfDay(d) { const x = new Date(d); x.setHours(23,59,59,999); return x; }
+function _addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function _parseCompromissoDate(c) {
+  if (!c.data) return null;
+  const [y, m, d] = c.data.split('-').map(Number);
+  const dt = new Date(y, (m || 1) - 1, d || 1);
+  if (c.hora) {
+    const [hh, mm] = c.hora.split(':').map(Number);
+    dt.setHours(hh || 0, mm || 0, 0, 0);
+  }
+  return dt;
+}
+function _scopeRange() {
+  const now = new Date();
+  if (mdScope === 'hoje') return { ini: _startOfDay(now), fim: _endOfDay(now) };
+  if (mdScope === 'semana') {
+    const ini = _startOfDay(now);
+    const day = ini.getDay(); // 0=Dom
+    const diffToSunday = 6 - day; // até domingo
+    return { ini, fim: _endOfDay(_addDays(ini, diffToSunday)) };
+  }
+  return { ini: null, fim: null };
+}
+function _saudacaoPorHora() {
+  const h = new Date().getHours();
+  if (h < 6) return 'Boa madrugada, equipe.';
+  if (h < 12) return 'Bom dia, equipe.';
+  if (h < 18) return 'Boa tarde, equipe.';
+  return 'Boa noite, equipe.';
+}
+function _formatarDataExtenso(d) {
+  const s = d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function _diaHint(d) {
+  const hoje = _startOfDay(new Date());
+  const alvo = _startOfDay(d);
+  const diff = Math.round((alvo - hoje) / 86400000);
+  if (diff === 0) return 'HOJE';
+  if (diff === 1) return 'AMANHÃ';
+  if (diff === -1) return 'ONTEM';
+  if (diff < 0) return `${Math.abs(diff)}d atrás`;
+  if (diff < 7) return d.toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase().replace('.', '');
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+}
+
+/* ============================================================================
+   MEU DIA — render principal
+   ============================================================================ */
+function renderChao() {
+  const boardEl = document.getElementById('chao-grid');
+  if (!boardEl) return;
+
+  // 1) Header dinâmico
+  const greetEl = document.getElementById('md-greeting');
+  const dateEl = document.getElementById('md-date');
+  if (greetEl) greetEl.textContent = _saudacaoPorHora();
+  if (dateEl) dateEl.textContent = _formatarDataExtenso(new Date());
+
+  const { ini, fim } = _scopeRange();
+
+  // 2) FOCO AGORA — tarefas em progresso + próximas pendentes (do escopo)
+  const focoList = document.getElementById('md-foco-list');
+  const focoCount = document.getElementById('md-foco-count');
+  if (focoList) {
+    const emAndamento = projetos.flatMap(p => (p.tasks || [])
+      .filter(t => t.status === 'in_progress' && t.is_applicable !== false)
+      .map(t => ({ p, t })));
+
+    // sugestão de "próxima" tarefa por projeto: primeira pendente aplicável
+    const proximas = projetos.map(p => {
+      const jaTemAndamento = (p.tasks || []).some(t => t.status === 'in_progress' && t.is_applicable !== false);
+      if (jaTemAndamento) return null;
+      const proxima = (p.tasks || [])
+        .filter(t => t.status === 'pending' && t.is_applicable !== false)
+        .sort((a, b) => a.order - b.order)[0];
+      return proxima ? { p, t: proxima, isSuggestion: true } : null;
+    }).filter(Boolean);
+
+    const cards = [...emAndamento, ...proximas];
+    focoCount.textContent = String(emAndamento.length);
+
+    if (cards.length === 0) {
+      focoList.innerHTML = `<div class="md-foco-empty">Nada em andamento agora. Selecione uma etapa no fluxo para começar.</div>`;
+    } else {
+      focoList.innerHTML = cards.slice(0, 6).map(({ p, t, isSuggestion }) => {
+        const acao = isSuggestion
+          ? `<button class="btn btn-secondary" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${t.id}', 'in_progress')">Iniciar</button>`
+          : `<button class="btn btn-primary" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${t.id}', 'completed')">Concluir</button>`;
+        const borda = isSuggestion ? 'style="border-left-color: var(--ink-subtle);"' : '';
+        return `
+          <div class="md-foco-card" ${borda} onclick="abrirDetalheTarefa('${p.id}', '${t.id}')">
+            <div class="md-fc-cliente">${p.codigo} · ${p.cliente}</div>
+            <div class="md-fc-titulo">${t.name}</div>
+            <div class="md-fc-meta">${isSuggestion ? 'Próxima etapa sugerida' : 'Em andamento'} · ${p.progresso}% do projeto</div>
+            <div class="md-fc-actions">${acao}</div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 3) COMPROMISSOS
+  const compList = document.getElementById('md-compromissos-list');
+  if (compList) {
+    let visiveis = compromissosLocais.slice().sort((a, b) => {
+      const da = _parseCompromissoDate(a);
+      const db = _parseCompromissoDate(b);
+      if (!da || !db) return 0;
+      return da - db;
+    });
+    if (ini && fim) {
+      visiveis = visiveis.filter(c => {
+        const d = _parseCompromissoDate(c);
+        if (!d) return false;
+        return d >= ini && d <= fim;
+      });
+    }
+
+    if (visiveis.length === 0) {
+      compList.innerHTML = `<div class="md-comp-empty">Nenhum compromisso ${mdScope === 'hoje' ? 'para hoje' : mdScope === 'semana' ? 'esta semana' : 'cadastrado'}.<br><button class="md-link-btn" style="margin-top:8px;" onclick="abrirNovoCompromissoLocal()">+ Adicionar</button></div>`;
+    } else {
+      const now = new Date();
+      compList.innerHTML = visiveis.map(c => {
+        const d = _parseCompromissoDate(c);
+        const isLate = !c.concluido && d && d < now;
+        const hora = c.hora || '—';
+        const hint = d ? _diaHint(d) : '';
+        const projeto = c.tipo === 'projeto' && c.projetoId ? projetos.find(p => p.id === c.projetoId) : null;
+        const tags = [
+          c.tipo === 'projeto' && projeto ? `<span class="md-comp-tag is-projeto">${projeto.codigo}</span>` : '',
+          c.tipo === 'interno' ? `<span class="md-comp-tag is-interno">Interno</span>` : '',
+          c.prioridade === 'alta' ? `<span class="md-comp-tag is-alta">Alta</span>` : '',
+        ].filter(Boolean).join('');
+
+        return `
+          <div class="md-comp-item ${c.concluido ? 'is-done' : ''} ${isLate ? 'is-late' : ''}">
+            <div class="md-comp-hora">
+              ${hora}
+              <span class="md-comp-diahint">${hint}</span>
+            </div>
+            <div class="md-comp-body" onclick="abrirEditarCompromissoLocal('${c.id}')" style="cursor:pointer;">
+              <div class="md-comp-titulo">${c.titulo}</div>
+              ${c.descricao ? `<div style="font-size:0.8125rem; color:var(--ink-muted); margin-top:2px;">${c.descricao}</div>` : ''}
+              ${tags ? `<div class="md-comp-tags">${tags}</div>` : ''}
+            </div>
+            <div class="md-comp-actions">
+              <button class="md-comp-icon-btn is-check" title="${c.concluido ? 'Reabrir' : 'Concluir'}" onclick="alternarConclusaoCompromisso('${c.id}')">${c.concluido ? '↺' : '✓'}</button>
+              <button class="md-comp-icon-btn is-del" title="Excluir" onclick="excluirCompromissoLocal('${c.id}')">×</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 4) BOARD — só colunas com tarefas por padrão
+  boardEl.classList.add('chao-board');
+  const showEmpty = document.getElementById('md-toggle-empty')?.checked || false;
 
   const etapasNomes = [...new Map(
     projetos.flatMap(projeto => projeto.tasks || [])
@@ -6611,30 +8210,43 @@ function renderChao() {
   ).values()];
 
   if (etapasNomes.length === 0) {
-    container.innerHTML = `<div style="padding:var(--sp-6); color:var(--ink-muted);">Nenhuma tarefa operacional disponível no Supabase.</div>`;
+    boardEl.innerHTML = `<div style="padding:var(--sp-6); color:var(--ink-muted);">Nenhuma tarefa operacional disponível.</div>`;
+    document.getElementById('md-board-hint').textContent = '';
     return;
   }
 
-  let columnsHtml = etapasNomes.map((etapaNome, index) => {
+  let etapasComContagem = etapasNomes.map((etapaNome, index) => {
     const tarefasNaEtapa = projetos.flatMap(p => (p.tasks || [])
       .filter(task => task.name === etapaNome && task.is_applicable !== false && task.status !== 'completed' && task.status !== 'not_applicable')
       .map(task => ({ p, task })));
+    return { etapaNome, index, tarefasNaEtapa };
+  });
 
+  const totalAtivas = etapasComContagem.filter(e => e.tarefasNaEtapa.length > 0).length;
+  document.getElementById('md-board-hint').textContent = `${totalAtivas} etapa${totalAtivas === 1 ? '' : 's'} ativa${totalAtivas === 1 ? '' : 's'}`;
+
+  if (!showEmpty) {
+    etapasComContagem = etapasComContagem.filter(e => e.tarefasNaEtapa.length > 0);
+  }
+
+  if (etapasComContagem.length === 0) {
+    boardEl.innerHTML = `<div style="padding:var(--sp-6); color:var(--ink-muted); text-align:center; width:100%;">Nenhuma etapa ativa no momento. Marque a caixa acima para ver as etapas vazias.</div>`;
+    return;
+  }
+
+  const columnsHtml = etapasComContagem.map(({ etapaNome, index, tarefasNaEtapa }) => {
     const cardsHtml = tarefasNaEtapa.map(({ p, task: activeTask }) => {
       const isPending = activeTask.status === 'pending';
       const isInProgress = activeTask.status === 'in_progress';
-
       let actionButton = '';
       if (isPending) {
         actionButton = `<button class="btn btn-secondary chao-action" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${activeTask.id}', 'in_progress')">Iniciar</button>`;
       } else if (isInProgress) {
         actionButton = `<button class="btn btn-primary chao-action" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${activeTask.id}', 'completed')">Concluir</button>`;
       }
-
       const moverOptions = p.tasks.filter(task => task.is_applicable !== false && task.status !== 'completed').map(task =>
         `<option value="${task.id}" ${task.id === activeTask.id ? 'selected' : ''}>${task.order}. ${task.name}</option>`
       ).join('');
-
       return `
         <div class="chao-etapa" onclick="abrirDetalheTarefa('${p.id}', '${activeTask.id}')">
           <div class="projeto-nome">${p.cliente}</div>
@@ -6648,7 +8260,6 @@ function renderChao() {
         </div>
       `;
     }).join('');
-
     const count = tarefasNaEtapa.length;
     return `
       <div class="chao-column">
@@ -6663,7 +8274,7 @@ function renderChao() {
     `;
   }).join('');
 
-  container.innerHTML = columnsHtml;
+  boardEl.innerHTML = columnsHtml;
 }
 
 /* ============================================================================
@@ -6676,8 +8287,8 @@ const viewLabels = {
   'projetos': 'Projetos',
   'projeto-detalhe': 'Detalhe do Projeto',
   'agenda': 'Agenda',
-  'custos': 'Custos',
-  'chao': 'Chão de Fábrica'
+  'custos': 'Financeiro',
+  'chao': 'Meu Dia'
 };
 let viewHistory = [];
 let currentView = 'painel';
@@ -6701,7 +8312,7 @@ function switchView(name, opts = {}) {
   // Auto-switch mode for chao
   if (name === 'chao') {
     document.body.setAttribute('data-mode', 'chao');
-    document.getElementById('mode-label').textContent = 'Chão de fábrica';
+    document.getElementById('mode-label').textContent = 'Meu Dia';
   } else {
     document.body.removeAttribute('data-mode');
     document.getElementById('mode-label').textContent = 'Gestor';
@@ -6774,6 +8385,14 @@ function closeDrawer() {
   sidebar.classList.remove('open');
   backdrop.classList.remove('open');
   document.body.style.overflow = '';
+}
+
+/* Logotipo → painel inicial. Zera o histórico: a home é a raiz, não um passo atrás. */
+function irParaInicio() {
+  viewHistory = [];
+  switchView('painel', { skipHistory: true });
+  try { history.replaceState({ view: 'painel' }, '', '#painel'); } catch (e) { /* file:// */ }
+  updateBackButton();
 }
 
 function toggleMode() {
@@ -7463,6 +9082,7 @@ function updateRelogio() {
   if (el) el.textContent = `${h}:${m}`;
 }
 updateRelogio();
+setInterval(updateRelogio, 30000);
 /* ============================================================================
    WELCOME SCREEN — Mensagens baseadas no horário
    ============================================================================ */
@@ -7492,7 +9112,8 @@ function inicializarWelcome() {
 }
 function fecharWelcome() { localStorage.setItem('alpha-welcome-date', new Date().toDateString()); document.getElementById('welcome-overlay').classList.remove('visible'); }
 
-/* Init */
+/* Init — custos e compromissos chegam pelo initSupabase, que os carrega
+   depois dos projetos e re-renderiza. Aqui só o primeiro paint. */
 renderProjetosLista();
 renderAmbientes();
 renderCustosView();

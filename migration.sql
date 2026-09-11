@@ -161,3 +161,68 @@ DO $$ BEGIN
         FOR DELETE USING (true);
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
+
+-- ============================================================================
+-- FINANCEIRO E COMPROMISSOS (set/2026)
+-- Tira a aba Financeiro e o Meu Dia do localStorage: passam a sincronizar.
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS public.custos (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    projeto_id uuid NOT NULL REFERENCES public.projetos(id) ON DELETE CASCADE,
+    camada text NOT NULL CHECK (camada IN ('materiais','mao-obra','indiretos','retrabalho')),
+    item text NOT NULL,
+    valor numeric NOT NULL DEFAULT 0 CHECK (valor >= 0),
+    data date NOT NULL,
+    ambiente text,
+    origem text,
+    descricao text,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now())
+);
+
+CREATE INDEX IF NOT EXISTS custos_projeto_id_idx ON public.custos (projeto_id);
+CREATE INDEX IF NOT EXISTS custos_camada_idx ON public.custos (camada);
+CREATE INDEX IF NOT EXISTS custos_data_idx ON public.custos (data DESC);
+
+-- projeto_id nulo = compromisso interno da empresa
+CREATE TABLE IF NOT EXISTS public.compromissos (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    projeto_id uuid REFERENCES public.projetos(id) ON DELETE CASCADE,
+    tipo text NOT NULL DEFAULT 'projeto' CHECK (tipo IN ('projeto','interno')),
+    titulo text NOT NULL,
+    data date NOT NULL,
+    hora time,
+    prioridade text NOT NULL DEFAULT 'normal' CHECK (prioridade IN ('baixa','normal','alta')),
+    descricao text,
+    concluido boolean NOT NULL DEFAULT false,
+    concluido_em timestamp with time zone,
+    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+    CONSTRAINT compromissos_tipo_projeto_chk CHECK (
+        (tipo = 'projeto' AND projeto_id IS NOT NULL) OR
+        (tipo = 'interno' AND projeto_id IS NULL)
+    )
+);
+
+CREATE INDEX IF NOT EXISTS compromissos_projeto_id_idx ON public.compromissos (projeto_id);
+CREATE INDEX IF NOT EXISTS compromissos_data_idx ON public.compromissos (data);
+
+ALTER TABLE public.custos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.compromissos ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+    CREATE POLICY "Permitir leitura publica" ON public.custos FOR SELECT USING (true);
+    CREATE POLICY "Permitir insercao publica" ON public.custos FOR INSERT WITH CHECK (true);
+    CREATE POLICY "Permitir alteracao publica" ON public.custos FOR UPDATE USING (true);
+    CREATE POLICY "Permitir exclusao publica" ON public.custos FOR DELETE USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Permitir leitura publica" ON public.compromissos FOR SELECT USING (true);
+    CREATE POLICY "Permitir insercao publica" ON public.compromissos FOR INSERT WITH CHECK (true);
+    CREATE POLICY "Permitir alteracao publica" ON public.compromissos FOR UPDATE USING (true);
+    CREATE POLICY "Permitir exclusao publica" ON public.compromissos FOR DELETE USING (true);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
