@@ -1356,6 +1356,13 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   margin-bottom: var(--sp-5);
   padding-bottom: var(--sp-5);
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.md-header-left { flex: 1 1 260px; }
+.md-header-right {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sp-3);
 }
 .md-header-left { min-width: 0; }
 .md-header-left .t-micro { margin-bottom: var(--sp-2); }
@@ -1389,6 +1396,33 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   line-height: 1;
 }
 .md-cta { white-space: nowrap; padding: var(--sp-3) var(--sp-5); font-weight: 600; }
+.md-cta-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+/* Toggle do wizard — semear ou não as 23 etapas ao criar projeto. */
+.wizard-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 160ms var(--ease);
+}
+.wizard-toggle:hover { border-color: var(--border-strong); }
+.wizard-toggle input {
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+.wizard-toggle span { display: flex; flex-direction: column; gap: 2px; }
+.wizard-toggle strong { font-weight: 600; color: var(--ink); }
+.wizard-toggle small { font-size: 0.8125rem; color: var(--ink-muted); line-height: 1.4; }
 
 /* Filtros */
 .md-filters {
@@ -1607,6 +1641,41 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
 .md-comp-icon-btn.is-check:hover { color: var(--status-liberado); }
 .md-comp-icon-btn.is-del:hover { color: var(--status-atrasado); }
 
+/* Etapas internas — trabalho interno da empresa, sem projeto */
+.md-avulsas { display: flex; flex-direction: column; gap: var(--sp-2); }
+.md-avulsa-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color 120ms var(--ease);
+}
+.md-avulsa-item.is-in-progress { border-left: 3px solid var(--status-em-andamento); }
+.md-avulsa-item:hover { border-color: var(--brand); }
+.md-avulsa-body { flex: 1; min-width: 0; }
+.md-avulsa-titulo {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.md-avulsa-meta {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+.md-avulsa-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  flex-shrink: 0;
+}
+
 /* Modal compromisso local */
 #modal-compromisso-local .modal { max-width: 520px; }
 .md-tipo-tabs {
@@ -1640,7 +1709,8 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   .md-header { flex-direction: column; }
   .md-titulo { font-size: 1.875rem; }
   .md-clock { font-size: 2rem; }
-  .md-cta { width: 100%; }
+  .md-cta { flex: 1; min-width: 0; }
+  .md-cta-group { width: 100%; }
   .md-header-right { width: 100%; justify-content: space-between; }
 }
 
@@ -4070,6 +4140,14 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
           </div>
         </div>
 
+        <label class="wizard-toggle">
+          <input type="checkbox" id="usar-etapas-padrao">
+          <span>
+            <strong>Já criar as 23 etapas padrão de produção</strong>
+            <small>Do catálogo interno — projeto, medição, corte, montagem, entrega. Deixe desmarcado para cadastrar cada etapa à mão, quando for a hora.</small>
+          </span>
+        </label>
+
         <div class="wizard-nav">
           <button class="btn btn-secondary" onclick="wizardBack(3)">← Voltar</button>
           <button id="btn-cadastrar-projeto" class="btn btn-primary" onclick="salvarProjeto()">Cadastrar projeto</button>
@@ -4147,9 +4225,14 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
           </div>
           <div class="md-header-right">
             <div class="md-clock" id="relogio">--:--</div>
-            <button class="btn btn-primary md-cta" onclick="abrirNovoCompromissoLocal()">
-              <span aria-hidden="true">+</span> Novo compromisso
-            </button>
+            <div class="md-cta-group">
+              <button class="btn btn-secondary md-cta" onclick="abrirNovaEtapa(null)">
+                <span aria-hidden="true">+</span> Nova etapa
+              </button>
+              <button class="btn btn-primary md-cta" onclick="abrirNovoCompromissoLocal()">
+                <span aria-hidden="true">+</span> Novo compromisso
+              </button>
+            </div>
           </div>
         </header>
 
@@ -4182,6 +4265,14 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
                 <button class="md-link-btn" onclick="abrirNovoCompromissoLocal()">+ Novo</button>
               </div>
               <div class="md-compromissos" id="md-compromissos-list"></div>
+            </section>
+
+            <section class="md-block" id="md-avulsas-block" hidden>
+              <div class="md-block-head">
+                <h2 class="md-block-title">Etapas internas</h2>
+                <button class="md-link-btn" onclick="abrirNovaEtapa(null)">+ Nova</button>
+              </div>
+              <div class="md-avulsas" id="md-avulsas-list"></div>
             </section>
           </aside>
 
@@ -4391,6 +4482,62 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
     </div>
     <div class="modal-footer" id="modal-compromisso-footer">
       <!-- Botões dinâmicos com base no modo -->
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nova Etapa / Tarefa de Produção -->
+<div class="modal-backdrop" id="modal-etapa" style="display:none;">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="etapa-modal-title">
+    <div class="modal-header">
+      <div>
+        <h3 id="etapa-modal-title">Nova etapa</h3>
+        <p id="etapa-modal-subtitle">Cadastre uma etapa manualmente</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <form id="form-etapa" onsubmit="event.preventDefault(); salvarEtapa();">
+        <input type="hidden" id="etapa-id">
+        <div class="modal-form-grid" style="display:grid; gap: var(--sp-4);">
+
+          <div class="modal-field" id="etapa-projeto-field">
+            <label for="etapa-projeto" class="field-label">Projeto</label>
+            <select id="etapa-projeto" class="select">
+              <option value="">Etapa interna — sem projeto</option>
+            </select>
+          </div>
+
+          <div class="modal-field">
+            <label for="etapa-nome" class="field-label">Nome *</label>
+            <input type="text" id="etapa-nome" required placeholder="Ex: Corte de chapa, montagem do módulo…" list="etapa-sugestoes">
+            <datalist id="etapa-sugestoes"></datalist>
+          </div>
+
+          <div class="modal-form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap: var(--sp-3);">
+            <div class="modal-field">
+              <label for="etapa-categoria" class="field-label">Categoria</label>
+              <input type="text" id="etapa-categoria" placeholder="Ex: Produção, Instalação">
+            </div>
+            <div class="modal-field">
+              <label for="etapa-status-inicial" class="field-label">Iniciar como</label>
+              <select id="etapa-status-inicial" class="select">
+                <option value="pending">Pendente</option>
+                <option value="in_progress">Em andamento</option>
+                <option value="completed">Concluída</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-field">
+            <label for="etapa-notas" class="field-label">Observações</label>
+            <textarea id="etapa-notas" rows="2" placeholder="Detalhes opcionais"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer" id="etapa-modal-footer">
+      <button class="btn btn-ghost" type="button" onclick="fecharModalEtapa()">Cancelar</button>
+      <button class="btn btn-primary" type="button" onclick="salvarEtapa()">Salvar etapa</button>
     </div>
   </div>
 </div>
@@ -4685,7 +4832,7 @@ function initSupabase() {
     configurarRealtimeProducao();
     // Projetos primeiro: custos e compromissos referenciam projeto por id.
     carregarProjetosDoBanco().then(async () => {
-      await Promise.all([carregarCustos(), carregarCompromissosLocais()]);
+      await Promise.all([carregarCustos(), carregarCompromissosLocais(), carregarEtapasAvulsas()]);
       renderCustosView();
       renderChao();
     });
@@ -4903,32 +5050,243 @@ function atualizarContadorProjetos() {
   }
 }
 
-async function garantirTarefasProjeto(projectId) {
-  if (!supabase || !projectId) return [];
+/* ============================================================================
+   ETAPAS MANUAIS — CRUD
+   Uma etapa pode ser criada a qualquer momento: no wizard (usar padrão),
+   no detalhe do projeto (adicionar à mão), ou avulsa (sem projeto).
+   ============================================================================ */
 
-  // A função é idempotente: abrir/recarregar/editar um projeto nunca cria cópias.
-  const { data: existing, error: readError } = await supabase
+/* Cache do catálogo — vira sugestão no datalist. */
+let etapaCatalogoCache = null;
+async function carregarCatalogoEtapas() {
+  if (etapaCatalogoCache) return etapaCatalogoCache;
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from('production_templates')
+    .select('stage_key, name, category, "order"')
+    .order('order', { ascending: true });
+  if (error) { console.warn('Catálogo de etapas indisponível:', error); return []; }
+  etapaCatalogoCache = data || [];
+  return etapaCatalogoCache;
+}
+
+/* Etapas avulsas — production_tasks com project_id nulo.
+   Vivem separadas dos projetos e aparecem no Meu Dia como "Internas". */
+let etapasAvulsas = [];
+async function carregarEtapasAvulsas() {
+  if (!supabase) { etapasAvulsas = []; return; }
+  const { data, error } = await supabase
     .from('production_tasks')
     .select('*')
-    .eq('project_id', projectId)
-    .order('order', { ascending: true });
+    .is('project_id', null)
+    .order('created_at', { ascending: true });
+  if (error) { console.warn('Erro ao carregar etapas avulsas:', error); etapasAvulsas = []; return; }
+  etapasAvulsas = data || [];
+}
 
-  if (!readError && existing && existing.length > 0) return existing;
-  if (readError) console.warn('Não foi possível consultar tarefas existentes:', readError);
+async function alterarStatusEtapaAvulsa(taskId, novoStatus) {
+  if (!supabase) return;
+  const t = etapasAvulsas.find(x => x.id === taskId);
+  if (!t) return;
+
+  const backup = { ...t };
+  const now = new Date().toISOString();
+  t.status = novoStatus;
+  if (novoStatus === 'in_progress') t.started_at = t.started_at || now;
+  if (novoStatus === 'completed') t.completed_at = now;
+  renderChao();
+
+  const { error } = await supabase
+    .from('production_tasks')
+    .update({ status: novoStatus, started_at: t.started_at, completed_at: t.completed_at, updated_at: now })
+    .eq('id', taskId);
+
+  if (error) {
+    console.error('Erro ao mover etapa avulsa:', error);
+    Object.assign(t, backup);
+    renderChao();
+    showToast('Não foi possível atualizar a etapa.');
+    return;
+  }
+  showToast(novoStatus === 'completed' ? 'Etapa concluída.' : 'Etapa iniciada.');
+}
+
+async function excluirEtapaAvulsa(taskId) {
+  const t = etapasAvulsas.find(x => x.id === taskId);
+  if (!t) return;
+  if (!confirm(`Excluir a etapa "${t.name}"?`)) return;
+
+  const backup = etapasAvulsas.slice();
+  etapasAvulsas = etapasAvulsas.filter(x => x.id !== taskId);
+  renderChao();
+
+  const { error } = await supabase.from('production_tasks').delete().eq('id', taskId);
+  if (error) {
+    console.error('Erro ao excluir etapa avulsa:', error);
+    etapasAvulsas = backup;
+    renderChao();
+    showToast('Não foi possível excluir a etapa.');
+    return;
+  }
+  showToast('Etapa excluída.');
+}
+
+async function abrirNovaEtapa(projetoId = null) {
+  const modal = document.getElementById('modal-etapa');
+  if (!modal) return;
+
+  document.getElementById('etapa-modal-title').textContent = 'Nova etapa';
+  document.getElementById('etapa-modal-subtitle').textContent = 'Cadastre uma etapa manualmente';
+  document.getElementById('etapa-id').value = '';
+  document.getElementById('etapa-nome').value = '';
+  document.getElementById('etapa-categoria').value = '';
+  document.getElementById('etapa-status-inicial').value = 'pending';
+  document.getElementById('etapa-notas').value = '';
+
+  // Seletor de projeto: vazio = etapa interna sem vínculo.
+  const sel = document.getElementById('etapa-projeto');
+  sel.innerHTML = '<option value="">Etapa interna — sem projeto</option>' + projetos
+    .slice()
+    .sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
+    .map(p => `<option value="${p.id}" ${p.id === projetoId ? 'selected' : ''}>${p.codigo} · ${p.cliente}</option>`)
+    .join('');
+
+  // Sugestões do catálogo — usar/não usar fica a critério do gestor.
+  const dl = document.getElementById('etapa-sugestoes');
+  const catalogo = await carregarCatalogoEtapas();
+  dl.innerHTML = catalogo.map(t => `<option value="${t.name}">${t.category || ''}</option>`).join('');
+
+  modal.style.display = 'flex';
+  requestAnimationFrame(() => modal.classList.add('open'));
+  setTimeout(() => document.getElementById('etapa-nome').focus(), 120);
+}
+
+function fecharModalEtapa() {
+  const m = document.getElementById('modal-etapa');
+  if (!m) return;
+  m.classList.remove('open');
+  setTimeout(() => { m.style.display = 'none'; }, 200);
+}
+
+async function salvarEtapa() {
+  if (!supabase) { showToast('Erro: Supabase não configurado.'); return; }
+
+  const projetoId = document.getElementById('etapa-projeto').value || null;
+  const nome = document.getElementById('etapa-nome').value.trim();
+  const categoria = document.getElementById('etapa-categoria').value.trim() || null;
+  const statusInicial = document.getElementById('etapa-status-inicial').value;
+  const notas = document.getElementById('etapa-notas').value.trim() || null;
+
+  if (!nome) { showToast('Informe o nome da etapa.'); return; }
+
+  // Ordem: se vinculada a projeto, cai no final do pipeline dele; se avulsa, nula.
+  let ordem = null;
+  if (projetoId) {
+    const proj = projetos.find(p => p.id === projetoId);
+    const maxOrder = (proj?.tasks || []).reduce((acc, t) => Math.max(acc, t.order || 0), 0);
+    ordem = maxOrder + 1;
+  }
+
+  // Tenta casar com o catálogo para reaproveitar stage_key/template.
+  const catalogo = await carregarCatalogoEtapas();
+  const match = catalogo.find(t => t.name.toLowerCase() === nome.toLowerCase());
+
+  const payload = {
+    project_id: projetoId,
+    name: nome,
+    category: categoria || match?.category || null,
+    stage_key: match?.stage_key || null,
+    order: ordem,
+    is_applicable: true,
+    status: statusInicial,
+    notes: notas,
+    started_at: statusInicial === 'in_progress' ? new Date().toISOString() : null,
+    completed_at: statusInicial === 'completed' ? new Date().toISOString() : null,
+    updated_at: new Date().toISOString()
+  };
+
+  const btn = document.querySelector('#etapa-modal-footer .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+
+  try {
+    const { data: row, error } = await supabase.from('production_tasks').insert(payload).select().single();
+    if (error) throw error;
+
+    if (projetoId) {
+      const proj = projetos.find(p => p.id === projetoId);
+      if (proj) {
+        proj.tasks = proj.tasks || [];
+        proj.tasks.push(row);
+        atualizarProgressoEStatusLocal(proj);
+        await salvarProgressoEStatusNoBanco(proj);
+      }
+    } else {
+      etapasAvulsas.push(row);
+    }
+
+    showToast('Etapa cadastrada.');
+    fecharModalEtapa();
+
+    // Rerender do que precisa saber:
+    const prodContainer = document.getElementById('producao-acompanhamento');
+    if (prodContainer && projetoId) {
+      const proj = projetos.find(p => p.id === projetoId);
+      if (proj) renderAcompanhamentoProducao(proj, prodContainer);
+    }
+    renderProjetosLista();
+    renderDashboard();
+    renderChao();
+  } catch (e) {
+    console.error('Erro ao salvar etapa:', e);
+    showToast('Não foi possível salvar a etapa.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Salvar etapa'; }
+  }
+}
+
+/* Pede confirmação e semeia todas as 23 etapas padrão num projeto que ainda
+   não tem nenhuma. Chamado pelo botão do estado vazio da produção. */
+async function pedirSemearPadrao(projetoId) {
+  const proj = projetos.find(p => p.id === projetoId);
+  if (!proj) return;
+  if ((proj.tasks || []).length > 0) {
+    showToast('Este projeto já tem etapas cadastradas.');
+    return;
+  }
+  if (!confirm(`Criar as 23 etapas padrão de produção em "${proj.cliente}"?`)) return;
+
+  const semeadas = await semearEtapasPadrao(proj.id);
+  if (semeadas.length === 0) { showToast('Não foi possível criar as etapas padrão.'); return; }
+
+  proj.tasks = semeadas;
+  atualizarProgressoEStatusLocal(proj);
+  await salvarProgressoEStatusNoBanco(proj);
+
+  const container = document.getElementById('producao-acompanhamento');
+  if (container) renderAcompanhamentoProducao(proj, container);
+  renderProjetosLista();
+  renderDashboard();
+  renderChao();
+  showToast(`${semeadas.length} etapas padrão criadas.`);
+}
+
+/* Semeia todas as etapas do catálogo (production_templates) num projeto.
+   NÃO roda mais automaticamente — só quando o usuário pedir "usar padrão". */
+async function semearEtapasPadrao(projectId) {
+  if (!supabase || !projectId) return [];
 
   const { data: templates, error: templateError } = await supabase
     .from('production_templates')
     .select('id, stage_key, name, category, "order", depends_on_order')
     .order('order', { ascending: true });
-  if (templateError) {
+  if (templateError || !templates || templates.length === 0) {
     console.error('Template de produção não disponível:', templateError);
     return [];
   }
-  const templateIds = Object.fromEntries((templates || []).map(template => [template.stage_key, template.id]));
 
-  const tasksToInsert = (templates || []).map(etapa => ({
+  const tasksToInsert = templates.map(etapa => ({
     project_id: projectId,
-    template_id: templateIds[etapa.stage_key] || null,
+    template_id: etapa.id,
     name: etapa.name,
     stage_key: etapa.stage_key,
     category: etapa.category,
@@ -4938,23 +5296,9 @@ async function garantirTarefasProjeto(projectId) {
     status: 'pending'
   }));
 
-  const { data, error } = await supabase
-    .from('production_tasks')
-    .insert(tasksToInsert)
-    .select();
-
-  if (!error) return data || [];
-
-  // Outra sessão pode ter criado as tarefas entre o SELECT e o INSERT.
-  const { data: afterRace } = await supabase
-    .from('production_tasks')
-    .select('*')
-    .eq('project_id', projectId)
-    .order('order', { ascending: true });
-  if (afterRace && afterRace.length > 0) return afterRace;
-
-  console.error('Erro ao auto-criar tarefas operacionais:', error);
-  return [];
+  const { data, error } = await supabase.from('production_tasks').insert(tasksToInsert).select();
+  if (error) { console.error('Erro ao semear etapas padrão:', error); return []; }
+  return data || [];
 }
 
 function atualizarProgressoEStatusLocal(p) {
@@ -5048,16 +5392,8 @@ async function carregarProjetosDoBanco() {
       console.warn('Erro ao carregar production_tasks:', eTasks);
     }
 
-    // Projetos antigos também recebem o fluxo padrão, uma única vez, no banco.
-    if (!eTasks) {
-      const idsSemTarefas = dbProjetos
-        .filter(p => !(dbTasks || []).some(t => t.project_id === p.id))
-        .map(p => p.id);
-      if (idsSemTarefas.length > 0) {
-        const tarefasGarantidas = await Promise.all(idsSemTarefas.map(id => garantirTarefasProjeto(id)));
-        dbTasks = [...(dbTasks || []), ...tarefasGarantidas.flat()];
-      }
-    }
+    // Projetos passam a começar sem etapas — o gestor cadastra manualmente
+    // conforme a obra evolui, ou usa "semear etapas padrão" quando for útil.
 
     projetos = dbProjetos.map(p => {
       const cli = dbClientes.find(c => c.id === p.cliente_id) || {};
@@ -6058,14 +6394,11 @@ async function salvarProjetoNoBancoCompleto(payload) {
     }
   }
 
-  // E. Garantir as tarefas operacionais iniciais (operação idempotente)
-  const tarefasCriadas = await garantirTarefasProjeto(prj.id);
-
-  if (!tarefasCriadas || tarefasCriadas.length === 0) {
-    // Rollback para garantir consistência
-    await supabase.from('projetos').delete().eq('id', prj.id);
-    await supabase.from('clientes').delete().eq('id', cliente.id);
-    return { error: { message: 'Falha ao criar tarefas operacionais de produção.' } };
+  // E. Se o gestor pediu "usar padrão" no wizard, semeia todas as etapas.
+  //    Caso contrário o projeto nasce sem etapas — cada uma é cadastrada à mão.
+  const usarPadrao = !!document.getElementById('usar-etapas-padrao')?.checked;
+  if (usarPadrao) {
+    await semearEtapasPadrao(prj.id);
   }
 
   return { data: prj };
@@ -6939,8 +7272,26 @@ window.addEventListener('load', () => {
 
 function renderAcompanhamentoProducao(projeto, container) {
   if (!container) return;
+
+  // Sem etapas ainda: convite a cadastrar. Duas opções — manual (o padrão
+  // agora) ou semear as 23 do catálogo se a obra segue o pipeline completo.
   if (!projeto.tasks || projeto.tasks.length === 0) {
-    container.innerHTML = `<div class="card" style="padding: var(--sp-4); color: var(--ink-muted);">Nenhuma tarefa de acompanhamento disponível.</div>`;
+    container.innerHTML = `
+      <div class="card production-card">
+        <div class="production-header">
+          <div class="production-heading">
+            <h3 class="t-h3">Acompanhamento da Produção</h3>
+            <p class="t-small">Nenhuma etapa cadastrada ainda</p>
+          </div>
+        </div>
+        <div style="padding: var(--sp-5) var(--sp-2); text-align: center; color: var(--ink-muted);">
+          <p style="margin-bottom: var(--sp-4);">Este projeto começa sem etapas — cadastre cada uma à mão conforme a produção evolui.</p>
+          <div style="display: inline-flex; gap: var(--sp-2); flex-wrap: wrap; justify-content: center;">
+            <button class="btn btn-primary" onclick="abrirNovaEtapa('${projeto.id}')">+ Nova etapa</button>
+            <button class="btn btn-ghost" onclick="pedirSemearPadrao('${projeto.id}')">Usar as 23 etapas padrão</button>
+          </div>
+        </div>
+      </div>`;
     return;
   }
 
@@ -6957,7 +7308,7 @@ function renderAcompanhamentoProducao(projeto, container) {
     statusLabel = 'Concluído';
     statusColor = 'var(--status-liberado)';
   } else if (projeto.status === 'producao') {
-    statusLabel = `Em produção · ${projeto.etapaAtual || 'Corte CNC'}`;
+    statusLabel = `Em produção · ${projeto.etapaAtual || 'Etapa atual'}`;
     statusColor = 'var(--status-em-andamento)';
   } else if (projeto.status === 'ativo') {
     statusLabel = `Pendente · ${projeto.etapaAtual || 'Conferência'}`;
@@ -7037,9 +7388,12 @@ function renderAcompanhamentoProducao(projeto, container) {
       <div class="production-header">
         <div class="production-heading">
           <h3 class="t-h3">Acompanhamento da Produção</h3>
-          <p class="t-small">Etapas operacionais integradas com o Chão de Fábrica</p>
+          <p class="t-small">Etapas operacionais integradas com o Meu Dia</p>
         </div>
-        <span class="production-status" style="color:${statusColor}; background:color-mix(in oklch,${statusColor} 12%,var(--surface));">${statusLabel}</span>
+        <div style="display:flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap;">
+          <span class="production-status" style="color:${statusColor}; background:color-mix(in oklch,${statusColor} 12%,var(--surface));">${statusLabel}</span>
+          <button class="btn btn-secondary" style="font-size:0.75rem; padding: 6px 12px;" onclick="abrirNovaEtapa('${projeto.id}')">+ Nova etapa</button>
+        </div>
       </div>
 
       <div class="production-summary">
@@ -8196,6 +8550,32 @@ function renderChao() {
         `;
       }).join('');
     }
+  }
+
+  // 3.5) ETAPAS AVULSAS — trabalho interno da empresa, fora do pipeline de projeto
+  const avulsasBlock = document.getElementById('md-avulsas-block');
+  const avulsasList = document.getElementById('md-avulsas-list');
+  if (avulsasBlock && avulsasList) {
+    const pendentes = etapasAvulsas.filter(t => t.status !== 'completed');
+    avulsasBlock.hidden = pendentes.length === 0;
+    avulsasList.innerHTML = pendentes.map(t => {
+      const isInProgress = t.status === 'in_progress';
+      const acao = isInProgress
+        ? `<button class="btn btn-primary" style="font-size:0.75rem; padding: 6px 10px;" onclick="alterarStatusEtapaAvulsa('${t.id}', 'completed')">Concluir</button>`
+        : `<button class="btn btn-secondary" style="font-size:0.75rem; padding: 6px 10px;" onclick="alterarStatusEtapaAvulsa('${t.id}', 'in_progress')">Iniciar</button>`;
+      return `
+        <div class="md-avulsa-item ${isInProgress ? 'is-in-progress' : ''}">
+          <div class="md-avulsa-body">
+            <div class="md-avulsa-titulo">${t.name}</div>
+            ${t.category ? `<div class="md-avulsa-meta">${t.category}</div>` : ''}
+            ${t.notes ? `<div class="md-avulsa-meta">${t.notes}</div>` : ''}
+          </div>
+          <div class="md-avulsa-actions">
+            ${acao}
+            <button class="md-comp-icon-btn is-del" title="Excluir" onclick="excluirEtapaAvulsa('${t.id}')">×</button>
+          </div>
+        </div>`;
+    }).join('');
   }
 
   // 4) BOARD — só colunas com tarefas por padrão

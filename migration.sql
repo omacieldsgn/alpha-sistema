@@ -226,3 +226,25 @@ DO $$ BEGIN
     CREATE POLICY "Permitir exclusao publica" ON public.compromissos FOR DELETE USING (true);
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
+
+-- ============================================================================
+-- ETAPAS MANUAIS (set/2026)
+-- Cadastro de etapas deixa de ser automatico. Passa a ser sempre manual —
+-- podendo estar vinculado ou nao a um projeto.
+-- ============================================================================
+
+ALTER TABLE public.production_tasks
+    ALTER COLUMN project_id DROP NOT NULL;
+
+ALTER TABLE public.production_tasks
+    DROP CONSTRAINT IF EXISTS production_tasks_project_id_fkey;
+
+ALTER TABLE public.production_tasks
+    ADD CONSTRAINT production_tasks_project_id_fkey
+    FOREIGN KEY (project_id) REFERENCES public.projetos(id) ON DELETE SET NULL;
+
+ALTER TABLE public.production_tasks
+    ALTER COLUMN "order" DROP NOT NULL;
+
+CREATE INDEX IF NOT EXISTS production_tasks_project_id_idx
+    ON public.production_tasks (project_id);
