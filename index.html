@@ -1464,6 +1464,96 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
 }
 .md-toggle input { accent-color: var(--brand); }
 
+/* Painel de status do dia — números navegáveis. */
+.md-status {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+}
+.md-status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms var(--ease), background 160ms var(--ease);
+  color: var(--ink);
+}
+.md-status-item:hover { border-color: var(--brand); background: var(--surface-2); }
+.md-status-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.md-status-item.is-active {
+  border-color: var(--ink);
+  background: var(--surface-2);
+}
+.md-status-item[data-status-filter="atrasadas"].has-count .md-status-num { color: var(--status-atrasado); }
+.md-status-item[data-status-filter="hoje"].has-count .md-status-num { color: var(--status-em-andamento); }
+.md-status-item[data-status-filter="andamento"].has-count .md-status-num { color: var(--accent); }
+.md-status-item[data-status-filter="alta"].has-count .md-status-num { color: var(--status-atrasado); }
+.md-status-item[data-status-filter="concluidas"].has-count .md-status-num { color: var(--status-liberado); }
+.md-status-num {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.md-status-lbl {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.md-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+.md-order {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+.md-order .select {
+  padding: 6px 10px;
+  font-size: 0.8125rem;
+  min-width: 180px;
+}
+
+/* Badges de prazo e prioridade — usadas no Foco e nas Etapas internas. */
+.md-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--ink-muted);
+  letter-spacing: 0.02em;
+}
+.md-badge.is-atrasada { color: var(--status-atrasado); border-color: var(--status-atrasado); }
+.md-badge.is-hoje { color: var(--status-em-andamento); border-color: var(--status-em-andamento); }
+.md-badge.is-alta { color: var(--status-atrasado); border-color: var(--status-atrasado); }
+.md-badge.is-interna { color: var(--accent); border-color: var(--accent); }
+.md-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
 /* Layout de 2 colunas */
 .md-grid {
   display: grid;
@@ -4236,16 +4326,51 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
           </div>
         </header>
 
+        <!-- Painel do dia: status em números, primeira coisa que o gestor vê -->
+        <div class="md-status" id="md-status" hidden>
+          <button class="md-status-item" data-status-filter="atrasadas" onclick="setMdStatusFilter('atrasadas')" type="button">
+            <span class="md-status-num" id="md-count-atrasadas">0</span>
+            <span class="md-status-lbl">Atrasadas</span>
+          </button>
+          <button class="md-status-item" data-status-filter="hoje" onclick="setMdStatusFilter('hoje')" type="button">
+            <span class="md-status-num" id="md-count-hoje">0</span>
+            <span class="md-status-lbl">Para hoje</span>
+          </button>
+          <button class="md-status-item" data-status-filter="andamento" onclick="setMdStatusFilter('andamento')" type="button">
+            <span class="md-status-num" id="md-count-andamento">0</span>
+            <span class="md-status-lbl">Em andamento</span>
+          </button>
+          <button class="md-status-item" data-status-filter="alta" onclick="setMdStatusFilter('alta')" type="button">
+            <span class="md-status-num" id="md-count-alta">0</span>
+            <span class="md-status-lbl">Alta prioridade</span>
+          </button>
+          <button class="md-status-item" data-status-filter="concluidas" onclick="setMdStatusFilter('concluidas')" type="button">
+            <span class="md-status-num" id="md-count-concluidas">0</span>
+            <span class="md-status-lbl">Concluídas hoje</span>
+          </button>
+        </div>
+
         <div class="md-filters" role="toolbar" aria-label="Filtros">
           <div class="md-segment" role="tablist" aria-label="Recorte de tempo">
             <button class="md-seg-btn is-active" data-md-scope="hoje" onclick="setMdScope('hoje')">Hoje</button>
             <button class="md-seg-btn" data-md-scope="semana" onclick="setMdScope('semana')">Esta semana</button>
             <button class="md-seg-btn" data-md-scope="tudo" onclick="setMdScope('tudo')">Tudo</button>
           </div>
-          <label class="md-toggle">
-            <input type="checkbox" id="md-toggle-empty" onchange="renderChao()">
-            <span>Ver etapas vazias</span>
-          </label>
+          <div class="md-controls">
+            <label class="md-order">
+              <span>Ordenar por</span>
+              <select id="md-order-select" class="select" onchange="setMdOrder(this.value)">
+                <option value="urgencia">Urgência (padrão)</option>
+                <option value="prazo">Prazo mais próximo</option>
+                <option value="prioridade">Prioridade</option>
+                <option value="projeto">Projeto</option>
+              </select>
+            </label>
+            <label class="md-toggle">
+              <input type="checkbox" id="md-toggle-empty" onchange="renderChao()">
+              <span>Ver etapas vazias</span>
+            </label>
+          </div>
         </div>
 
         <div class="md-grid">
@@ -4501,10 +4626,16 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         <div class="modal-form-grid" style="display:grid; gap: var(--sp-4);">
 
           <div class="modal-field" id="etapa-projeto-field">
-            <label for="etapa-projeto" class="field-label">Projeto</label>
-            <select id="etapa-projeto" class="select">
-              <option value="">Etapa interna — sem projeto</option>
-            </select>
+            <label class="field-label" style="font-weight: 500; margin-bottom: var(--sp-2);">Vincular</label>
+            <div class="md-tipo-tabs">
+              <button type="button" class="md-tipo-tab" data-etapa-tipo="projeto" onclick="setEtapaTipo('projeto')">A um projeto</button>
+              <button type="button" class="md-tipo-tab is-active" data-etapa-tipo="interno" onclick="setEtapaTipo('interno')">Interna — sem projeto</button>
+            </div>
+          </div>
+
+          <div class="modal-field" id="etapa-projeto-select-field" style="display:none;">
+            <label for="etapa-projeto" class="field-label">Projeto *</label>
+            <select id="etapa-projeto" class="select"></select>
           </div>
 
           <div class="modal-field">
@@ -4515,11 +4646,26 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 
           <div class="modal-form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap: var(--sp-3);">
             <div class="modal-field">
+              <label for="etapa-prazo" class="field-label">Prazo</label>
+              <input type="date" id="etapa-prazo">
+            </div>
+            <div class="modal-field">
+              <label for="etapa-prioridade" class="field-label">Prioridade</label>
+              <select id="etapa-prioridade" class="select">
+                <option value="normal">Normal</option>
+                <option value="alta">Alta</option>
+                <option value="baixa">Baixa</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap: var(--sp-3);">
+            <div class="modal-field">
               <label for="etapa-categoria" class="field-label">Categoria</label>
               <input type="text" id="etapa-categoria" placeholder="Ex: Produção, Instalação">
             </div>
             <div class="modal-field">
-              <label for="etapa-status-inicial" class="field-label">Iniciar como</label>
+              <label for="etapa-status-inicial" class="field-label">Status inicial</label>
               <select id="etapa-status-inicial" class="select">
                 <option value="pending">Pendente</option>
                 <option value="in_progress">Em andamento</option>
@@ -5131,6 +5277,18 @@ async function excluirEtapaAvulsa(taskId) {
   showToast('Etapa excluída.');
 }
 
+/* Estado do modal: 'projeto' ou 'interno'. */
+let etapaTipoAtivo = 'interno';
+
+function setEtapaTipo(tipo) {
+  etapaTipoAtivo = tipo;
+  document.querySelectorAll('#modal-etapa .md-tipo-tab').forEach(el => {
+    el.classList.toggle('is-active', el.getAttribute('data-etapa-tipo') === tipo);
+  });
+  const selField = document.getElementById('etapa-projeto-select-field');
+  if (selField) selField.style.display = tipo === 'projeto' ? '' : 'none';
+}
+
 async function abrirNovaEtapa(projetoId = null) {
   const modal = document.getElementById('modal-etapa');
   if (!modal) return;
@@ -5142,23 +5300,70 @@ async function abrirNovaEtapa(projetoId = null) {
   document.getElementById('etapa-categoria').value = '';
   document.getElementById('etapa-status-inicial').value = 'pending';
   document.getElementById('etapa-notas').value = '';
+  document.getElementById('etapa-prazo').value = '';
+  document.getElementById('etapa-prioridade').value = 'normal';
 
-  // Seletor de projeto: vazio = etapa interna sem vínculo.
-  const sel = document.getElementById('etapa-projeto');
-  sel.innerHTML = '<option value="">Etapa interna — sem projeto</option>' + projetos
-    .slice()
-    .sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
-    .map(p => `<option value="${p.id}" ${p.id === projetoId ? 'selected' : ''}>${p.codigo} · ${p.cliente}</option>`)
-    .join('');
-
-  // Sugestões do catálogo — usar/não usar fica a critério do gestor.
-  const dl = document.getElementById('etapa-sugestoes');
-  const catalogo = await carregarCatalogoEtapas();
-  dl.innerHTML = catalogo.map(t => `<option value="${t.name}">${t.category || ''}</option>`).join('');
+  setEtapaTipo(projetoId ? 'projeto' : 'interno');
+  await popularProjetosEtapa(projetoId);
+  await popularSugestoesCatalogo();
 
   modal.style.display = 'flex';
   requestAnimationFrame(() => modal.classList.add('open'));
   setTimeout(() => document.getElementById('etapa-nome').focus(), 120);
+}
+
+async function abrirEditarEtapa(projetoId, taskId) {
+  const modal = document.getElementById('modal-etapa');
+  if (!modal) return;
+
+  // Localiza a etapa: pode ser de projeto ou avulsa.
+  let t = null;
+  if (projetoId) {
+    const p = projetos.find(x => x.id === projetoId);
+    t = p?.tasks?.find(x => x.id === taskId);
+  } else {
+    t = etapasAvulsas.find(x => x.id === taskId);
+  }
+  if (!t) return;
+
+  document.getElementById('etapa-modal-title').textContent = 'Editar etapa';
+  document.getElementById('etapa-modal-subtitle').textContent = 'Ajuste os dados da etapa';
+  document.getElementById('etapa-id').value = t.id;
+  document.getElementById('etapa-nome').value = t.name || '';
+  document.getElementById('etapa-categoria').value = t.category || '';
+  document.getElementById('etapa-status-inicial').value = t.status || 'pending';
+  document.getElementById('etapa-notas').value = t.notes || '';
+  document.getElementById('etapa-prazo').value = t.prazo || '';
+  document.getElementById('etapa-prioridade').value = t.prioridade || 'normal';
+
+  setEtapaTipo(projetoId ? 'projeto' : 'interno');
+  await popularProjetosEtapa(projetoId);
+  await popularSugestoesCatalogo();
+
+  modal.style.display = 'flex';
+  requestAnimationFrame(() => modal.classList.add('open'));
+  setTimeout(() => document.getElementById('etapa-nome').focus(), 120);
+}
+
+async function popularProjetosEtapa(projetoId) {
+  const sel = document.getElementById('etapa-projeto');
+  if (!sel) return;
+  if (projetos.length === 0) {
+    sel.innerHTML = '<option value="">Nenhum projeto cadastrado</option>';
+    return;
+  }
+  sel.innerHTML = projetos
+    .slice()
+    .sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
+    .map(p => `<option value="${p.id}" ${p.id === projetoId ? 'selected' : ''}>${p.codigo} · ${p.cliente}</option>`)
+    .join('');
+}
+
+async function popularSugestoesCatalogo() {
+  const dl = document.getElementById('etapa-sugestoes');
+  if (!dl) return;
+  const catalogo = await carregarCatalogoEtapas();
+  dl.innerHTML = catalogo.map(t => `<option value="${t.name}">${t.category || ''}</option>`).join('');
 }
 
 function fecharModalEtapa() {
@@ -5171,21 +5376,17 @@ function fecharModalEtapa() {
 async function salvarEtapa() {
   if (!supabase) { showToast('Erro: Supabase não configurado.'); return; }
 
-  const projetoId = document.getElementById('etapa-projeto').value || null;
+  const editandoId = document.getElementById('etapa-id').value || null;
+  const projetoId = etapaTipoAtivo === 'projeto' ? document.getElementById('etapa-projeto').value : null;
   const nome = document.getElementById('etapa-nome').value.trim();
   const categoria = document.getElementById('etapa-categoria').value.trim() || null;
   const statusInicial = document.getElementById('etapa-status-inicial').value;
   const notas = document.getElementById('etapa-notas').value.trim() || null;
+  const prazo = document.getElementById('etapa-prazo').value || null;
+  const prioridade = document.getElementById('etapa-prioridade').value;
 
   if (!nome) { showToast('Informe o nome da etapa.'); return; }
-
-  // Ordem: se vinculada a projeto, cai no final do pipeline dele; se avulsa, nula.
-  let ordem = null;
-  if (projetoId) {
-    const proj = projetos.find(p => p.id === projetoId);
-    const maxOrder = (proj?.tasks || []).reduce((acc, t) => Math.max(acc, t.order || 0), 0);
-    ordem = maxOrder + 1;
-  }
+  if (etapaTipoAtivo === 'projeto' && !projetoId) { showToast('Selecione um projeto ou marque como interna.'); return; }
 
   // Tenta casar com o catálogo para reaproveitar stage_key/template.
   const catalogo = await carregarCatalogoEtapas();
@@ -5196,10 +5397,11 @@ async function salvarEtapa() {
     name: nome,
     category: categoria || match?.category || null,
     stage_key: match?.stage_key || null,
-    order: ordem,
     is_applicable: true,
     status: statusInicial,
     notes: notas,
+    prazo,
+    prioridade,
     started_at: statusInicial === 'in_progress' ? new Date().toISOString() : null,
     completed_at: statusInicial === 'completed' ? new Date().toISOString() : null,
     updated_at: new Date().toISOString()
@@ -5209,25 +5411,40 @@ async function salvarEtapa() {
   if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
 
   try {
-    const { data: row, error } = await supabase.from('production_tasks').insert(payload).select().single();
-    if (error) throw error;
-
-    if (projetoId) {
-      const proj = projetos.find(p => p.id === projetoId);
-      if (proj) {
-        proj.tasks = proj.tasks || [];
-        proj.tasks.push(row);
-        atualizarProgressoEStatusLocal(proj);
-        await salvarProgressoEStatusNoBanco(proj);
-      }
+    if (editandoId) {
+      const { data: row, error } = await supabase.from('production_tasks')
+        .update(payload).eq('id', editandoId).select().single();
+      if (error) throw error;
+      substituirEtapaLocalmente(row, editandoId);
+      showToast('Etapa atualizada.');
     } else {
-      etapasAvulsas.push(row);
+      // Nova etapa: ordem = final do pipeline do projeto (se houver).
+      if (projetoId) {
+        const proj = projetos.find(p => p.id === projetoId);
+        const maxOrder = (proj?.tasks || []).reduce((acc, t) => Math.max(acc, t.order || 0), 0);
+        payload.order = maxOrder + 1;
+      }
+      const { data: row, error } = await supabase.from('production_tasks')
+        .insert(payload).select().single();
+      if (error) throw error;
+
+      if (projetoId) {
+        const proj = projetos.find(p => p.id === projetoId);
+        if (proj) {
+          proj.tasks = proj.tasks || [];
+          proj.tasks.push(row);
+          atualizarProgressoEStatusLocal(proj);
+          await salvarProgressoEStatusNoBanco(proj);
+        }
+      } else {
+        etapasAvulsas.push(row);
+      }
+      showToast('Etapa cadastrada.');
     }
 
-    showToast('Etapa cadastrada.');
     fecharModalEtapa();
 
-    // Rerender do que precisa saber:
+    // Rerender de tudo que a etapa toca:
     const prodContainer = document.getElementById('producao-acompanhamento');
     if (prodContainer && projetoId) {
       const proj = projetos.find(p => p.id === projetoId);
@@ -5241,6 +5458,28 @@ async function salvarEtapa() {
     showToast('Não foi possível salvar a etapa.');
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Salvar etapa'; }
+  }
+}
+
+/* Atualiza uma etapa no lugar certo — pode ter mudado de "projeto" para
+   "avulsa" ou vice-versa entre edições. */
+function substituirEtapaLocalmente(row, oldId) {
+  // Tira da posição antiga (onde quer que esteja)
+  etapasAvulsas = etapasAvulsas.filter(x => x.id !== oldId);
+  projetos.forEach(p => {
+    if (p.tasks) p.tasks = p.tasks.filter(x => x.id !== oldId);
+  });
+
+  // Coloca na nova
+  if (row.project_id) {
+    const p = projetos.find(x => x.id === row.project_id);
+    if (p) {
+      p.tasks = p.tasks || [];
+      p.tasks.push(row);
+      atualizarProgressoEStatusLocal(p);
+    }
+  } else {
+    etapasAvulsas.push(row);
   }
 }
 
@@ -8394,6 +8633,99 @@ function setMdScope(scope) {
   renderChao();
 }
 
+/* Ordenação e filtro por status do painel — dois eixos independentes:
+   o segmento escolhe o intervalo (hoje/semana/tudo) e o botão de status
+   escolhe o recorte (atrasadas, alta prioridade, etc). */
+let mdOrder = 'urgencia';
+let mdStatusFilter = null;
+
+function setMdOrder(v) { mdOrder = v; renderChao(); }
+function setMdStatusFilter(f) {
+  mdStatusFilter = mdStatusFilter === f ? null : f;
+  document.querySelectorAll('.md-status-item').forEach(el => {
+    el.classList.toggle('is-active', el.getAttribute('data-status-filter') === mdStatusFilter);
+  });
+  renderChao();
+}
+
+/* Classifica uma etapa/foco em uma das faixas de urgência. */
+function _urgencia(item) {
+  const hoje = _startOfDay(new Date());
+  if (item.prazo) {
+    const [y, m, d] = String(item.prazo).split('-').map(Number);
+    const prazo = new Date(y, (m || 1) - 1, d || 1);
+    const diff = Math.round((prazo - hoje) / 86400000);
+    if (diff < 0) return { bucket: 'atrasada', dias: diff };
+    if (diff === 0) return { bucket: 'hoje', dias: 0 };
+    if (diff <= 2) return { bucket: 'iminente', dias: diff };
+    return { bucket: 'futura', dias: diff };
+  }
+  return { bucket: 'sem-prazo', dias: null };
+}
+
+/* Comparador único usado pelas listas. */
+function _compararEtapas(a, b) {
+  if (mdOrder === 'projeto') {
+    return (a._codigoProjeto || '').localeCompare(b._codigoProjeto || '');
+  }
+  if (mdOrder === 'prioridade') {
+    const rank = { alta: 0, normal: 1, baixa: 2 };
+    return (rank[a.prioridade] ?? 1) - (rank[b.prioridade] ?? 1);
+  }
+  if (mdOrder === 'prazo') {
+    if (!a.prazo && b.prazo) return 1;
+    if (a.prazo && !b.prazo) return -1;
+    if (!a.prazo && !b.prazo) return 0;
+    return String(a.prazo).localeCompare(String(b.prazo));
+  }
+  // Padrão: urgência — atrasadas antes, sem prazo depois, alta prioridade puxa pra cima
+  const ua = _urgencia(a), ub = _urgencia(b);
+  const ordem = ['atrasada', 'hoje', 'iminente', 'futura', 'sem-prazo'];
+  const oa = ordem.indexOf(ua.bucket), ob = ordem.indexOf(ub.bucket);
+  if (oa !== ob) return oa - ob;
+  const priRank = { alta: 0, normal: 1, baixa: 2 };
+  const pa = priRank[a.prioridade] ?? 1, pb = priRank[b.prioridade] ?? 1;
+  if (pa !== pb) return pa - pb;
+  if (ua.dias !== null && ub.dias !== null) return ua.dias - ub.dias;
+  return 0;
+}
+
+/* Aplica o filtro do painel de status a uma etapa. */
+function _passaFiltroStatus(item) {
+  if (!mdStatusFilter) return true;
+  const u = _urgencia(item);
+  if (mdStatusFilter === 'atrasadas') return u.bucket === 'atrasada';
+  if (mdStatusFilter === 'hoje') return u.bucket === 'hoje';
+  if (mdStatusFilter === 'andamento') return item.status === 'in_progress';
+  if (mdStatusFilter === 'alta') return item.prioridade === 'alta';
+  if (mdStatusFilter === 'concluidas') {
+    if (item.status !== 'completed' || !item.completed_at) return false;
+    const c = _startOfDay(new Date(item.completed_at));
+    return +c === +_startOfDay(new Date());
+  }
+  return true;
+}
+
+/* Badges HTML para uma etapa (prazo, prioridade, projeto vs interna). */
+function _badgesEtapa(t, p) {
+  const b = [];
+  const u = _urgencia(t);
+  if (u.bucket === 'atrasada') {
+    const dias = Math.abs(u.dias);
+    b.push(`<span class="md-badge is-atrasada">Atrasada ${dias}d</span>`);
+  } else if (u.bucket === 'hoje') {
+    b.push(`<span class="md-badge is-hoje">Vence hoje</span>`);
+  } else if (u.bucket === 'iminente') {
+    b.push(`<span class="md-badge is-hoje">Em ${u.dias}d</span>`);
+  } else if (t.prazo) {
+    const d = new Date(t.prazo + 'T00:00:00');
+    b.push(`<span class="md-badge">${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>`);
+  }
+  if (t.prioridade === 'alta') b.push('<span class="md-badge is-alta">Alta</span>');
+  if (!p) b.push('<span class="md-badge is-interna">Interna</span>');
+  return b.length ? `<div class="md-badges">${b.join('')}</div>` : '';
+}
+
 /* Helpers de data */
 function _startOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
 function _endOfDay(d) { const x = new Date(d); x.setHours(23,59,59,999); return x; }
@@ -8457,41 +8789,91 @@ function renderChao() {
 
   const { ini, fim } = _scopeRange();
 
-  // 2) FOCO AGORA — tarefas em progresso + próximas pendentes (do escopo)
+  // 1.5) PAINEL DE STATUS — junta etapas de projeto + avulsas + compromissos.
+  //      Contagens navegáveis: clicar filtra o Foco Agora.
+  const todasEtapas = [
+    ...projetos.flatMap(p => (p.tasks || []).filter(t => t.is_applicable !== false).map(t => Object.assign({}, t, { _proj: p, _codigoProjeto: p.codigo }))),
+    ...etapasAvulsas.map(t => Object.assign({}, t, { _proj: null, _codigoProjeto: '~' }))
+  ];
+  const hojeInicio = _startOfDay(new Date());
+
+  const nAtrasadas = todasEtapas.filter(t => t.status !== 'completed' && _urgencia(t).bucket === 'atrasada').length;
+  const nHoje = todasEtapas.filter(t => t.status !== 'completed' && _urgencia(t).bucket === 'hoje').length;
+  const nAndamento = todasEtapas.filter(t => t.status === 'in_progress').length;
+  const nAlta = todasEtapas.filter(t => t.status !== 'completed' && t.prioridade === 'alta').length;
+  const nConcluidasHoje = todasEtapas.filter(t => {
+    if (t.status !== 'completed' || !t.completed_at) return false;
+    return +_startOfDay(new Date(t.completed_at)) === +hojeInicio;
+  }).length;
+
+  const statusEl = document.getElementById('md-status');
+  if (statusEl) {
+    statusEl.hidden = false;
+    const setar = (id, n) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = String(n);
+      const btn = el?.closest('.md-status-item');
+      if (btn) btn.classList.toggle('has-count', n > 0);
+    };
+    setar('md-count-atrasadas', nAtrasadas);
+    setar('md-count-hoje', nHoje);
+    setar('md-count-andamento', nAndamento);
+    setar('md-count-alta', nAlta);
+    setar('md-count-concluidas', nConcluidasHoje);
+  }
+
+  // 2) FOCO AGORA — em andamento + próximas pendentes (do escopo).
+  //    Aplica ordem escolhida + filtro do painel de status.
   const focoList = document.getElementById('md-foco-list');
   const focoCount = document.getElementById('md-foco-count');
   if (focoList) {
-    const emAndamento = projetos.flatMap(p => (p.tasks || [])
-      .filter(t => t.status === 'in_progress' && t.is_applicable !== false)
-      .map(t => ({ p, t })));
+    const emAndamento = todasEtapas.filter(t => t.status === 'in_progress');
 
-    // sugestão de "próxima" tarefa por projeto: primeira pendente aplicável
-    const proximas = projetos.map(p => {
-      const jaTemAndamento = (p.tasks || []).some(t => t.status === 'in_progress' && t.is_applicable !== false);
-      if (jaTemAndamento) return null;
-      const proxima = (p.tasks || [])
-        .filter(t => t.status === 'pending' && t.is_applicable !== false)
-        .sort((a, b) => a.order - b.order)[0];
-      return proxima ? { p, t: proxima, isSuggestion: true } : null;
-    }).filter(Boolean);
+    // Sugestões: primeira pendente aplicável por projeto que ainda não começou.
+    const projetosSemAndamento = new Set(projetos.filter(p =>
+      !(p.tasks || []).some(t => t.status === 'in_progress' && t.is_applicable !== false)
+    ).map(p => p.id));
+    const sugestoes = projetos
+      .filter(p => projetosSemAndamento.has(p.id))
+      .map(p => {
+        const t = (p.tasks || []).filter(x => x.status === 'pending' && x.is_applicable !== false)
+          .sort(_compararEtapas)[0];
+        return t ? Object.assign({}, t, { _proj: p, _codigoProjeto: p.codigo, _isSuggestion: true }) : null;
+      })
+      .filter(Boolean);
 
-    const cards = [...emAndamento, ...proximas];
-    focoCount.textContent = String(emAndamento.length);
+    let cards = [...emAndamento, ...sugestoes];
+    if (mdStatusFilter) cards = cards.filter(_passaFiltroStatus);
+    cards.sort(_compararEtapas);
+
+    focoCount.textContent = String(nAndamento);
 
     if (cards.length === 0) {
-      focoList.innerHTML = `<div class="md-foco-empty">Nada em andamento agora. Selecione uma etapa no fluxo para começar.</div>`;
+      const msg = mdStatusFilter
+        ? `Nenhuma etapa no filtro "${mdStatusFilter}".`
+        : 'Nada em andamento agora. Selecione uma etapa no fluxo para começar.';
+      focoList.innerHTML = `<div class="md-foco-empty">${msg}</div>`;
     } else {
-      focoList.innerHTML = cards.slice(0, 6).map(({ p, t, isSuggestion }) => {
-        const acao = isSuggestion
-          ? `<button class="btn btn-secondary" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${t.id}', 'in_progress')">Iniciar</button>`
-          : `<button class="btn btn-primary" onclick="event.stopPropagation(); alterarStatusTarefa('${p.id}', '${t.id}', 'completed')">Concluir</button>`;
+      focoList.innerHTML = cards.slice(0, 8).map(t => {
+        const p = t._proj;
+        const projetoId = p ? p.id : '';
+        const isSuggestion = !!t._isSuggestion;
+        const acao = isSuggestion || t.status === 'pending'
+          ? `<button class="btn btn-secondary" onclick="event.stopPropagation(); ${p ? `alterarStatusTarefa('${p.id}', '${t.id}', 'in_progress')` : `alterarStatusEtapaAvulsa('${t.id}', 'in_progress')`}">Iniciar</button>`
+          : `<button class="btn btn-primary" onclick="event.stopPropagation(); ${p ? `alterarStatusTarefa('${p.id}', '${t.id}', 'completed')` : `alterarStatusEtapaAvulsa('${t.id}', 'completed')`}">Concluir</button>`;
+        const editar = `<button class="btn btn-ghost" style="padding: 8px 10px;" onclick="event.stopPropagation(); abrirEditarEtapa(${p ? `'${p.id}'` : 'null'}, '${t.id}')" title="Editar etapa">✎</button>`;
         const borda = isSuggestion ? 'style="border-left-color: var(--ink-subtle);"' : '';
+        const meta = p
+          ? `${isSuggestion ? 'Próxima etapa sugerida' : t.status === 'in_progress' ? 'Em andamento' : 'Pendente'} · ${p.progresso}% do projeto`
+          : `${t.status === 'in_progress' ? 'Em andamento' : 'Pendente'} · Etapa interna`;
+        const clickHandler = p ? `abrirDetalheTarefa('${p.id}', '${t.id}')` : `abrirEditarEtapa(null, '${t.id}')`;
         return `
-          <div class="md-foco-card" ${borda} onclick="abrirDetalheTarefa('${p.id}', '${t.id}')">
-            <div class="md-fc-cliente">${p.codigo} · ${p.cliente}</div>
+          <div class="md-foco-card" ${borda} onclick="${clickHandler}">
+            <div class="md-fc-cliente">${p ? `${p.codigo} · ${p.cliente}` : 'Etapa interna'}</div>
             <div class="md-fc-titulo">${t.name}</div>
-            <div class="md-fc-meta">${isSuggestion ? 'Próxima etapa sugerida' : 'Em andamento'} · ${p.progresso}% do projeto</div>
-            <div class="md-fc-actions">${acao}</div>
+            <div class="md-fc-meta">${meta}</div>
+            ${_badgesEtapa(t, p)}
+            <div class="md-fc-actions">${acao}${editar}</div>
           </div>
         `;
       }).join('');
@@ -8556,7 +8938,10 @@ function renderChao() {
   const avulsasBlock = document.getElementById('md-avulsas-block');
   const avulsasList = document.getElementById('md-avulsas-list');
   if (avulsasBlock && avulsasList) {
-    const pendentes = etapasAvulsas.filter(t => t.status !== 'completed');
+    let pendentes = etapasAvulsas.filter(t => t.status !== 'completed');
+    if (mdStatusFilter) pendentes = pendentes.filter(_passaFiltroStatus);
+    pendentes.sort(_compararEtapas);
+
     avulsasBlock.hidden = pendentes.length === 0;
     avulsasList.innerHTML = pendentes.map(t => {
       const isInProgress = t.status === 'in_progress';
@@ -8564,13 +8949,13 @@ function renderChao() {
         ? `<button class="btn btn-primary" style="font-size:0.75rem; padding: 6px 10px;" onclick="alterarStatusEtapaAvulsa('${t.id}', 'completed')">Concluir</button>`
         : `<button class="btn btn-secondary" style="font-size:0.75rem; padding: 6px 10px;" onclick="alterarStatusEtapaAvulsa('${t.id}', 'in_progress')">Iniciar</button>`;
       return `
-        <div class="md-avulsa-item ${isInProgress ? 'is-in-progress' : ''}">
+        <div class="md-avulsa-item ${isInProgress ? 'is-in-progress' : ''}" onclick="abrirEditarEtapa(null, '${t.id}')">
           <div class="md-avulsa-body">
             <div class="md-avulsa-titulo">${t.name}</div>
             ${t.category ? `<div class="md-avulsa-meta">${t.category}</div>` : ''}
-            ${t.notes ? `<div class="md-avulsa-meta">${t.notes}</div>` : ''}
+            ${_badgesEtapa(t, null)}
           </div>
-          <div class="md-avulsa-actions">
+          <div class="md-avulsa-actions" onclick="event.stopPropagation();">
             ${acao}
             <button class="md-comp-icon-btn is-del" title="Excluir" onclick="excluirEtapaAvulsa('${t.id}')">×</button>
           </div>

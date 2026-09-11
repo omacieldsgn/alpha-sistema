@@ -248,3 +248,18 @@ ALTER TABLE public.production_tasks
 
 CREATE INDEX IF NOT EXISTS production_tasks_project_id_idx
     ON public.production_tasks (project_id);
+
+-- ============================================================================
+-- ETAPAS: PRAZO E PRIORIDADE (set/2026)
+-- Cada etapa passa a poder ter prazo e prioridade próprios; o Meu Dia usa
+-- os dois para ordenar (atrasada > hoje > sem prazo) e para os contadores
+-- do painel de status.
+-- ============================================================================
+
+ALTER TABLE public.production_tasks
+    ADD COLUMN IF NOT EXISTS prazo date,
+    ADD COLUMN IF NOT EXISTS prioridade text DEFAULT 'normal'
+        CHECK (prioridade IN ('baixa','normal','alta'));
+
+CREATE INDEX IF NOT EXISTS production_tasks_prazo_idx
+    ON public.production_tasks (prazo);
