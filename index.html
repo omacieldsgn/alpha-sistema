@@ -4419,7 +4419,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 </div>
 
 <!-- Modal de Entrada de Pagamento (Adicionar / Editar) -->
-<div class="modal-backdrop" id="modal-entrada-financeira" style="display: none;">
+<div class="modal-backdrop" id="modal-entrada-financeira">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-entrada-title">
     <div class="modal-header">
       <div class="icon">💰</div>
@@ -4456,7 +4456,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 </div>
 
 <!-- Modal de Edição de Projeto -->
-<div class="modal-backdrop" id="modal-editar-projeto" style="display: none;">
+<div class="modal-backdrop" id="modal-editar-projeto">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-editar-title" style="max-width: 600px;">
     <div class="modal-header">
       <div class="icon">✏️</div>
@@ -4522,7 +4522,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 </div>
 
 <!-- Modal de detalhes da tarefa operacional -->
-<div class="modal-backdrop" id="modal-detalhe-tarefa" style="display: none;">
+<div class="modal-backdrop" id="modal-detalhe-tarefa">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-tarefa-title" style="max-width: 560px;">
     <div class="modal-header">
       <div class="icon">⚙</div>
@@ -4612,7 +4612,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 </div>
 
 <!-- Modal Nova Etapa / Tarefa de Produção -->
-<div class="modal-backdrop" id="modal-etapa" style="display:none;">
+<div class="modal-backdrop" id="modal-etapa">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="etapa-modal-title">
     <div class="modal-header">
       <div>
@@ -4689,7 +4689,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 </div>
 
 <!-- Modal Lançamento de Custo -->
-<div class="modal-backdrop" id="modal-custo" style="display:none;">
+<div class="modal-backdrop" id="modal-custo">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="custo-modal-title">
     <div class="modal-header">
       <div>
@@ -4760,7 +4760,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 </div>
 
 <!-- Modal Compromisso Local (Meu Dia) -->
-<div class="modal-backdrop" id="modal-compromisso-local" style="display:none;">
+<div class="modal-backdrop" id="modal-compromisso-local">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mdcl-title">
     <div class="modal-header">
       <div class="icon">🗓️</div>
@@ -5307,8 +5307,7 @@ async function abrirNovaEtapa(projetoId = null) {
   await popularProjetosEtapa(projetoId);
   await popularSugestoesCatalogo();
 
-  modal.style.display = 'flex';
-  requestAnimationFrame(() => modal.classList.add('open'));
+  modal.classList.add('open');
   setTimeout(() => document.getElementById('etapa-nome').focus(), 120);
 }
 
@@ -5340,8 +5339,7 @@ async function abrirEditarEtapa(projetoId, taskId) {
   await popularProjetosEtapa(projetoId);
   await popularSugestoesCatalogo();
 
-  modal.style.display = 'flex';
-  requestAnimationFrame(() => modal.classList.add('open'));
+  modal.classList.add('open');
   setTimeout(() => document.getElementById('etapa-nome').focus(), 120);
 }
 
@@ -5367,10 +5365,7 @@ async function popularSugestoesCatalogo() {
 }
 
 function fecharModalEtapa() {
-  const m = document.getElementById('modal-etapa');
-  if (!m) return;
-  m.classList.remove('open');
-  setTimeout(() => { m.style.display = 'none'; }, 200);
+  document.getElementById('modal-etapa')?.classList.remove('open');
 }
 
 async function salvarEtapa() {
@@ -8102,15 +8097,11 @@ function preencherSugestoesAmbiente(proj) {
 function abrirModalCusto() {
   const m = document.getElementById('modal-custo');
   if (!m) return;
-  m.style.display = 'flex';
-  requestAnimationFrame(() => m.classList.add('open'));
+  m.classList.add('open');
   setTimeout(() => document.getElementById('custo-item')?.focus(), 120);
 }
 function fecharModalCusto() {
-  const m = document.getElementById('modal-custo');
-  if (!m) return;
-  m.classList.remove('open');
-  setTimeout(() => { m.style.display = 'none'; }, 200);
+  document.getElementById('modal-custo')?.classList.remove('open');
 }
 
 async function salvarCusto() {
@@ -8480,8 +8471,7 @@ function abrirNovoCompromissoLocal() {
   document.getElementById('mdcl-descricao').value = '';
   setMdclTipo('projeto');
   popularProjetosCompromissoLocal();
-  modal.style.display = 'flex';
-  requestAnimationFrame(() => modal.classList.add('open'));
+  modal.classList.add('open');
 }
 function abrirEditarCompromissoLocal(id) {
   const c = compromissosLocais.find(x => x.id === id);
@@ -8497,14 +8487,10 @@ function abrirEditarCompromissoLocal(id) {
   document.getElementById('mdcl-descricao').value = c.descricao || '';
   setMdclTipo(c.tipo || 'projeto');
   popularProjetosCompromissoLocal(c.projetoId);
-  modal.style.display = 'flex';
-  requestAnimationFrame(() => modal.classList.add('open'));
+  modal.classList.add('open');
 }
 function fecharCompromissoLocal() {
-  const modal = document.getElementById('modal-compromisso-local');
-  if (!modal) return;
-  modal.classList.remove('open');
-  setTimeout(() => { modal.style.display = 'none'; }, 200);
+  document.getElementById('modal-compromisso-local')?.classList.remove('open');
 }
 function setMdclTipo(tipo) {
   mdclEditingTipo = tipo;
@@ -9497,12 +9483,14 @@ function substituirComprovante(projId, entId) {
 
 /* Modal Controle de Pagamento/Entrada */
 function abrirModalAdicionarEntrada() {
+  if (!projetoSelecionadoId) { showToast('Nenhum projeto selecionado.'); return; }
   document.getElementById('ent-id').value = '';
   document.getElementById('ent-valor').value = '';
   document.getElementById('ent-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('ent-comprovante').value = '';
   document.getElementById('modal-entrada-title').textContent = 'Lançar Entrada Financeira';
   document.getElementById('modal-entrada-financeira').classList.add('open');
+  setTimeout(() => document.getElementById('ent-valor')?.focus(), 120);
 }
 
 function abrirModalEditarEntrada(id, valor, data) {
