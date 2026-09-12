@@ -263,3 +263,13 @@ ALTER TABLE public.production_tasks
 
 CREATE INDEX IF NOT EXISTS production_tasks_prazo_idx
     ON public.production_tasks (prazo);
+
+-- ============================================================================
+-- ETAPAS: COMODO / AMBIENTE (set/2026)
+-- Uma etapa passa a poder viver dentro de um comodo especifico (Suite,
+-- Cozinha, Escritorio). Texto livre — sugestoes puxadas dos ambientes ja
+-- cadastrados no projeto, mas nao ha vinculo formal.
+-- ============================================================================
+
+ALTER TABLE public.production_tasks
+    ADD COLUMN IF NOT EXISTS ambiente text;

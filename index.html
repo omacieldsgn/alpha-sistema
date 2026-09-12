@@ -1547,6 +1547,22 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
 .md-badge.is-hoje { color: var(--status-em-andamento); border-color: var(--status-em-andamento); }
 .md-badge.is-alta { color: var(--status-atrasado); border-color: var(--status-atrasado); }
 .md-badge.is-interna { color: var(--accent); border-color: var(--accent); }
+.md-badge.is-comodo {
+  color: var(--ink);
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+  text-transform: none;
+  font-weight: 500;
+}
+.md-badge.is-comodo::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 2px;
+}
 .md-badges {
   display: flex;
   flex-wrap: wrap;
@@ -1874,6 +1890,19 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   overflow-wrap: anywhere;
   font-family: var(--font-ui);
 }
+.chao-etapa-comodo {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--ink);
+  vertical-align: middle;
+  white-space: nowrap;
+}
 .chao-etapa .ambiente { font-size: 0.9375rem; color: var(--ink-muted); margin-bottom: var(--sp-4); }
 .chao-etapa .tempo {
   display: flex;
@@ -1974,6 +2003,28 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   overflow-wrap: anywhere;
 }
 .production-stage.is-active .production-stage-name { font-weight: 600; }
+.production-stage-comodo {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-strong);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ink);
+  vertical-align: middle;
+}
+.production-stage-comodo::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 4px;
+  vertical-align: middle;
+}
 .production-stage.is-completed .production-stage-name {
   color: var(--ink-muted);
   text-decoration: line-through;
@@ -4643,6 +4694,14 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
             <input type="text" id="etapa-nome" required placeholder="Ex: Corte de chapa, montagem do módulo…" autocomplete="off">
           </div>
 
+          <div class="modal-field">
+            <label for="etapa-ambiente" class="field-label">
+              Cômodo <span class="field-hint" id="etapa-ambiente-hint">Ex: Suíte, Cozinha</span>
+            </label>
+            <input type="text" id="etapa-ambiente" placeholder="Opcional" list="etapa-ambientes-sugestoes" autocomplete="off">
+            <datalist id="etapa-ambientes-sugestoes"></datalist>
+          </div>
+
           <div class="modal-form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap: var(--sp-3);">
             <div class="modal-field">
               <label for="etapa-prazo" class="field-label">Prazo</label>
@@ -5301,9 +5360,11 @@ async function abrirNovaEtapa(projetoId = null) {
   document.getElementById('etapa-notas').value = '';
   document.getElementById('etapa-prazo').value = '';
   document.getElementById('etapa-prioridade').value = 'normal';
+  document.getElementById('etapa-ambiente').value = '';
 
   setEtapaTipo(projetoId ? 'projeto' : 'interno');
   await popularProjetosEtapa(projetoId);
+  popularSugestoesAmbiente(projetoId);
 
   modal.classList.add('open');
   setTimeout(() => document.getElementById('etapa-nome').focus(), 120);
@@ -5332,9 +5393,11 @@ async function abrirEditarEtapa(projetoId, taskId) {
   document.getElementById('etapa-notas').value = t.notes || '';
   document.getElementById('etapa-prazo').value = t.prazo || '';
   document.getElementById('etapa-prioridade').value = t.prioridade || 'normal';
+  document.getElementById('etapa-ambiente').value = t.ambiente || '';
 
   setEtapaTipo(projetoId ? 'projeto' : 'interno');
   await popularProjetosEtapa(projetoId);
+  popularSugestoesAmbiente(projetoId);
 
   modal.classList.add('open');
   setTimeout(() => document.getElementById('etapa-nome').focus(), 120);
@@ -5352,6 +5415,28 @@ async function popularProjetosEtapa(projetoId) {
     .sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''))
     .map(p => `<option value="${p.id}" ${p.id === projetoId ? 'selected' : ''}>${p.codigo} · ${p.cliente}</option>`)
     .join('');
+  // Ao trocar de projeto, refresca as sugestões de cômodo com os ambientes dele.
+  sel.onchange = () => popularSugestoesAmbiente(sel.value);
+}
+
+/* Datalist do cômodo — puxa dos ambientes cadastrados no projeto quando há.
+   Sem projeto (etapa interna) fica só a lista de sugestões genéricas. */
+function popularSugestoesAmbiente(projetoId) {
+  const dl = document.getElementById('etapa-ambientes-sugestoes');
+  const hint = document.getElementById('etapa-ambiente-hint');
+  if (!dl) return;
+
+  let sugestoes = [];
+  let hintText = 'Ex: Suíte, Cozinha';
+
+  const proj = projetoId ? projetos.find(p => p.id === projetoId) : null;
+  if (proj && proj.ambientes && proj.ambientes.length > 0) {
+    sugestoes = proj.ambientes.map(a => a.nome).filter(Boolean);
+    hintText = `Ambientes de ${proj.codigo}`;
+  }
+
+  dl.innerHTML = sugestoes.map(n => `<option value="${n}"></option>`).join('');
+  if (hint) hint.textContent = hintText;
 }
 
 
@@ -5370,6 +5455,7 @@ async function salvarEtapa() {
   const notas = document.getElementById('etapa-notas').value.trim() || null;
   const prazo = document.getElementById('etapa-prazo').value || null;
   const prioridade = document.getElementById('etapa-prioridade').value;
+  const ambiente = document.getElementById('etapa-ambiente').value.trim() || null;
 
   if (!nome) { showToast('Informe o nome da etapa.'); return; }
   if (etapaTipoAtivo === 'projeto' && !projetoId) { showToast('Selecione um projeto ou marque como interna.'); return; }
@@ -5388,6 +5474,7 @@ async function salvarEtapa() {
     notes: notas,
     prazo,
     prioridade,
+    ambiente,
     started_at: statusInicial === 'in_progress' ? new Date().toISOString() : null,
     completed_at: statusInicial === 'completed' ? new Date().toISOString() : null,
     updated_at: new Date().toISOString()
@@ -7598,7 +7685,7 @@ function renderAcompanhamentoProducao(projeto, container) {
         <div class="production-stage-main">
           <span class="production-stage-icon" aria-hidden="true">${icon}</span>
           <div class="production-stage-copy">
-            <span class="production-stage-name">${String(t.order).padStart(2, '0')} · ${t.name}</span>
+            <span class="production-stage-name">${t.order ? String(t.order).padStart(2, '0') + ' · ' : ''}${t.name}${t.ambiente ? ` <span class="production-stage-comodo">${t.ambiente}</span>` : ''}</span>
             <small class="production-stage-meta">${stateMeta}</small>
             ${notesHtml}
           </div>
@@ -8683,9 +8770,10 @@ function _passaFiltroStatus(item) {
   return true;
 }
 
-/* Badges HTML para uma etapa (prazo, prioridade, projeto vs interna). */
+/* Badges HTML para uma etapa (cômodo, prazo, prioridade, projeto vs interna). */
 function _badgesEtapa(t, p) {
   const b = [];
+  if (t.ambiente) b.push(`<span class="md-badge is-comodo">${t.ambiente}</span>`);
   const u = _urgencia(t);
   if (u.bucket === 'atrasada') {
     const dias = Math.abs(u.dias);
@@ -8992,7 +9080,7 @@ function renderChao() {
       return `
         <div class="chao-etapa" onclick="abrirDetalheTarefa('${p.id}', '${activeTask.id}')">
           <div class="projeto-nome">${p.cliente}</div>
-          <div class="etapa-titulo">${activeTask.name}</div>
+          <div class="etapa-titulo">${activeTask.name}${activeTask.ambiente ? ` <span class="chao-etapa-comodo">${activeTask.ambiente}</span>` : ''}</div>
           <div class="chao-task-progress">${p.codigo} · ${p.progresso}% do projeto</div>
           <div class="chao-card-status ${isInProgress ? 'is-in-progress' : ''}">${isInProgress ? 'Em andamento' : 'Pendente'}</div>
           ${actionButton}
