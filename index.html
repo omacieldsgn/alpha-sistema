@@ -7837,9 +7837,11 @@ function renderAcompanhamentoProducao(projeto, container) {
     const applicabilityButton = !isCompleted && t.order !== 23
       ? `<button class="btn btn-ghost" style="font-size:0.6875rem; padding:2px 6px;" onclick="alternarAplicabilidadeTarefa('${projeto.id}', '${t.id}')">${isNotApplicable ? 'Aplicável' : 'Não se aplica'}</button>`
       : '';
-    const renameButton = !isCompleted
-      ? `<button class="btn btn-ghost" style="font-size:0.6875rem; padding:2px 6px;" onclick="event.stopPropagation(); editarNomeTarefa('${projeto.id}', '${t.id}')">Editar nome</button>`
-      : '';
+    // "Editar" abre o modal completo — nome, cômodo, prazo, prioridade,
+    // status, categoria, observações. Também vale pra tarefa concluída
+    // (só desabilita alterar status na hora de salvar não é necessário —
+    // o modal deixa reabrir facilmente pelo dropdown).
+    const editButton = `<button class="btn btn-ghost" style="font-size:0.6875rem; padding:2px 6px;" onclick="event.stopPropagation(); abrirEditarEtapa('${projeto.id}', '${t.id}')">Editar</button>`;
 
     // Botões de subir/descer — funcionam sempre e cobrem quando o drag não é
     // prático (mobile, tela pequena, acessibilidade).
@@ -7872,7 +7874,7 @@ function renderAcompanhamentoProducao(projeto, container) {
         </div>
         <div class="production-stage-actions">
           <div class="production-move-group">${upDownBtns}</div>
-          ${renameButton}${applicabilityButton}${actionButton}
+          ${editButton}${applicabilityButton}${actionButton}
         </div>
       </div>
     `;
