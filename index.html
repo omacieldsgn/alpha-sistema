@@ -4640,8 +4640,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 
           <div class="modal-field">
             <label for="etapa-nome" class="field-label">Nome *</label>
-            <input type="text" id="etapa-nome" required placeholder="Ex: Corte de chapa, montagem do módulo…" list="etapa-sugestoes">
-            <datalist id="etapa-sugestoes"></datalist>
+            <input type="text" id="etapa-nome" required placeholder="Ex: Corte de chapa, montagem do módulo…" autocomplete="off">
           </div>
 
           <div class="modal-form-row-2" style="display:grid; grid-template-columns:1fr 1fr; gap: var(--sp-3);">
@@ -5305,7 +5304,6 @@ async function abrirNovaEtapa(projetoId = null) {
 
   setEtapaTipo(projetoId ? 'projeto' : 'interno');
   await popularProjetosEtapa(projetoId);
-  await popularSugestoesCatalogo();
 
   modal.classList.add('open');
   setTimeout(() => document.getElementById('etapa-nome').focus(), 120);
@@ -5337,7 +5335,6 @@ async function abrirEditarEtapa(projetoId, taskId) {
 
   setEtapaTipo(projetoId ? 'projeto' : 'interno');
   await popularProjetosEtapa(projetoId);
-  await popularSugestoesCatalogo();
 
   modal.classList.add('open');
   setTimeout(() => document.getElementById('etapa-nome').focus(), 120);
@@ -5357,12 +5354,6 @@ async function popularProjetosEtapa(projetoId) {
     .join('');
 }
 
-async function popularSugestoesCatalogo() {
-  const dl = document.getElementById('etapa-sugestoes');
-  if (!dl) return;
-  const catalogo = await carregarCatalogoEtapas();
-  dl.innerHTML = catalogo.map(t => `<option value="${t.name}">${t.category || ''}</option>`).join('');
-}
 
 function fecharModalEtapa() {
   document.getElementById('modal-etapa')?.classList.remove('open');
