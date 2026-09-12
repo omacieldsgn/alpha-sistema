@@ -2002,6 +2002,52 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   font-size: 0.875rem;
   overflow-wrap: anywhere;
 }
+.production-stage {
+  cursor: grab;
+  transition: background 120ms var(--ease), transform 80ms var(--ease), border-color 120ms var(--ease);
+  position: relative;
+}
+.production-stage.is-dragging {
+  cursor: grabbing;
+  opacity: 0.5;
+  transform: scale(0.99);
+}
+.production-stage.drop-above { box-shadow: inset 0 2px 0 var(--accent); }
+.production-stage.drop-below { box-shadow: inset 0 -2px 0 var(--accent); }
+
+.production-drag-handle {
+  flex: 0 0 auto;
+  color: var(--ink-subtle);
+  font-size: 1rem;
+  letter-spacing: -2px;
+  padding: 0 var(--sp-1);
+  cursor: grab;
+  user-select: none;
+  opacity: 0.5;
+  transition: opacity 120ms var(--ease), color 120ms var(--ease);
+}
+.production-stage:hover .production-drag-handle { opacity: 1; color: var(--ink); }
+.production-stage.is-completed .production-drag-handle { opacity: 0.25; }
+
+.production-move-group {
+  display: inline-flex;
+  gap: 2px;
+  margin-right: 4px;
+}
+.production-move-btn {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--ink-subtle);
+  font-size: 0.75rem;
+  transition: background 120ms var(--ease), color 120ms var(--ease);
+}
+.production-move-btn:hover:not([disabled]) { background: var(--surface-2); color: var(--ink); }
+.production-move-btn[disabled] { opacity: 0.3; cursor: not-allowed; }
+
 .production-stage.is-active .production-stage-name { font-weight: 600; }
 .production-stage-comodo {
   display: inline-block;
@@ -5294,10 +5340,12 @@ async function alterarStatusEtapaAvulsa(taskId, novoStatus) {
   if (!t) return;
 
   const backup = { ...t };
+  const reabrindo = t.status === 'completed' && novoStatus !== 'completed';
   const now = new Date().toISOString();
   t.status = novoStatus;
   if (novoStatus === 'in_progress') t.started_at = t.started_at || now;
   if (novoStatus === 'completed') t.completed_at = now;
+  if (reabrindo) t.completed_at = null;
   renderChao();
 
   const { error } = await supabase
@@ -5312,7 +5360,10 @@ async function alterarStatusEtapaAvulsa(taskId, novoStatus) {
     showToast('Não foi possível atualizar a etapa.');
     return;
   }
-  showToast(novoStatus === 'completed' ? 'Etapa concluída.' : 'Etapa iniciada.');
+  showToast(
+    reabrindo ? 'Etapa reaberta.' :
+    novoStatus === 'completed' ? 'Etapa concluída.' : 'Etapa iniciada.'
+  );
 }
 
 async function excluirEtapaAvulsa(taskId) {
@@ -7661,6 +7712,9 @@ function renderAcompanhamentoProducao(projeto, container) {
         actionButton = `<button class="btn btn-secondary" style="font-size:0.75rem; padding: var(--sp-1) var(--sp-3);" onclick="event.stopPropagation(); alterarStatusTarefa('${projeto.id}', '${t.id}', 'in_progress')">Iniciar</button>`;
       } else if (t.status === 'in_progress') {
         actionButton = `<button class="btn btn-primary" style="font-size:0.75rem; padding: var(--sp-1) var(--sp-3);" onclick="event.stopPropagation(); alterarStatusTarefa('${projeto.id}', '${t.id}', 'completed')">Concluir</button>`;
+      } else if (isCompleted) {
+        // Desfazer conclusão — volta para pendente. Evita perder trabalho por clique errado.
+        actionButton = `<button class="btn btn-ghost" style="font-size:0.75rem; padding: var(--sp-1) var(--sp-3);" onclick="event.stopPropagation(); alterarStatusTarefa('${projeto.id}', '${t.id}', 'pending')" title="Voltar para pendente">↺ Reabrir</button>`;
       }
     }
 
@@ -7670,6 +7724,15 @@ function renderAcompanhamentoProducao(projeto, container) {
     const renameButton = !isCompleted
       ? `<button class="btn btn-ghost" style="font-size:0.6875rem; padding:2px 6px;" onclick="event.stopPropagation(); editarNomeTarefa('${projeto.id}', '${t.id}')">Editar nome</button>`
       : '';
+
+    // Botões de subir/descer — funcionam sempre e cobrem quando o drag não é
+    // prático (mobile, tela pequena, acessibilidade).
+    const canMoveUp = index > 0;
+    const canMoveDown = index < projeto.tasks.length - 1;
+    const upDownBtns = `
+      <button class="production-move-btn" ${canMoveUp ? '' : 'disabled'} title="Subir" aria-label="Subir etapa" onclick="event.stopPropagation(); moverTarefaOrdem('${projeto.id}', '${t.id}', -1)">↑</button>
+      <button class="production-move-btn" ${canMoveDown ? '' : 'disabled'} title="Descer" aria-label="Descer etapa" onclick="event.stopPropagation(); moverTarefaOrdem('${projeto.id}', '${t.id}', 1)">↓</button>
+    `;
 
     const notesHtml = t.notes ? `<span class="production-stage-note">Obs: ${t.notes}</span>` : '';
     const stateClasses = [
@@ -7681,7 +7744,8 @@ function renderAcompanhamentoProducao(projeto, container) {
     const stateMeta = `${t.category || 'PRODUÇÃO'}${isBlocked ? ' · Aguardando etapa anterior' : isNotApplicable ? ' · Não se aplica' : ''}`;
 
     return `
-      <div class="production-stage ${stateClasses}">
+      <div class="production-stage ${stateClasses}" draggable="true" data-task-id="${t.id}" data-index="${index}">
+        <span class="production-drag-handle" aria-hidden="true" title="Arraste para reordenar">⋮⋮</span>
         <div class="production-stage-main">
           <span class="production-stage-icon" aria-hidden="true">${icon}</span>
           <div class="production-stage-copy">
@@ -7690,7 +7754,10 @@ function renderAcompanhamentoProducao(projeto, container) {
             ${notesHtml}
           </div>
         </div>
-        <div class="production-stage-actions">${renameButton}${applicabilityButton}${actionButton}</div>
+        <div class="production-stage-actions">
+          <div class="production-move-group">${upDownBtns}</div>
+          ${renameButton}${applicabilityButton}${actionButton}
+        </div>
       </div>
     `;
   }).join('');
@@ -7718,11 +7785,137 @@ function renderAcompanhamentoProducao(projeto, container) {
         </div>
       </div>
 
-      <div class="production-list">
+      <div class="production-list" id="production-list-${projeto.id}">
         ${listHtml}
       </div>
     </div>
   `;
+
+  // Liga o drag & drop na lista recém-renderizada.
+  ativarDragOrdenacao(container.querySelector('.production-list'), projeto.id);
+}
+
+/* ============================================================================
+   REORDENAÇÃO DE ETAPAS
+   Duas entradas: botões ↑/↓ (sempre) e drag & drop no desktop. Ambas caem
+   em reordenarTarefas — que reescreve o `order` das tarefas afetadas no
+   Supabase em batch e refaz o render.
+   ============================================================================ */
+
+async function reordenarTarefas(projetoId, novaOrdemIds) {
+  if (!supabase) return;
+  const p = projetos.find(x => x.id === projetoId);
+  if (!p || !p.tasks) return;
+
+  // Reordena localmente pra dar feedback instantâneo.
+  const byId = Object.fromEntries(p.tasks.map(t => [t.id, t]));
+  const remanescentes = p.tasks.filter(t => !novaOrdemIds.includes(t.id));
+  const ordenadas = novaOrdemIds.map(id => byId[id]).filter(Boolean);
+  p.tasks = [...ordenadas, ...remanescentes];
+
+  // Recomputa o campo `order` — inteiro sequencial, começando em 1.
+  const updates = [];
+  p.tasks.forEach((t, i) => {
+    const novoOrder = i + 1;
+    if (t.order !== novoOrder) {
+      t.order = novoOrder;
+      updates.push({ id: t.id, novoOrder });
+    }
+  });
+
+  atualizarProgressoEStatusLocal(p);
+  const container = document.getElementById('producao-acompanhamento');
+  if (container) renderAcompanhamentoProducao(p, container);
+
+  if (updates.length === 0) return;
+
+  // A tabela tem índice único em (project_id, order). Se atualizarmos em
+  // paralelo direto pra faixa final, dois updates podem colidir num mesmo
+  // valor temporariamente. Duas fases resolvem: primeiro joga a faixa
+  // "20000+i" (segura porque ninguém usa), depois assenta na final.
+  const stamp = new Date().toISOString();
+  try {
+    // Fase 1 — mover pra faixa alta
+    const fase1 = await Promise.all(updates.map((u, i) =>
+      supabase.from('production_tasks').update({ order: 20000 + i, updated_at: stamp }).eq('id', u.id)
+    ));
+    const err1 = fase1.find(r => r.error);
+    if (err1) throw err1.error;
+
+    // Fase 2 — assentar na ordem final
+    const fase2 = await Promise.all(updates.map(u =>
+      supabase.from('production_tasks').update({ order: u.novoOrder, updated_at: stamp }).eq('id', u.id)
+    ));
+    const err2 = fase2.find(r => r.error);
+    if (err2) throw err2.error;
+  } catch (e) {
+    console.error('Erro ao reordenar etapas:', e);
+    showToast('Não foi possível salvar a nova ordem.');
+    await carregarProjetosDoBanco();
+  }
+}
+
+/* Move uma etapa uma posição para cima (-1) ou para baixo (+1). */
+async function moverTarefaOrdem(projetoId, taskId, delta) {
+  const p = projetos.find(x => x.id === projetoId);
+  if (!p || !p.tasks) return;
+  const idx = p.tasks.findIndex(t => t.id === taskId);
+  const novoIdx = idx + delta;
+  if (idx < 0 || novoIdx < 0 || novoIdx >= p.tasks.length) return;
+
+  const ids = p.tasks.map(t => t.id);
+  const [moved] = ids.splice(idx, 1);
+  ids.splice(novoIdx, 0, moved);
+  await reordenarTarefas(projetoId, ids);
+}
+
+/* Habilita drag & drop na lista. Feito com a API nativa HTML5 — sem lib,
+   suficiente pra uma única lista vertical. */
+function ativarDragOrdenacao(listEl, projetoId) {
+  if (!listEl) return;
+  let dragTaskId = null;
+
+  listEl.querySelectorAll('.production-stage').forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+      dragTaskId = item.getAttribute('data-task-id');
+      item.classList.add('is-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', dragTaskId);
+    });
+    item.addEventListener('dragend', () => {
+      item.classList.remove('is-dragging');
+      listEl.querySelectorAll('.production-stage').forEach(x => x.classList.remove('drop-above', 'drop-below'));
+      dragTaskId = null;
+    });
+    item.addEventListener('dragover', (e) => {
+      if (!dragTaskId || item.getAttribute('data-task-id') === dragTaskId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const rect = item.getBoundingClientRect();
+      const acima = e.clientY < rect.top + rect.height / 2;
+      item.classList.toggle('drop-above', acima);
+      item.classList.toggle('drop-below', !acima);
+    });
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('drop-above', 'drop-below');
+    });
+    item.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      const alvoId = item.getAttribute('data-task-id');
+      if (!dragTaskId || alvoId === dragTaskId) return;
+      const acima = item.classList.contains('drop-above');
+      item.classList.remove('drop-above', 'drop-below');
+
+      const p = projetos.find(x => x.id === projetoId);
+      if (!p) return;
+      const ids = p.tasks.map(t => t.id);
+      const fromIdx = ids.indexOf(dragTaskId);
+      const [moved] = ids.splice(fromIdx, 1);
+      const toIdx = ids.indexOf(alvoId) + (acima ? 0 : 1);
+      ids.splice(toIdx, 0, moved);
+      await reordenarTarefas(projetoId, ids);
+    });
+  });
 }
 
 async function alterarStatusTarefa(projetoId, taskId, novoStatus) {
@@ -7731,17 +7924,21 @@ async function alterarStatusTarefa(projetoId, taskId, novoStatus) {
     return;
   }
   if (tarefaMutationBusy) return;
-  tarefaMutationBusy = true;
 
   const p = projetos.find(x => x.id === projetoId);
   if (!p) return;
 
   const t = p.tasks.find(x => x.id === taskId);
   if (!t) return;
-  if (t.status === 'completed' || t.status === 'blocked' || t.is_applicable === false) {
+  if (t.is_applicable === false || t.status === 'blocked') {
     showToast('Essa etapa não está disponível para alteração.');
     return;
   }
+  // Reserva o mutex só depois das validações — não vazam mais estados busy.
+  tarefaMutationBusy = true;
+  // Reabrir uma etapa concluída volta para pendente e apaga o completed_at
+  // para não deixar rastro (a etapa deixa de contar como "concluída hoje").
+  const reabrindo = t.status === 'completed' && novoStatus !== 'completed';
 
   const updates = {
     status: novoStatus,
@@ -7753,11 +7950,15 @@ async function alterarStatusTarefa(projetoId, taskId, novoStatus) {
   } else if (novoStatus === 'completed') {
     updates.completed_at = new Date().toISOString();
   }
+  if (reabrindo) {
+    updates.completed_at = null;
+  }
 
   // Optimistic update
   t.status = novoStatus;
   if (novoStatus === 'in_progress') t.started_at = updates.started_at;
   if (novoStatus === 'completed') t.completed_at = updates.completed_at;
+  if (reabrindo) t.completed_at = null;
 
   atualizarProgressoEStatusLocal(p);
 
@@ -7768,24 +7969,21 @@ async function alterarStatusTarefa(projetoId, taskId, novoStatus) {
   renderChao();
 
   try {
+    // Só a tarefa alterada precisa ir ao banco. A lógica antiga escrevia
+    // as 23 pra propagar dependências (blocked), que não existem mais.
     const { error: eTask } = await supabase
       .from('production_tasks')
       .update(updates)
       .eq('id', taskId);
-
     if (eTask) throw eTask;
 
-    const results = await Promise.all(p.tasks.map(task =>
-      supabase.from('production_tasks').update({
-        status: task.status,
-        is_applicable: task.is_applicable !== false,
-        updated_at: task.id === taskId ? updates.updated_at : new Date().toISOString()
-      }).eq('id', task.id)
-    ));
-    const failed = results.find(result => result.error);
-    if (failed) throw failed.error;
     await salvarProgressoEStatusNoBanco(p);
-    showToast(`Etapa "${t.name}" atualizada.`);
+    showToast(
+      reabrindo ? `Etapa "${t.name}" reaberta.` :
+      novoStatus === 'completed' ? `Etapa "${t.name}" concluída.` :
+      novoStatus === 'in_progress' ? `Etapa "${t.name}" iniciada.` :
+      `Etapa "${t.name}" atualizada.`
+    );
   } catch (err) {
     console.error('Erro ao atualizar status da tarefa:', err);
     showToast('Erro ao sincronizar com o Supabase. Recarregando...');
