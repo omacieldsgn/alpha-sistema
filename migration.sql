@@ -273,3 +273,12 @@ CREATE INDEX IF NOT EXISTS production_tasks_prazo_idx
 
 ALTER TABLE public.production_tasks
     ADD COLUMN IF NOT EXISTS ambiente text;
+
+-- ============================================================================
+-- COMPROMISSOS: VINCULO COM GOOGLE AGENDA (set/2026)
+-- Guarda o id do evento no Google para propagar edicao/exclusao no
+-- mesmo evento em vez de criar duplicado.
+-- ============================================================================
+
+ALTER TABLE public.compromissos
+    ADD COLUMN IF NOT EXISTS google_event_id text;

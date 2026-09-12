@@ -1424,6 +1424,24 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
 .wizard-toggle strong { font-weight: 600; color: var(--ink); }
 .wizard-toggle small { font-size: 0.8125rem; color: var(--ink-muted); line-height: 1.4; }
 
+/* Checkbox de "criar no Google Agenda" dentro do modal de compromisso. */
+.mdcl-google {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: border-color 160ms var(--ease);
+}
+.mdcl-google:hover { border-color: var(--border-strong); }
+.mdcl-google input { margin-top: 3px; accent-color: var(--accent); }
+.mdcl-google span { display: flex; flex-direction: column; gap: 2px; }
+.mdcl-google strong { font-weight: 600; color: var(--ink); font-size: 0.875rem; }
+.mdcl-google small { font-size: 0.75rem; color: var(--ink-muted); }
+
 /* Filtros */
 .md-filters {
   display: flex;
@@ -4920,6 +4938,16 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
             <label for="mdcl-descricao" class="field-label" style="font-weight:500;">Observações</label>
             <textarea id="mdcl-descricao" rows="3" placeholder="Detalhes adicionais (opcional)"></textarea>
           </div>
+
+          <!-- Sincroniza com o Google Agenda quando a integração está ativa.
+               O bloco inteiro fica hidden se o usuário não conectou. -->
+          <label class="mdcl-google" id="mdcl-google-wrap" hidden>
+            <input type="checkbox" id="mdcl-google" checked>
+            <span>
+              <strong>Também criar no Google Agenda</strong>
+              <small id="mdcl-google-hint">Conectado como —</small>
+            </span>
+          </label>
         </div>
       </form>
     </div>
@@ -6115,6 +6143,94 @@ async function demoModificacao() {
   } catch (e) {
     console.error(e);
     showToast('Erro: ' + e.message);
+  }
+}
+
+/* Constrói o corpo do evento do Google Calendar a partir de um compromisso
+   do sistema. Usa dateTime quando há hora e date quando é o dia todo. */
+function _eventoGoogleDoCompromisso(c) {
+  const projeto = c.projetoId ? projetos.find(p => p.id === c.projetoId) : null;
+  const descLinhas = [];
+  if (projeto) descLinhas.push(`Projeto: ${projeto.codigo} · ${projeto.cliente}`);
+  if (c.descricao) descLinhas.push(c.descricao);
+  if (c.prioridade === 'alta') descLinhas.push('Prioridade: alta');
+  descLinhas.push('— Criado pelo Alpha Sistema');
+
+  const summary = projeto ? `[${projeto.codigo}] ${c.titulo}` : c.titulo;
+  const tz = 'America/Sao_Paulo';
+
+  if (c.hora) {
+    const [hh, mm] = c.hora.split(':').map(Number);
+    const [y, m, d] = c.data.split('-').map(Number);
+    const inicio = new Date(y, (m || 1) - 1, d || 1, hh || 0, mm || 0);
+    const fim = new Date(inicio.getTime() + 60 * 60 * 1000); // 1h por padrão
+    return {
+      summary,
+      description: descLinhas.join('\n'),
+      start: { dateTime: inicio.toISOString(), timeZone: tz },
+      end: { dateTime: fim.toISOString(), timeZone: tz }
+    };
+  }
+
+  // Sem hora — evento de dia inteiro. Google exige end.date um dia depois.
+  const [y, m, d] = c.data.split('-').map(Number);
+  const proximo = new Date(y, (m || 1) - 1, (d || 1) + 1);
+  const proximoStr = `${proximo.getFullYear()}-${String(proximo.getMonth() + 1).padStart(2, '0')}-${String(proximo.getDate()).padStart(2, '0')}`;
+  return {
+    summary,
+    description: descLinhas.join('\n'),
+    start: { date: c.data },
+    end: { date: proximoStr }
+  };
+}
+
+async function criarEventoGoogleDoCompromisso(c) {
+  if (!googleAccessToken) return { error: 'Não conectado ao Google Agenda' };
+  try {
+    const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(_eventoGoogleDoCompromisso(c))
+    });
+    const body = await res.json();
+    if (!res.ok) return { error: body.error?.message || 'Falha ao criar evento no Google' };
+    return { id: body.id };
+  } catch (e) {
+    return { error: e.message || 'Falha de rede ao criar evento' };
+  }
+}
+
+async function atualizarEventoGoogleDoCompromisso(c) {
+  if (!googleAccessToken || !c.googleEventId) return { error: 'Sem token ou evento' };
+  try {
+    const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${c.googleEventId}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${googleAccessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(_eventoGoogleDoCompromisso(c))
+    });
+    const body = await res.json();
+    if (!res.ok) return { error: body.error?.message || 'Falha ao atualizar evento no Google' };
+    return { id: body.id };
+  } catch (e) {
+    return { error: e.message || 'Falha de rede ao atualizar evento' };
+  }
+}
+
+async function excluirEventoGoogleDoCompromisso(googleEventId) {
+  if (!googleAccessToken || !googleEventId) return { error: 'Sem token ou evento' };
+  try {
+    const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${googleEventId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${googleAccessToken}` }
+    });
+    // 200/204 = OK, 410 = já apagado (também aceitável)
+    if (!res.ok && res.status !== 410) {
+      const body = await res.json().catch(() => ({}));
+      return { error: body.error?.message || `Falha ao remover no Google (HTTP ${res.status})` };
+    }
+    return { ok: true };
+  } catch (e) {
+    return { error: e.message || 'Falha de rede ao remover evento' };
   }
 }
 
@@ -8714,8 +8830,32 @@ function compromissoDaLinha(row) {
     hora: row.hora ? String(row.hora).slice(0, 5) : '', // "14:00:00" -> "14:00"
     prioridade: row.prioridade || 'normal',
     descricao: row.descricao || '',
-    concluido: !!row.concluido
+    concluido: !!row.concluido,
+    googleEventId: row.google_event_id || null
   };
+}
+
+/* Mostra/esconde a linha de "criar no Google Agenda" e atualiza o hint
+   com o email conectado. Chamado antes de abrir o modal. */
+function atualizarToggleGoogleCompromisso(googleEventIdExistente) {
+  const wrap = document.getElementById('mdcl-google-wrap');
+  const cb = document.getElementById('mdcl-google');
+  const hint = document.getElementById('mdcl-google-hint');
+  if (!wrap || !cb || !hint) return;
+
+  const conectado = !!googleAccessToken && !!googleUserEmail;
+  wrap.hidden = !conectado;
+  if (!conectado) return;
+
+  if (googleEventIdExistente) {
+    // Já tem evento no Google — deixa ligado por padrão e informa que
+    // salvar vai atualizar o evento existente.
+    cb.checked = true;
+    hint.textContent = `Atualizar no Google Agenda (${googleUserEmail})`;
+  } else {
+    cb.checked = true;
+    hint.textContent = `Criar em ${googleUserEmail}`;
+  }
 }
 
 async function carregarCompromissosLocais() {
@@ -8747,6 +8887,7 @@ function abrirNovoCompromissoLocal() {
   document.getElementById('mdcl-descricao').value = '';
   setMdclTipo('projeto');
   popularProjetosCompromissoLocal();
+  atualizarToggleGoogleCompromisso(null);
   modal.classList.add('open');
 }
 function abrirEditarCompromissoLocal(id) {
@@ -8763,6 +8904,7 @@ function abrirEditarCompromissoLocal(id) {
   document.getElementById('mdcl-descricao').value = c.descricao || '';
   setMdclTipo(c.tipo || 'projeto');
   popularProjetosCompromissoLocal(c.projetoId);
+  atualizarToggleGoogleCompromisso(c.googleEventId);
   modal.classList.add('open');
 }
 function fecharCompromissoLocal() {
@@ -8817,21 +8959,57 @@ async function salvarCompromissoLocal() {
   const btn = document.querySelector('#mdcl-footer .btn-primary');
   if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
 
+  const querSincronizarGoogle = !!document.getElementById('mdcl-google')?.checked
+    && !document.getElementById('mdcl-google-wrap')?.hidden
+    && !!googleAccessToken;
+
   try {
+    let salvo;
     if (id) {
       const { data: row, error } = await supabase
         .from('compromissos').update(payload).eq('id', id).select().single();
       if (error) throw error;
+      salvo = compromissoDaLinha(row);
       const i = compromissosLocais.findIndex(x => x.id === id);
-      if (i >= 0) compromissosLocais[i] = compromissoDaLinha(row);
-      showToast('Compromisso atualizado.');
+      if (i >= 0) compromissosLocais[i] = salvo;
     } else {
       const { data: row, error } = await supabase
         .from('compromissos').insert(payload).select().single();
       if (error) throw error;
-      compromissosLocais.push(compromissoDaLinha(row));
-      showToast('Compromisso criado.');
+      salvo = compromissoDaLinha(row);
+      compromissosLocais.push(salvo);
     }
+
+    // Se pediu Google, propaga. Falha aqui NÃO reverte o Supabase — o
+    // compromisso local existe de qualquer jeito; apenas avisa.
+    if (querSincronizarGoogle) {
+      if (salvo.googleEventId) {
+        const r = await atualizarEventoGoogleDoCompromisso(salvo);
+        if (r.error) {
+          showToast('Salvo, mas falhou atualizar no Google: ' + r.error);
+        } else {
+          showToast(id ? 'Compromisso atualizado (Google Agenda também).' : 'Compromisso criado (Google Agenda também).');
+        }
+      } else {
+        const r = await criarEventoGoogleDoCompromisso(salvo);
+        if (r.error) {
+          showToast('Salvo, mas falhou criar no Google: ' + r.error);
+        } else {
+          // Vincula o evento pra futuras edições sincronizarem
+          const { data: row2 } = await supabase.from('compromissos')
+            .update({ google_event_id: r.id, updated_at: new Date().toISOString() })
+            .eq('id', salvo.id).select().single();
+          if (row2) {
+            const j = compromissosLocais.findIndex(x => x.id === salvo.id);
+            if (j >= 0) compromissosLocais[j] = compromissoDaLinha(row2);
+          }
+          showToast(id ? 'Compromisso atualizado (Google Agenda também).' : 'Compromisso criado (Google Agenda também).');
+        }
+      }
+    } else {
+      showToast(id ? 'Compromisso atualizado.' : 'Compromisso criado.');
+    }
+
     fecharCompromissoLocal();
     renderChao();
   } catch (e) {
@@ -8873,6 +9051,7 @@ async function excluirCompromissoLocal(id) {
   if (!supabase) { showToast('Erro: Supabase não configurado.'); return; }
 
   const backup = compromissosLocais.slice();
+  const eventoGoogle = c.googleEventId;
   compromissosLocais = compromissosLocais.filter(x => x.id !== id);
   renderChao();
 
@@ -8882,6 +9061,18 @@ async function excluirCompromissoLocal(id) {
     compromissosLocais = backup;
     renderChao();
     showToast('Não foi possível excluir o compromisso.');
+    return;
+  }
+
+  // Se estava no Google Agenda, apaga lá também. Falha aqui não desfaz
+  // a exclusão local — deixa o evento órfão no Google, com aviso.
+  if (eventoGoogle && googleAccessToken) {
+    const r = await excluirEventoGoogleDoCompromisso(eventoGoogle);
+    if (r.error) {
+      showToast('Excluído aqui, mas não no Google: ' + r.error);
+      return;
+    }
+    showToast('Compromisso excluído (Google Agenda também).');
     return;
   }
   showToast('Compromisso excluído.');
