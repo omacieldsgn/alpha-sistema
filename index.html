@@ -7976,7 +7976,7 @@ function renderAcompanhamentoProducao(projeto, container) {
       const p = t ? Math.round((c / t) * 100) : 0;
       const cls = ativo === nome ? 'is-active' : '';
       return `
-        <div class="production-overview-row ${cls}" onclick="setFiltroProducao('${projeto.id}','${tipo}', ${JSON.stringify(nome)})">
+        <div class="production-overview-row ${cls}" onclick="setFiltroProducao('${projeto.id}','${tipo}', '${nome.replace(/'/g, "\\'")}')">
           <div class="grp">${nome}<small>${c}/${t} concluídas · ${p}%</small></div>
           <div class="mini-bar"><span style="width:${p}%"></span></div>
         </div>`;
@@ -8020,7 +8020,7 @@ function renderAcompanhamentoProducao(projeto, container) {
       ${['todas','pendentes','andamento','concluidas','alta'].map(s => {
         const label = { todas:`Todas (${cntTodas})`, pendentes:`Pendentes (${cntPend})`, andamento:`Em andamento (${cntAnd})`, concluidas:`Concluídas (${cntConc})`, alta:`Prioridade alta (${cntAlta})` }[s];
         const active = (filtro.status || 'todas') === s ? 'is-active' : '';
-        return `<button type="button" class="production-filter-chip ${active}" onclick="setFiltroProducao('${projeto.id}','status', ${JSON.stringify(s)})">${label}</button>`;
+        return `<button type="button" class="production-filter-chip ${active}" onclick="setFiltroProducao('${projeto.id}','status', '${s}')">${label}</button>`;
       }).join('')}
       ${filtroAtivo ? `<button type="button" class="production-filter-clear" onclick="setFiltroProducao('${projeto.id}','clear', null)">Limpar filtros</button>` : ''}
     </div>
