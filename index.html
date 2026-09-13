@@ -222,7 +222,8 @@ p { text-wrap: pretty; }
 /* Layout base ------------------------------------------------------------- */
 .app {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  /* A coluna carrega a sidebar mais a margem que a faz flutuar. */
+  grid-template-columns: 256px 1fr;
   min-height: 100vh;
   transition: background 240ms var(--ease);
 }
@@ -230,20 +231,35 @@ p { text-wrap: pretty; }
    "Modo Gestor", esconder a sidebar prenderia o usuário nessa tela. */
 
 /* Sidebar -----------------------------------------------------------------
-   Três faixas: marca (fixa) · nav (a que cede e rola) · rodapé (fixo).
+   Ilha flutuante à esquerda, mesmo desenho da navbar do celular: cantos
+   arredondados, margem de respiro e fundo translúcido com blur.
+   Duas faixas: topo (marca + tema, fixo) · nav (a que cede e rola).
    min-height:0 no nav é o que permite o scroll dentro de um flex container.
    -------------------------------------------------------------------------- */
 .sidebar {
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  padding: var(--sp-4) var(--sp-3) var(--sp-3);
+  background: color-mix(in oklch, var(--surface) 96%, transparent);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--sp-3);
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: var(--sp-4);
+  margin: var(--sp-4) 0 var(--sp-4) var(--sp-4);
+  height: calc(100vh - var(--sp-7));
   overflow: hidden;
+  opacity: 1;
+  transition: opacity 260ms var(--ease);
+}
+/* Mesmo comportamento da navbar: recua ao rolar, volta ao interagir. */
+.sidebar.is-dimmed { opacity: 0.55; }
+.sidebar:focus-within { opacity: 1 !important; }
+@media (hover: hover) {
+  .sidebar:hover { opacity: 1 !important; }
 }
 .brand-mark {
   display: flex;
@@ -390,7 +406,13 @@ p { text-wrap: pretty; }
 .main {
   padding: var(--sp-7) var(--sp-8);
   max-width: 1400px;
+  /* Item de grid nasce com min-width:auto, que o impede de encolher abaixo do
+     conteúdo — era o que empurrava a coluna para além da tela no celular e
+     obrigava a rolar de lado. */
+  min-width: 0;
 }
+/* Mesma armadilha nos containers internos que seguram texto longo. */
+.view, .painel-grid, .projetos-grid { min-width: 0; }
 .view { display: none; }
 .view.active { display: block; animation: fadeIn 280ms var(--ease); }
 @keyframes fadeIn {
@@ -3411,16 +3433,36 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
    ============================================================================ */
 .bottom-nav {
   position: fixed;
-  left: 0; right: 0; bottom: 0;
+  left: 0; right: 0;
+  bottom: calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
   z-index: var(--z-sticky);
   display: none;
   align-items: stretch;
-  background: color-mix(in oklch, var(--surface) 94%, transparent);
-  backdrop-filter: saturate(180%) blur(14px);
-  -webkit-backdrop-filter: saturate(180%) blur(14px);
-  border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  gap: 2px;
+  /* Ilha flutuante: margem nas laterais e cantos arredondados */
+  margin: 0 var(--sp-4);
+  padding: 5px;
+  border-radius: var(--radius-xl);
+  background: color-mix(in oklch, var(--surface) 96%, transparent);
+  backdrop-filter: saturate(180%) blur(18px);
+  -webkit-backdrop-filter: saturate(180%) blur(18px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  /* Estado de repouso: opaca. A classe .is-dimmed entra ao rolar. */
+  opacity: 1;
+  transition: opacity 260ms var(--ease), transform 260ms var(--ease);
 }
+/* Ao rolar, recua para o segundo plano e devolve a tela ao conteúdo.
+   Qualquer toque, foco ou parada de rolagem traz de volta a 100%. */
+.bottom-nav.is-dimmed { opacity: 0.55; }
+.bottom-nav:focus-within,
+.bottom-nav:active { opacity: 1 !important; }
+/* :hover só onde existe mouse — em touch ele gruda depois do toque e a
+   navbar nunca mais voltaria a recuar. */
+@media (hover: hover) {
+  .bottom-nav:hover { opacity: 1 !important; }
+}
+
 .bnav-item {
   position: relative;
   flex: 1 1 0;
@@ -3430,8 +3472,9 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   align-items: center;
   justify-content: center;
   gap: 3px;
-  padding: 8px 2px 7px;
+  padding: 9px 2px 8px;
   border: 0;
+  border-radius: calc(var(--radius-xl) - 6px);
   background: none;
   font-family: inherit;
   font-size: 0.625rem;
@@ -3440,7 +3483,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   color: var(--ink-subtle);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: color 140ms var(--ease);
+  transition: color 160ms var(--ease), background 160ms var(--ease);
 }
 .bnav-item span {
   max-width: 100%;
@@ -3448,22 +3491,17 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.bnav-item .nav-ico { width: 22px; height: 22px; opacity: 1; stroke-width: 1.6; }
-.bnav-item[aria-current="page"] { color: var(--accent); font-weight: 650; }
-.bnav-item[aria-current="page"]::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 50%;
-  transform: translateX(-50%);
-  width: 26px; height: 2.5px;
-  border-radius: 0 0 3px 3px;
-  background: var(--accent);
+.bnav-item .nav-ico { width: 21px; height: 21px; opacity: 1; stroke-width: 1.6; }
+.bnav-item[aria-current="page"] {
+  color: var(--accent);
+  font-weight: 650;
+  background: color-mix(in oklch, var(--accent) 13%, transparent);
 }
-.bnav-item:active { color: var(--ink); }
+.bnav-item:active { background: var(--surface-2); color: var(--ink); }
 .bnav-badge {
   position: absolute;
-  top: 6px;
-  left: calc(50% + 8px);
+  top: 7px;
+  left: calc(50% + 7px);
   width: 7px; height: 7px;
   border-radius: 50%;
   background: var(--status-atrasado);
@@ -3643,15 +3681,23 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   .sheet-backdrop.open { pointer-events: auto; }
   .more-sheet { display: block; }
 
-  /* Espaço para a navbar não cobrir o fim do conteúdo */
-  .main { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px) + var(--sp-5)); }
-  .toast { bottom: calc(76px + env(safe-area-inset-bottom, 0px) + var(--sp-3)); }
+  /* Folga para a ilha flutuante não cobrir o fim do conteúdo */
+  .main { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  .toast { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+
+  /* Com o sheet aberto a navbar sai de cena — senão brigam pelo mesmo canto */
+  body.sheet-open .bottom-nav {
+    opacity: 0;
+    transform: translateY(calc(100% + var(--sp-5)));
+    pointer-events: none;
+  }
 }
 
 /* Sidebar mais enxuta no tablet retrato, onde 240px pesam demais. Faixa
    fechada: abaixo de 721px quem manda é a navbar inferior. */
-@media (min-width: 721px) and (max-width: 768px) {
-  .app { grid-template-columns: 208px 1fr; }
+@media (min-width: 721px) and (max-width: 1024px) {
+  .app { grid-template-columns: 216px 1fr; }
+  .sidebar { margin: var(--sp-3) 0 var(--sp-3) var(--sp-3); }
 }
 
 @media (max-width: 768px) {
@@ -10457,12 +10503,14 @@ window.addEventListener('popstate', (e) => {
 function abrirMaisSheet() {
   document.getElementById('more-sheet')?.classList.add('open');
   document.getElementById('sheet-backdrop')?.classList.add('open');
+  document.body.classList.add('sheet-open');
   document.body.style.overflow = 'hidden';
 }
 
 function fecharMaisSheet() {
   document.getElementById('more-sheet')?.classList.remove('open');
   document.getElementById('sheet-backdrop')?.classList.remove('open');
+  document.body.classList.remove('sheet-open');
   document.body.style.overflow = '';
 }
 window.abrirMaisSheet = abrirMaisSheet;
@@ -10477,6 +10525,48 @@ function closeDrawer() {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') fecharMaisSheet();
 });
+
+/* ----------------------------------------------------------------------------
+   NAVEGAÇÃO FLUTUANTE — recua ao rolar
+   A navbar (e a sidebar no desktop) ficam sólidas em repouso e baixam a
+   opacidade enquanto a página rola, devolvendo a tela ao conteúdo. Parou de
+   rolar, voltam. Tocar/passar o mouse também traz de volta na hora — isso
+   está no CSS (:hover/:focus-within/:active), aqui só cuidamos do scroll.
+   -------------------------------------------------------------------------- */
+(function ligarRecuoDaNavegacao() {
+  const alvos = () => [document.querySelector('.bottom-nav'), document.querySelector('.sidebar')].filter(Boolean);
+  let timer = null;
+  let ultimoY = window.scrollY;
+
+  function acordar() {
+    alvos().forEach(el => el.classList.remove('is-dimmed'));
+  }
+
+  function aoRolar() {
+    const y = window.scrollY;
+    // Perto do topo nunca esmaece — é o estado inicial que o usuário vê.
+    const longeDoTopo = y > 48;
+    const moveu = Math.abs(y - ultimoY) > 2;
+    ultimoY = y;
+
+    if (longeDoTopo && moveu) {
+      alvos().forEach(el => el.classList.add('is-dimmed'));
+    } else if (!longeDoTopo) {
+      acordar();
+    }
+
+    clearTimeout(timer);
+    timer = setTimeout(acordar, 900);
+  }
+
+  window.addEventListener('scroll', aoRolar, { passive: true });
+  // Qualquer toque na navegação restaura imediatamente.
+  ['pointerdown', 'touchstart', 'focusin'].forEach(evt => {
+    document.addEventListener(evt, e => {
+      if (e.target.closest?.('.bottom-nav, .sidebar')) acordar();
+    }, { passive: true });
+  });
+})();
 
 /* Logotipo → painel inicial. Zera o histórico: a home é a raiz, não um passo atrás. */
 function irParaInicio() {
