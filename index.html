@@ -2676,19 +2676,147 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   .production-header .btn { flex: 1; justify-content: center; min-height: 40px; }
   .production-status { max-width: 100%; white-space: normal; text-align: center; }
   .production-summary-line { align-items: flex-start; flex-direction: column; gap: var(--sp-1); }
+  .chao-etapa .etapa-titulo { font-size: 0.9375rem; }
+}
+
+/* Header da coluna — no desktop é só um rótulo; no celular vira o botão que
+   abre e fecha a etapa. */
+.chao-column-header {
+  width: 100%;
+  border: 0;
+  background: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: default;
+}
+.chao-col-right {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: 0 0 auto;
+}
+.chao-col-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--status-em-andamento);
+  flex: 0 0 auto;
+}
+.chao-chevron { display: none; }
+/* .chao-column é display:flex, que venceria o [hidden] da busca. */
+.chao-column[hidden] { display: none !important; }
+
+/* Busca e expandir/recolher do fluxo */
+.chao-tools {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+  margin-bottom: var(--sp-3);
+}
+.chao-busca {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 38px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+.chao-busca::placeholder { color: var(--ink-subtle); }
+.chao-busca:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.chao-tool-btn {
+  flex: 0 0 auto;
+  height: 38px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--ink-muted);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 140ms var(--ease), color 140ms var(--ease);
+}
+.chao-tool-btn:hover { background: var(--surface-warm); color: var(--ink); }
+.chao-sem-resultado {
+  padding: var(--sp-5);
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+}
+/* No desktop o kanban já mostra tudo lado a lado; o expandir não se aplica. */
+@media (min-width: 721px) { .chao-tool-btn { display: none; } }
+
+/* --------------------------------------------------------------------------
+   MEU DIA NO CELULAR — o kanban horizontal vira acordeão vertical.
+   Antes era preciso rolar de lado por 20+ colunas de 84vw para achar uma
+   etapa. Agora todas cabem numa tela e só a que interessa fica aberta.
+   -------------------------------------------------------------------------- */
+@media (max-width: 720px) {
   .chao-board {
-    margin-left: calc(var(--sp-4) * -1);
-    margin-right: calc(var(--sp-4) * -1);
-    padding-left: var(--sp-4);
-    padding-right: var(--sp-4);
-    scroll-snap-type: x mandatory;
+    display: grid;
+    gap: var(--sp-2);
+    overflow-x: visible;
+    margin: 0;
+    padding: 0;
+    scroll-snap-type: none;
   }
   .chao-column {
-    flex-basis: min(84vw, 300px);
+    flex: none;
+    width: 100%;
     min-height: 0;
     max-height: none;
+    padding: 0;
+    overflow: visible;
+    background: var(--surface);
+    border-radius: var(--radius-md);
   }
-  .chao-etapa .etapa-titulo { font-size: 0.9375rem; }
+  .chao-column-header {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-3);
+    min-height: 52px;
+    border-bottom: 1px solid var(--border);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    position: static;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .chao-column-title {
+    -webkit-line-clamp: 1;
+    font-size: 0.875rem;
+  }
+  .chao-chevron {
+    display: inline-block;
+    color: var(--ink-subtle);
+    font-size: 0.875rem;
+    line-height: 1;
+    transition: transform 200ms var(--ease);
+  }
+  .chao-column-cards {
+    display: grid;
+    gap: var(--sp-2);
+    padding: var(--sp-3);
+  }
+  /* Fechada: só o cabeçalho aparece */
+  .chao-column.is-collapsed .chao-column-cards { display: none; }
+  .chao-column.is-collapsed .chao-column-header {
+    border-bottom: 0;
+    border-radius: var(--radius-md);
+  }
+  .chao-column.is-collapsed .chao-chevron { transform: rotate(-90deg); }
+  .chao-column.is-collapsed .chao-column-title { color: var(--ink-muted); }
+
+  /* Card da etapa mais compacto — cabem mais numa tela */
+  .chao-etapa { padding: var(--sp-3); }
+  .chao-etapa .chao-select { margin-top: var(--sp-2); }
 }
 
 /* Utilitários ------------------------------------------------------------- */
@@ -2696,12 +2824,290 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
 .stack-1 { gap: var(--sp-1); } .stack-2 { gap: var(--sp-2); } .stack-3 { gap: var(--sp-3); }
 .stack-4 { gap: var(--sp-4); } .stack-5 { gap: var(--sp-5); } .stack-6 { gap: var(--sp-6); }
 
+/* ============================================================================
+   RELATÓRIO PARA O CLIENTE
+   O nó .rel-paper é ao mesmo tempo a pré-visualização e o que vai impresso:
+   o @media print esconde todo o resto da página e solta esse nó na folha.
+   ============================================================================ */
+/* .modal define max-width:560px mais adiante no arquivo — daí a dupla classe. */
+.modal.modal-relatorio {
+  max-width: 1080px;
+  width: min(96vw, 1080px);
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+}
+.modal-relatorio .modal-header { justify-content: space-between; align-items: center; }
+.modal-close {
+  width: 34px; height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--ink-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 140ms var(--ease), color 140ms var(--ease);
+}
+.modal-close:hover { background: var(--surface-warm); color: var(--ink); }
+
+.rel-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: var(--sp-5);
+  padding: var(--sp-5);
+  overflow: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.rel-form {
+  overflow-y: auto;
+  padding-right: var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+.rel-form-group { display: flex; flex-direction: column; gap: 6px; }
+.rel-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+.rel-checks { display: grid; gap: 7px; }
+.rel-check {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 0.875rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+.rel-check input { width: 16px; height: 16px; accent-color: var(--accent); flex: 0 0 auto; }
+.rel-dica { font-size: 0.75rem; color: var(--ink-subtle); margin: 2px 0 0; line-height: 1.45; }
+.rel-dica--forte { color: var(--ink-muted); border-top: 1px solid var(--border); padding-top: var(--sp-3); }
+
+.rel-preview-wrap {
+  overflow-y: auto;
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+  min-width: 0;
+}
+.rel-preview-hint {
+  font-size: 0.6875rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin-bottom: var(--sp-3);
+  text-align: center;
+}
+
+/* ---- A folha ------------------------------------------------------------ */
+.rel-paper {
+  background: #FFFFFF;
+  color: #211D19;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 44px 46px 40px;
+  box-shadow: var(--shadow-md);
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+.rel-paper [contenteditable]:hover {
+  background: color-mix(in oklch, #A9825A 12%, transparent);
+  border-radius: 3px;
+}
+.rel-paper [contenteditable]:focus {
+  outline: 2px solid #A9825A;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.rel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid #211D19;
+}
+.rel-head img { width: 132px; height: auto; display: block; }
+.rel-head-right { text-align: right; font-size: 10px; color: #6B655D; line-height: 1.7; }
+.rel-head-right strong { color: #211D19; display: block; font-size: 11px; }
+
+.rel-titulo {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 340;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  margin: 26px 0 4px;
+  color: #211D19;
+}
+.rel-sub { font-size: 11px; color: #6B655D; margin-bottom: 22px; }
+.rel-saudacao { font-size: 11.5px; line-height: 1.65; margin-bottom: 24px; color: #3A352E; }
+
+.rel-sec { margin-bottom: 22px; break-inside: avoid; }
+.rel-sec-titulo {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #A9825A;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #E0D6C6;
+}
+
+/* Faixa de destaque: progresso e prazo */
+.rel-destaque {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  padding: 16px 18px;
+  background: #F7F4EE;
+  border-radius: 8px;
+  margin-bottom: 22px;
+  break-inside: avoid;
+}
+.rel-destaque-item .lbl {
+  font-size: 8.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8B857D;
+  display: block;
+  margin-bottom: 3px;
+}
+.rel-destaque-item .val {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #211D19;
+  line-height: 1.1;
+}
+.rel-destaque-item .val small { font-size: 10px; font-weight: 500; color: #6B655D; display: block; margin-top: 2px; letter-spacing: 0; }
+
+.rel-bar {
+  height: 7px;
+  background: #E0D6C6;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+.rel-bar > span { display: block; height: 100%; background: #A9825A; border-radius: 99px; }
+
+/* Lista de ambientes */
+.rel-amb-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px 78px;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #F0EAE0;
+  font-size: 10.5px;
+}
+.rel-amb-row:last-child { border-bottom: 0; }
+.rel-amb-row .nome { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rel-amb-row .pct { text-align: right; color: #6B655D; font-variant-numeric: tabular-nums; }
+.rel-amb-row .mini {
+  height: 5px; background: #E0D6C6; border-radius: 99px; overflow: hidden;
+}
+.rel-amb-row .mini > span { display: block; height: 100%; background: #A9825A; }
+
+/* Listas de etapas */
+.rel-lista { display: grid; gap: 4px; }
+.rel-item {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  font-size: 10.5px;
+  padding: 3px 0;
+}
+.rel-item .mark { color: #A9825A; font-weight: 700; }
+.rel-item.is-done .mark { color: #2F332B; }
+.rel-item .txt { color: #3A352E; }
+.rel-item .comodo { color: #8B857D; }
+
+.rel-obs {
+  background: #F7F4EE;
+  border-left: 3px solid #A9825A;
+  padding: 12px 14px;
+  border-radius: 0 6px 6px 0;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: #3A352E;
+  break-inside: avoid;
+}
+
+.rel-foot {
+  margin-top: 30px;
+  padding-top: 14px;
+  border-top: 1px solid #E0D6C6;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  font-size: 9.5px;
+  color: #8B857D;
+}
+.rel-assinatura { font-size: 11px; color: #211D19; font-weight: 600; }
+
+@media (max-width: 860px) {
+  .rel-layout { grid-template-columns: 1fr; overflow-y: auto; }
+  .rel-form { overflow: visible; padding-right: 0; }
+  .rel-preview-wrap { overflow: visible; padding: var(--sp-3); }
+  .rel-paper { padding: 28px 24px; font-size: 11px; }
+  .rel-destaque { grid-template-columns: 1fr; gap: 10px; }
+  .rel-titulo { font-size: 21px; }
+}
+
+/* ---- Impressão ---------------------------------------------------------- */
+@media print {
+  /* Some com a interface inteira e deixa só a folha. */
+  body > *:not(#modal-relatorio) { display: none !important; }
+  #modal-relatorio {
+    display: block !important;
+    position: static !important;
+    background: none !important;
+    padding: 0 !important;
+  }
+  #modal-relatorio .modal-header,
+  #modal-relatorio .modal-footer,
+  #modal-relatorio .rel-form,
+  #modal-relatorio .rel-preview-hint { display: none !important; }
+  #modal-relatorio .modal-relatorio {
+    max-width: none; width: auto; max-height: none;
+    box-shadow: none; border: 0; padding: 0; background: none;
+  }
+  #modal-relatorio .rel-layout { display: block; overflow: visible; }
+  #modal-relatorio .rel-preview-wrap {
+    overflow: visible; background: none; padding: 0; border-radius: 0;
+  }
+  .rel-paper {
+    max-width: none;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    font-size: 10.5pt;
+  }
+  .rel-paper [contenteditable]:hover { background: none; }
+  @page { size: A4; margin: 16mm 15mm; }
+}
+
 /* Toast ------------------------------------------------------------------- */
 .toast {
   position: fixed;
   bottom: var(--sp-5);
   left: 50%;
-  transform: translateX(-50%) translateY(120%);
+  transform: translateX(-50%) translateY(16px);
   background: var(--ink);
   color: var(--bg);
   padding: var(--sp-4) var(--sp-5);
@@ -2709,12 +3115,22 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   font-size: 0.875rem;
   box-shadow: var(--shadow-lg);
   z-index: var(--z-toast);
-  transition: transform 280ms var(--ease);
   display: flex;
   align-items: center;
   gap: var(--sp-3);
+  /* Esconder por opacidade, não por deslocamento: o translateY(120%) antigo
+     não vencia o `bottom` maior do mobile e o toast ficava preso na tela. */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 220ms var(--ease), transform 220ms var(--ease), visibility 0s linear 220ms;
 }
-.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  transition: opacity 220ms var(--ease), transform 220ms var(--ease), visibility 0s;
+}
 .toast .check {
   width: 20px; height: 20px;
   border-radius: 50%;
@@ -3589,10 +4005,13 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 
 .detalhe-grid {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
   gap: var(--sp-6);
   margin-bottom: var(--sp-6);
 }
+/* Itens de grid/flex nascem com min-width:auto e se recusam a encolher
+   abaixo do conteúdo — é o que empurrava os cards para fora da tela. */
+.detalhe-grid > *, .detalhe-grid .card, .detalhe-grid .stack { min-width: 0; }
 
 /* Lista de dados do cliente — rótulo e valor em colunas próprias, para o
    valor longo (endereço) quebrar sem encostar no rótulo. */
@@ -4591,6 +5010,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
           <p class="lede" id="detalhe-lede"></p>
         </div>
         <div class="detalhe-acoes">
+          <button class="btn btn-primary" onclick="abrirRelatorioCliente()">Relatório para o cliente</button>
           <button class="btn btn-secondary" onclick="abrirModalEditarProjeto()">Editar projeto</button>
           <button class="btn btn-ghost btn-perigo" onclick="excluirProjetoAtual()">Excluir projeto</button>
         </div>
@@ -5216,9 +5636,17 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
               <h2 class="md-block-title">Fluxo de produção</h2>
               <span class="md-hint" id="md-board-hint">— etapas ativas</span>
             </div>
+            <!-- Busca e expandir/recolher: no celular o board tem dezenas de
+                 etapas, e rolar tudo não é navegação. -->
+            <div class="chao-tools">
+              <input type="search" class="chao-busca" id="chao-busca" placeholder="Buscar etapa, cliente ou código…"
+                     oninput="filtrarBoardChao(this.value)" aria-label="Buscar no fluxo de produção">
+              <button type="button" class="chao-tool-btn" id="chao-toggle-all" onclick="alternarTodasColunasChao()">Expandir tudo</button>
+            </div>
             <div class="chao-board" id="chao-grid">
               <!-- populado por JS -->
             </div>
+            <div class="chao-sem-resultado" id="chao-sem-resultado" hidden>Nenhuma etapa corresponde à busca.</div>
           </section>
         </div>
       </div>
@@ -5648,6 +6076,78 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
     <div class="modal-footer" id="mdcl-footer">
       <button class="btn btn-ghost" type="button" onclick="fecharCompromissoLocal()">Cancelar</button>
       <button class="btn btn-primary" type="button" onclick="salvarCompromissoLocal()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================================
+     RELATÓRIO PARA O CLIENTE
+     Painel de edição à esquerda, pré-visualização fiel à direita. O que se vê
+     no preview é exatamente o que vai para o PDF — o mesmo nó é impresso.
+     ============================================================================ -->
+<div class="modal-backdrop" id="modal-relatorio">
+  <div class="modal modal-relatorio" role="dialog" aria-modal="true" aria-labelledby="rel-title">
+    <div class="modal-header">
+      <div>
+        <h2 class="t-h2" id="rel-title" style="margin:0;">Relatório para o cliente</h2>
+        <p class="t-small" style="margin:2px 0 0; color:var(--ink-muted);">Revise e edite antes de gerar o PDF</p>
+      </div>
+      <button class="modal-close" onclick="fecharRelatorio()" aria-label="Fechar">×</button>
+    </div>
+
+    <div class="rel-layout">
+      <!-- Coluna de edição -->
+      <div class="rel-form">
+        <div class="rel-form-group">
+          <label class="rel-label" for="rel-titulo">Título</label>
+          <input class="input" id="rel-titulo" oninput="atualizarPreviewRelatorio()">
+        </div>
+
+        <div class="rel-form-group">
+          <label class="rel-label" for="rel-saudacao">Mensagem de abertura</label>
+          <textarea class="input" id="rel-saudacao" rows="3" oninput="atualizarPreviewRelatorio()"></textarea>
+        </div>
+
+        <div class="rel-form-group">
+          <label class="rel-label" for="rel-prazo">Prazo previsto (texto livre)</label>
+          <input class="input" id="rel-prazo" oninput="atualizarPreviewRelatorio()">
+        </div>
+
+        <div class="rel-form-group">
+          <label class="rel-label">Seções do relatório</label>
+          <div class="rel-checks">
+            <label class="rel-check"><input type="checkbox" id="rel-sec-resumo" checked onchange="atualizarPreviewRelatorio()"> Resumo do andamento</label>
+            <label class="rel-check"><input type="checkbox" id="rel-sec-ambientes" checked onchange="atualizarPreviewRelatorio()"> Progresso por ambiente</label>
+            <label class="rel-check"><input type="checkbox" id="rel-sec-concluidas" checked onchange="atualizarPreviewRelatorio()"> Etapas já concluídas</label>
+            <label class="rel-check"><input type="checkbox" id="rel-sec-proximas" checked onchange="atualizarPreviewRelatorio()"> Próximas etapas</label>
+            <label class="rel-check"><input type="checkbox" id="rel-sec-financeiro" onchange="atualizarPreviewRelatorio()"> Resumo financeiro</label>
+          </div>
+          <p class="rel-dica">O financeiro vem desmarcado — marque só se o cliente deve ver valores.</p>
+        </div>
+
+        <div class="rel-form-group">
+          <label class="rel-label" for="rel-obs">Observações (opcional)</label>
+          <textarea class="input" id="rel-obs" rows="4" placeholder="Algo que queira acrescentar para este cliente…" oninput="atualizarPreviewRelatorio()"></textarea>
+        </div>
+
+        <div class="rel-form-group">
+          <label class="rel-label" for="rel-assinatura">Assinatura</label>
+          <input class="input" id="rel-assinatura" oninput="atualizarPreviewRelatorio()">
+        </div>
+
+        <p class="rel-dica rel-dica--forte">Você também pode clicar direto no texto da pré-visualização para editar.</p>
+      </div>
+
+      <!-- Pré-visualização (é o nó que vai para o PDF) -->
+      <div class="rel-preview-wrap">
+        <div class="rel-preview-hint">Pré-visualização · A4</div>
+        <div class="rel-paper" id="rel-paper"><!-- montado por JS --></div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharRelatorio()">Cancelar</button>
+      <button class="btn btn-primary" onclick="gerarPdfRelatorio()">Gerar PDF</button>
     </div>
   </div>
 </div>
@@ -10386,12 +10886,24 @@ function renderChao() {
       `;
     }).join('');
     const count = tarefasNaEtapa.length;
+    // No celular o board vira acordeão e começa todo fechado: com dezenas de
+    // etapas ativas, abrir por padrão devolveria a mesma rolagem infinita.
+    // O ponto âmbar marca as que têm algo em andamento.
+    const temAndamento = tarefasNaEtapa.some(({ task }) => task.status === 'in_progress');
+    const colapsada = _chaoAcordeao() ? 'is-collapsed' : '';
+    // Texto de busca: nome da etapa + cliente, código e cômodo de cada card.
+    const busca = [etapaNome, ...tarefasNaEtapa.map(({ p, task }) =>
+      `${p.cliente} ${p.codigo} ${task.ambiente || ''}`)].join(' ').toLowerCase();
     return `
-      <div class="chao-column">
-        <div class="chao-column-header">
+      <div class="chao-column ${colapsada}" data-busca="${busca.replace(/"/g, '')}">
+        <button type="button" class="chao-column-header" onclick="alternarColunaChao(this)" aria-expanded="${colapsada ? 'false' : 'true'}">
           <span class="chao-column-title ${count > 0 ? 'has-tasks' : ''}" title="${etapaNome}">${index + 1}. ${etapaNome}</span>
-          <span class="chao-count">${count}</span>
-        </div>
+          <span class="chao-col-right">
+            ${temAndamento ? '<span class="chao-col-dot" title="Tem etapa em andamento"></span>' : ''}
+            <span class="chao-count">${count}</span>
+            <span class="chao-chevron" aria-hidden="true">⌄</span>
+          </span>
+        </button>
         <div class="chao-column-cards">
           ${count === 0 ? `<div class="chao-empty">Vazia</div>` : cardsHtml}
         </div>
@@ -10400,7 +10912,263 @@ function renderChao() {
   }).join('');
 
   boardEl.innerHTML = columnsHtml;
+  // Re-aplica a busca que estiver ativa, para o render não descartar o filtro.
+  const termo = document.getElementById('chao-busca')?.value || '';
+  if (termo) filtrarBoardChao(termo);
+  _sincronizarBotaoExpandir();
 }
+
+/* ============================================================================
+   RELATÓRIO PARA O CLIENTE
+   Monta um resumo do andamento do projeto, deixa editar tudo e imprime.
+   O PDF sai pelo próprio navegador (Salvar como PDF), o que mantém o texto
+   vetorial e evita carregar biblioteca de renderização.
+   ============================================================================ */
+
+function abrirRelatorioCliente() {
+  const p = projetos.find(x => x.id === projetoSelecionadoId);
+  if (!p) { showToast('Abra um projeto primeiro.'); return; }
+
+  // Pré-preenche os campos com um texto que já faz sentido sozinho.
+  const primeiroNome = (p.cliente || '').trim().split(/\s+/)[0] || 'cliente';
+  document.getElementById('rel-titulo').value = 'Andamento do seu projeto';
+  document.getElementById('rel-saudacao').value =
+    `Olá, ${primeiroNome}. Segue um resumo de como está a fabricação dos seus móveis planejados. ` +
+    `Qualquer dúvida, é só falar com a gente.`;
+  document.getElementById('rel-prazo').value = p.prazo
+    ? `Entrega prevista para ${fmtDate(p.prazo)}`
+    : 'Prazo a confirmar';
+  document.getElementById('rel-obs').value = '';
+  document.getElementById('rel-assinatura').value = 'Equipe Alpha Móveis Planejados';
+
+  atualizarPreviewRelatorio();
+  document.getElementById('modal-relatorio').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+window.abrirRelatorioCliente = abrirRelatorioCliente;
+
+function fecharRelatorio() {
+  document.getElementById('modal-relatorio').classList.remove('open');
+  document.body.style.overflow = '';
+}
+window.fecharRelatorio = fecharRelatorio;
+
+function atualizarPreviewRelatorio() {
+  const p = projetos.find(x => x.id === projetoSelecionadoId);
+  const paper = document.getElementById('rel-paper');
+  if (!p || !paper) return;
+
+  const val = id => document.getElementById(id)?.value || '';
+  const marcado = id => !!document.getElementById(id)?.checked;
+  const esc = s => String(s == null ? '' : s).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
+
+  const tasks = (p.tasks || []).filter(t => t.is_applicable !== false);
+  const concluidas = tasks.filter(t => t.status === 'completed');
+  const emAndamento = tasks.filter(t => t.status === 'in_progress');
+  const pendentes = tasks.filter(t => t.status === 'pending' || t.status === 'blocked');
+  const pct = tasks.length ? Math.round((concluidas.length / tasks.length) * 100) : 0;
+
+  // Fase legível para o cliente — sem jargão de status interno.
+  const fase = pct === 100 ? 'Concluído'
+    : emAndamento.length ? 'Em produção'
+    : pct > 0 ? 'Em andamento'
+    : 'Em preparação';
+
+  const dias = p.prazo ? diasAte(p.prazo) : null;
+  const prazoInfo = dias == null ? '—'
+    : dias >= 0 ? `${dias} dia${dias === 1 ? '' : 's'}` : `${Math.abs(dias)} dia${Math.abs(dias) === 1 ? '' : 's'} de atraso`;
+
+  // Agrupa por cômodo
+  const porAmb = new Map();
+  tasks.forEach(t => {
+    const a = (t.ambiente || '').trim() || 'Geral';
+    if (!porAmb.has(a)) porAmb.set(a, []);
+    porAmb.get(a).push(t);
+  });
+
+  const hoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  const secResumo = marcado('rel-sec-resumo') ? `
+    <div class="rel-destaque">
+      <div class="rel-destaque-item">
+        <span class="lbl">Andamento</span>
+        <span class="val">${pct}%<small>${concluidas.length} de ${tasks.length} etapas</small></span>
+      </div>
+      <div class="rel-destaque-item">
+        <span class="lbl">Fase atual</span>
+        <span class="val" style="font-size:14px;">${fase}<small>${emAndamento.length} etapa${emAndamento.length === 1 ? '' : 's'} em execução</small></span>
+      </div>
+      <div class="rel-destaque-item">
+        <span class="lbl">Prazo</span>
+        <span class="val" style="font-size:14px;">${prazoInfo}<small>${p.prazo ? fmtDate(p.prazo) : 'a confirmar'}</small></span>
+      </div>
+      <div style="grid-column:1/-1;">
+        <div class="rel-bar"><span style="width:${pct}%"></span></div>
+      </div>
+    </div>` : '';
+
+  const secAmbientes = marcado('rel-sec-ambientes') && porAmb.size ? `
+    <div class="rel-sec">
+      <div class="rel-sec-titulo">Progresso por ambiente</div>
+      ${[...porAmb.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([nome, arr]) => {
+        const c = arr.filter(t => t.status === 'completed').length;
+        const pp = arr.length ? Math.round((c / arr.length) * 100) : 0;
+        return `<div class="rel-amb-row">
+          <span class="nome">${esc(nome)}</span>
+          <span class="mini"><span style="width:${pp}%"></span></span>
+          <span class="pct">${c}/${arr.length} · ${pp}%</span>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+
+  const secConcluidas = marcado('rel-sec-concluidas') && concluidas.length ? `
+    <div class="rel-sec">
+      <div class="rel-sec-titulo">Etapas já concluídas</div>
+      <div class="rel-lista">
+        ${concluidas.slice(0, 18).map(t => `
+          <div class="rel-item is-done">
+            <span class="mark">✓</span>
+            <span class="txt">${esc(t.name)}${t.ambiente ? ` <span class="comodo">· ${esc(t.ambiente)}</span>` : ''}</span>
+          </div>`).join('')}
+        ${concluidas.length > 18 ? `<div class="rel-item"><span class="mark"></span><span class="txt" style="color:#8B857D;">e mais ${concluidas.length - 18} etapa${concluidas.length - 18 === 1 ? '' : 's'} concluída${concluidas.length - 18 === 1 ? '' : 's'}.</span></div>` : ''}
+      </div>
+    </div>` : '';
+
+  const proximas = [...emAndamento, ...pendentes].slice(0, 8);
+  const secProximas = marcado('rel-sec-proximas') && proximas.length ? `
+    <div class="rel-sec">
+      <div class="rel-sec-titulo">Próximas etapas</div>
+      <div class="rel-lista">
+        ${proximas.map(t => `
+          <div class="rel-item">
+            <span class="mark">${t.status === 'in_progress' ? '▸' : '·'}</span>
+            <span class="txt">${esc(t.name)}${t.ambiente ? ` <span class="comodo">· ${esc(t.ambiente)}</span>` : ''}${t.status === 'in_progress' ? ' <span class="comodo">(em execução)</span>' : ''}</span>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  const saldo = (p.valor || 0) - (p.recebido || 0);
+  const secFinanceiro = marcado('rel-sec-financeiro') ? `
+    <div class="rel-sec">
+      <div class="rel-sec-titulo">Resumo financeiro</div>
+      <div class="rel-amb-row" style="grid-template-columns:minmax(0,1fr) auto;">
+        <span class="nome" style="font-weight:500;">Valor contratado</span><span class="pct" style="color:#211D19;font-weight:600;">${fmtBRL(p.valor)}</span>
+      </div>
+      <div class="rel-amb-row" style="grid-template-columns:minmax(0,1fr) auto;">
+        <span class="nome" style="font-weight:500;">Total recebido</span><span class="pct" style="color:#211D19;font-weight:600;">${fmtBRL(p.recebido)}</span>
+      </div>
+      <div class="rel-amb-row" style="grid-template-columns:minmax(0,1fr) auto;">
+        <span class="nome" style="font-weight:500;">Saldo a receber</span><span class="pct" style="color:#211D19;font-weight:600;">${fmtBRL(saldo)}</span>
+      </div>
+    </div>` : '';
+
+  const obs = val('rel-obs').trim();
+  const secObs = obs ? `
+    <div class="rel-sec">
+      <div class="rel-sec-titulo">Observações</div>
+      <div class="rel-obs" contenteditable="true">${esc(obs).replace(/\n/g, '<br>')}</div>
+    </div>` : '';
+
+  paper.innerHTML = `
+    <div class="rel-head">
+      <img src="SIMBOLO SISTEMA .svg" alt="Alpha Móveis Planejados">
+      <div class="rel-head-right">
+        <strong>${esc(p.codigo || 'Projeto')}</strong>
+        ${esc(p.cliente || '')}<br>
+        ${esc(p.endereco || '')}
+      </div>
+    </div>
+
+    <h1 class="rel-titulo" contenteditable="true">${esc(val('rel-titulo'))}</h1>
+    <div class="rel-sub">Emitido em ${hoje} · ${esc(val('rel-prazo'))}</div>
+
+    <div class="rel-saudacao" contenteditable="true">${esc(val('rel-saudacao')).replace(/\n/g, '<br>')}</div>
+
+    ${secResumo}
+    ${secAmbientes}
+    ${secConcluidas}
+    ${secProximas}
+    ${secFinanceiro}
+    ${secObs}
+
+    <div class="rel-foot">
+      <div>
+        <div class="rel-assinatura" contenteditable="true">${esc(val('rel-assinatura'))}</div>
+        <div style="margin-top:2px;">Alpha Móveis Planejados</div>
+      </div>
+      <div style="text-align:right;">${esc(p.codigo || '')}<br>${hoje}</div>
+    </div>
+  `;
+}
+window.atualizarPreviewRelatorio = atualizarPreviewRelatorio;
+
+function gerarPdfRelatorio() {
+  // O @media print já esconde a interface e solta só .rel-paper na folha.
+  // O usuário escolhe "Salvar como PDF" no diálogo do navegador.
+  window.print();
+}
+window.gerarPdfRelatorio = gerarPdfRelatorio;
+
+/* O acordeão só vale no celular — no desktop o kanban horizontal continua. */
+function _chaoAcordeao() {
+  return window.matchMedia('(max-width: 720px)').matches;
+}
+
+function alternarColunaChao(btn) {
+  if (!_chaoAcordeao()) return;          // no desktop o header não colapsa
+  const col = btn.closest('.chao-column');
+  const fechando = !col.classList.contains('is-collapsed');
+  col.classList.toggle('is-collapsed', fechando);
+  btn.setAttribute('aria-expanded', String(!fechando));
+  _sincronizarBotaoExpandir();
+}
+window.alternarColunaChao = alternarColunaChao;
+
+/* Abre ou fecha todas as colunas visíveis de uma vez. */
+function alternarTodasColunasChao() {
+  const cols = [...document.querySelectorAll('.chao-column')].filter(c => !c.hidden);
+  const algumaFechada = cols.some(c => c.classList.contains('is-collapsed'));
+  cols.forEach(c => {
+    c.classList.toggle('is-collapsed', !algumaFechada);
+    c.querySelector('.chao-column-header')?.setAttribute('aria-expanded', String(algumaFechada));
+  });
+  _sincronizarBotaoExpandir();
+}
+window.alternarTodasColunasChao = alternarTodasColunasChao;
+
+function _sincronizarBotaoExpandir() {
+  const btn = document.getElementById('chao-toggle-all');
+  if (!btn) return;
+  const cols = [...document.querySelectorAll('.chao-column')].filter(c => !c.hidden);
+  const algumaFechada = cols.some(c => c.classList.contains('is-collapsed'));
+  btn.textContent = algumaFechada ? 'Expandir tudo' : 'Recolher tudo';
+}
+
+/* Filtra o board por nome da etapa, cliente ou código do projeto. */
+function filtrarBoardChao(termo) {
+  const t = (termo || '').trim().toLowerCase();
+  const cols = [...document.querySelectorAll('.chao-column')];
+  const casam = cols.filter(c => !t || (c.dataset.busca || '').includes(t));
+  // Busca específica (poucos resultados) já abre o conteúdo; busca ampla
+  // mantém fechado, senão devolveríamos a mesma rolagem infinita.
+  const autoAbrir = !!t && casam.length <= 5;
+  let visiveis = 0;
+  cols.forEach(col => {
+    const bate = casam.includes(col);
+    col.hidden = !bate;
+    if (bate) {
+      visiveis++;
+      if (autoAbrir) {
+        col.classList.remove('is-collapsed');
+        col.querySelector('.chao-column-header')?.setAttribute('aria-expanded', 'true');
+      }
+    }
+  });
+  const vazio = document.getElementById('chao-sem-resultado');
+  if (vazio) vazio.hidden = visiveis > 0;
+  _sincronizarBotaoExpandir();
+}
+window.filtrarBoardChao = filtrarBoardChao;
 
 /* ============================================================================
    INTERAÇÕES
