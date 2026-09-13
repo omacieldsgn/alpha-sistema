@@ -1992,6 +1992,143 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   margin-bottom: var(--sp-2);
 }
 .production-summary-line span { color: var(--ink-muted); }
+
+/* Visão geral por cômodo e categoria */
+.production-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+@media (max-width: 720px) { .production-overview { grid-template-columns: 1fr; } }
+.production-overview-block {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: var(--sp-3);
+  background: color-mix(in oklch, var(--surface) 92%, transparent);
+}
+.production-overview-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+  margin-bottom: var(--sp-2);
+}
+.production-overview-empty {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  padding: var(--sp-2) 0;
+}
+.production-overview-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: var(--sp-2);
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--border);
+  font-size: 0.8125rem;
+}
+.production-overview-row:last-child { border-bottom: 0; }
+.production-overview-row .grp {
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.production-overview-row .grp small {
+  display: block;
+  font-weight: 500;
+  color: var(--ink-subtle);
+  font-size: 0.6875rem;
+  margin-top: 2px;
+}
+.production-overview-row .mini-bar {
+  width: 88px;
+  height: 6px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.production-overview-row .mini-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--status-em-andamento);
+}
+.production-overview-row.is-active .grp { color: var(--brand); }
+.production-overview-row {
+  cursor: pointer;
+  transition: background 120ms ease;
+  border-radius: 6px;
+  padding: 6px 8px;
+  margin: 0 -8px;
+}
+.production-overview-row:hover { background: color-mix(in oklch, var(--brand) 6%, transparent); }
+.production-overview-row.is-active { background: color-mix(in oklch, var(--brand) 10%, transparent); }
+
+/* Filtros de status */
+.production-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--sp-3);
+}
+.production-filter-chip {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+.production-filter-chip:hover { border-color: var(--brand); color: var(--ink); }
+.production-filter-chip.is-active {
+  background: var(--brand);
+  color: var(--brand-ink, #fff);
+  border-color: var(--brand);
+}
+.production-filter-clear {
+  font-size: 0.75rem;
+  color: var(--ink-subtle);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 4px 8px;
+  text-decoration: underline;
+}
+.production-filter-clear:hover { color: var(--status-atrasado); }
+.production-empty-filtered {
+  padding: var(--sp-5) var(--sp-2);
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+}
+
+/* Badges dentro da linha de etapa (prazo, prioridade) */
+.production-stage-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.production-stage-badges .tag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--ink-subtle) 12%, var(--surface));
+  color: var(--ink-muted);
+  letter-spacing: 0.02em;
+}
+.production-stage-badges .tag.is-alta { background: color-mix(in oklch, var(--status-atrasado) 18%, var(--surface)); color: var(--status-atrasado); }
+.production-stage-badges .tag.is-atrasada { background: color-mix(in oklch, var(--status-atrasado) 18%, var(--surface)); color: var(--status-atrasado); }
+.production-stage-badges .tag.is-hoje { background: color-mix(in oklch, var(--status-em-andamento) 18%, var(--surface)); color: var(--status-em-andamento); }
 .production-list { display: grid; gap: var(--sp-2); }
 .production-stage {
   justify-content: space-between;
@@ -5100,6 +5237,9 @@ async function testarConexoes() {
 let supabase = null;
 let productionRealtimeChannel = null;
 let tarefaMutationBusy = false;
+// Filtros do painel Acompanhamento da Produção — por projeto.
+// { [projetoId]: { ambiente: string|null, categoria: string|null, status: 'todas'|'pendentes'|'andamento'|'concluidas'|'alta' } }
+let producaoFiltros = {};
 
 function initSupabase() {
   const cfg = getConfig();
@@ -7749,6 +7889,19 @@ window.addEventListener('load', () => {
   inicializarWelcome();
 });
 
+/* Aplica um filtro no Acompanhamento e re-renderiza. Chamado pelos chips e pelas linhas do overview. */
+function setFiltroProducao(projetoId, tipo, valor) {
+  const f = producaoFiltros[projetoId] || (producaoFiltros[projetoId] = { ambiente: null, categoria: null, status: 'todas' });
+  if (tipo === 'clear') { f.ambiente = null; f.categoria = null; f.status = 'todas'; }
+  else if (tipo === 'ambiente') { f.ambiente = f.ambiente === valor ? null : valor; }
+  else if (tipo === 'categoria') { f.categoria = f.categoria === valor ? null : valor; }
+  else if (tipo === 'status') { f.status = valor || 'todas'; }
+  const p = projetos.find(x => x.id === projetoId);
+  const container = document.getElementById('producao-acompanhamento');
+  if (p && container) renderAcompanhamentoProducao(p, container);
+}
+window.setFiltroProducao = setFiltroProducao;
+
 function renderAcompanhamentoProducao(projeto, container) {
   if (!container) return;
 
@@ -7778,9 +7931,9 @@ function renderAcompanhamentoProducao(projeto, container) {
   const aplicaveis = projeto.tasks.filter(t => t.is_applicable !== false);
   const total = aplicaveis.length;
   const concluidoCount = aplicaveis.filter(t => t.status === 'completed').length;
-  const pct = Math.round((concluidoCount / total) * 100);
+  const pct = total ? Math.round((concluidoCount / total) * 100) : 0;
 
-  // Status geral formatado
+  // Status geral formatado — agora com quebra por status (pendente / em andamento / bloqueada)
   let statusLabel = 'Pendente';
   let statusColor = 'var(--ink-subtle)';
   if (projeto.status === 'concluido') {
@@ -7794,10 +7947,91 @@ function renderAcompanhamentoProducao(projeto, container) {
     statusColor = 'var(--ink-subtle)';
   }
 
+  // Contagens gerais para os chips de status
+  const cntTodas = projeto.tasks.length;
+  const cntPend = aplicaveis.filter(t => t.status === 'pending' || t.status === 'blocked').length;
+  const cntAnd = aplicaveis.filter(t => t.status === 'in_progress').length;
+  const cntConc = concluidoCount;
+  const cntAlta = aplicaveis.filter(t => t.status !== 'completed' && t.prioridade === 'alta').length;
+
+  // Estado de filtro por projeto
+  const filtro = producaoFiltros[projeto.id] || (producaoFiltros[projeto.id] = { ambiente: null, categoria: null, status: 'todas' });
+
+  // Agrupa tarefas aplicáveis por cômodo e por categoria
+  const porAmbiente = new Map();
+  const porCategoria = new Map();
+  aplicaveis.forEach(t => {
+    const amb = (t.ambiente || '').trim() || '— Sem cômodo';
+    const cat = (t.category || '').trim() || '— Sem categoria';
+    if (!porAmbiente.has(amb)) porAmbiente.set(amb, []);
+    if (!porCategoria.has(cat)) porCategoria.set(cat, []);
+    porAmbiente.get(amb).push(t);
+    porCategoria.get(cat).push(t);
+  });
+  const renderGroupBlock = (map, tipo, ativo, titulo) => {
+    if (map.size === 0) return `<div class="production-overview-empty">Nenhuma etapa aplicável.</div>`;
+    const rows = [...map.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([nome, arr]) => {
+      const t = arr.length;
+      const c = arr.filter(x => x.status === 'completed').length;
+      const p = t ? Math.round((c / t) * 100) : 0;
+      const cls = ativo === nome ? 'is-active' : '';
+      return `
+        <div class="production-overview-row ${cls}" onclick="setFiltroProducao('${projeto.id}','${tipo}', ${JSON.stringify(nome)})">
+          <div class="grp">${nome}<small>${c}/${t} concluídas · ${p}%</small></div>
+          <div class="mini-bar"><span style="width:${p}%"></span></div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="production-overview-title">${titulo}</div>
+      ${rows}
+    `;
+  };
+  const overviewHtml = `
+    <div class="production-overview">
+      <div class="production-overview-block">
+        ${renderGroupBlock(porAmbiente, 'ambiente', filtro.ambiente, 'Por cômodo / subdivisão')}
+      </div>
+      <div class="production-overview-block">
+        ${renderGroupBlock(porCategoria, 'categoria', filtro.categoria, 'Por etiqueta / categoria')}
+      </div>
+    </div>
+  `;
+
+  // Aplica filtros à lista
+  const filtroAtivo = filtro.ambiente || filtro.categoria || (filtro.status && filtro.status !== 'todas');
+  let tarefasFiltradas = projeto.tasks.filter(t => {
+    if (filtro.ambiente) {
+      const amb = (t.ambiente || '').trim() || '— Sem cômodo';
+      if (amb !== filtro.ambiente) return false;
+    }
+    if (filtro.categoria) {
+      const cat = (t.category || '').trim() || '— Sem categoria';
+      if (cat !== filtro.categoria) return false;
+    }
+    if (filtro.status === 'pendentes') return t.status === 'pending' || t.status === 'blocked';
+    if (filtro.status === 'andamento') return t.status === 'in_progress';
+    if (filtro.status === 'concluidas') return t.status === 'completed';
+    if (filtro.status === 'alta') return t.status !== 'completed' && t.prioridade === 'alta';
+    return true;
+  });
+
+  const chipsHtml = `
+    <div class="production-filters">
+      ${['todas','pendentes','andamento','concluidas','alta'].map(s => {
+        const label = { todas:`Todas (${cntTodas})`, pendentes:`Pendentes (${cntPend})`, andamento:`Em andamento (${cntAnd})`, concluidas:`Concluídas (${cntConc})`, alta:`Prioridade alta (${cntAlta})` }[s];
+        const active = (filtro.status || 'todas') === s ? 'is-active' : '';
+        return `<button type="button" class="production-filter-chip ${active}" onclick="setFiltroProducao('${projeto.id}','status', ${JSON.stringify(s)})">${label}</button>`;
+      }).join('')}
+      ${filtroAtivo ? `<button type="button" class="production-filter-clear" onclick="setFiltroProducao('${projeto.id}','clear', null)">Limpar filtros</button>` : ''}
+    </div>
+  `;
+
   // Acha a tarefa ativa atual (primeira não concluída)
   const activeTask = projeto.tasks.find(t => t.is_applicable !== false && t.status !== 'completed');
 
-  const listHtml = projeto.tasks.map((t, index) => {
+  const listHtml = tarefasFiltradas.map((t) => {
+    // Índice em relação à lista original — mantém drag e ↑/↓ coerentes quando há filtro.
+    const index = projeto.tasks.findIndex(x => x.id === t.id);
     const isCompleted = t.status === 'completed';
     const isInProgress = t.status === 'in_progress';
     const isPending = t.status === 'pending';
@@ -7861,6 +8095,21 @@ function renderAcompanhamentoProducao(projeto, container) {
     ].filter(Boolean).join(' ');
     const stateMeta = `${t.category || 'PRODUÇÃO'}${isBlocked ? ' · Aguardando etapa anterior' : isNotApplicable ? ' · Não se aplica' : ''}`;
 
+    // Badges de prazo/prioridade — mostra quando a etapa não está concluída
+    const badges = [];
+    if (!isCompleted && t.prazo) {
+      const hoje = new Date(); hoje.setHours(0,0,0,0);
+      const d = new Date(t.prazo + 'T00:00:00');
+      const diff = Math.round((d - hoje) / 86400000);
+      const dLabel = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      if (diff < 0) badges.push(`<span class="tag is-atrasada">Atrasada ${Math.abs(diff)}d</span>`);
+      else if (diff === 0) badges.push(`<span class="tag is-hoje">Vence hoje</span>`);
+      else if (diff <= 3) badges.push(`<span class="tag is-hoje">Em ${diff}d</span>`);
+      else badges.push(`<span class="tag">${dLabel}</span>`);
+    }
+    if (!isCompleted && t.prioridade === 'alta') badges.push('<span class="tag is-alta">Prioridade alta</span>');
+    const badgesHtml = badges.length ? `<div class="production-stage-badges">${badges.join('')}</div>` : '';
+
     return `
       <div class="production-stage ${stateClasses}" draggable="true" data-task-id="${t.id}" data-index="${index}">
         <span class="production-drag-handle" aria-hidden="true" title="Arraste para reordenar">⋮⋮</span>
@@ -7869,6 +8118,7 @@ function renderAcompanhamentoProducao(projeto, container) {
           <div class="production-stage-copy">
             <span class="production-stage-name">${t.order ? String(t.order).padStart(2, '0') + ' · ' : ''}${t.name}${t.ambiente ? ` <span class="production-stage-comodo">${t.ambiente}</span>` : ''}</span>
             <small class="production-stage-meta">${stateMeta}</small>
+            ${badgesHtml}
             ${notesHtml}
           </div>
         </div>
@@ -7903,8 +8153,11 @@ function renderAcompanhamentoProducao(projeto, container) {
         </div>
       </div>
 
+      ${overviewHtml}
+      ${chipsHtml}
+
       <div class="production-list" id="production-list-${projeto.id}">
-        ${listHtml}
+        ${tarefasFiltradas.length ? listHtml : `<div class="production-empty-filtered">Nenhuma etapa corresponde ao filtro atual.</div>`}
       </div>
     </div>
   `;
