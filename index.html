@@ -1956,9 +1956,6 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
 .production-card { padding: var(--sp-4); }
 .production-header,
 .production-summary-line,
-.production-stage,
-.production-stage-main,
-.production-stage-actions,
 .chao-column-header,
 .chao-card-status {
   display: flex;
@@ -1992,22 +1989,41 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   margin-bottom: var(--sp-2);
 }
 .production-summary-line span { color: var(--ink-muted); }
+.production-summary-line strong { font-weight: 500; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.production-pct {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.production-summary .progresso-bar { border-radius: 999px; overflow: hidden; }
+.production-summary .progresso-fill { border-radius: 999px; transition: width 320ms var(--ease); }
 
-/* Visão geral por cômodo e categoria */
+/* ==========================================================================
+   ACOMPANHAMENTO DA PRODUÇÃO — visão geral, donut e filtros
+   Layout desktop: lista de cômodos rolável à esquerda, donut fixo à direita.
+   Layout mobile: donut primeiro (é o resumo), depois a lista de cômodos.
+   ========================================================================== */
 .production-overview {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
   gap: var(--sp-3);
   margin-bottom: var(--sp-4);
+  align-items: stretch;
 }
-@media (max-width: 720px) { .production-overview { grid-template-columns: 1fr; } }
 .production-overview-block {
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: var(--sp-3);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-3) var(--sp-4);
   background: color-mix(in oklch, var(--surface) 92%, transparent);
+  min-width: 0;
 }
 .production-overview-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -2015,22 +2031,54 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   color: var(--ink-subtle);
   margin-bottom: var(--sp-2);
 }
+.production-overview-title .count {
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 500;
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  flex: 0 0 auto;
+}
 .production-overview-empty {
   font-size: 0.8125rem;
   color: var(--ink-muted);
-  padding: var(--sp-2) 0;
+  padding: var(--sp-3) 0;
 }
+
+/* Lista de cômodos — rolável para não empurrar a página com 15 linhas */
+.production-overview-scroll {
+  max-height: 296px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0 calc(var(--sp-2) * -1);
+  padding: 0 var(--sp-2);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.production-overview-scroll::-webkit-scrollbar { width: 6px; }
+.production-overview-scroll::-webkit-scrollbar-thumb {
+  background: var(--border); border-radius: 3px;
+}
+
 .production-overview-row {
   display: grid;
-  grid-template-columns: minmax(0,1fr) auto;
-  gap: var(--sp-2);
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sp-3);
   align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px dashed var(--border);
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: var(--sp-2);
   font-size: 0.8125rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 140ms var(--ease);
 }
-.production-overview-row:last-child { border-bottom: 0; }
+.production-overview-row + .production-overview-row { margin-top: 2px; }
 .production-overview-row .grp {
+  min-width: 0;
   font-weight: 600;
   color: var(--ink);
   overflow: hidden;
@@ -2043,256 +2091,317 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   color: var(--ink-subtle);
   font-size: 0.6875rem;
   margin-top: 2px;
+  font-variant-numeric: tabular-nums;
 }
 .production-overview-row .mini-bar {
-  width: 88px;
+  width: 72px;
   height: 6px;
-  background: var(--border);
-  border-radius: 4px;
+  background: var(--surface-2);
+  border-radius: 999px;
   overflow: hidden;
+  flex: 0 0 auto;
 }
 .production-overview-row .mini-bar > span {
   display: block;
   height: 100%;
+  border-radius: 999px;
   background: var(--status-em-andamento);
+  transition: width 240ms var(--ease);
 }
-.production-overview-row.is-active .grp { color: var(--brand); }
-.production-overview-row {
-  cursor: pointer;
-  transition: background 120ms ease;
-  border-radius: 6px;
-  padding: 6px 8px;
-  margin: 0 -8px;
+.production-overview-row:hover { background: color-mix(in oklch, var(--brand) 7%, transparent); }
+.production-overview-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
-.production-overview-row:hover { background: color-mix(in oklch, var(--brand) 6%, transparent); }
-.production-overview-row.is-active { background: color-mix(in oklch, var(--brand) 10%, transparent); }
+.production-overview-row.is-active {
+  background: color-mix(in oklch, var(--accent) 14%, transparent);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.production-overview-row.is-active .grp { color: var(--ink); }
+.production-overview-row.is-active .mini-bar { background: color-mix(in oklch, var(--accent) 25%, var(--surface)); }
 
-/* Donut chart do escopo selecionado */
-.production-pie-block { display: flex; flex-direction: column; }
+/* Donut chart do escopo selecionado — acompanha a altura da lista ao lado
+   e centraliza o gráfico no espaço que sobra. */
+.production-pie-block {
+  display: flex;
+  flex-direction: column;
+}
+.production-pie-block .pie-chart-wrap { flex: 1; align-content: center; }
+.production-pie-block .production-overview-title .scope {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+}
 .pie-chart-wrap {
   display: grid;
-  grid-template-columns: 128px 1fr;
+  grid-template-columns: 116px minmax(0, 1fr);
   gap: var(--sp-4);
   align-items: center;
 }
-@media (max-width: 720px) {
-  .pie-chart-wrap { grid-template-columns: 1fr; justify-items: center; text-align: left; }
-}
 .pie-chart {
-  width: 128px;
-  height: 128px;
+  width: 116px;
+  height: 116px;
   border-radius: 50%;
-  position: relative;
   display: grid;
   place-items: center;
-  transition: background 220ms ease;
+  transition: background 320ms var(--ease);
 }
 .pie-chart-hole {
-  width: 78px;
-  height: 78px;
+  width: 74px;
+  height: 74px;
   border-radius: 50%;
   background: var(--surface);
   display: grid;
   place-items: center;
+  align-content: center;
   box-shadow: inset 0 0 0 1px var(--border);
 }
 .pie-chart-pct {
-  font-family: var(--font-display, inherit);
-  font-size: 1.375rem;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   color: var(--ink);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 .pie-chart-sub {
   font-size: 0.6875rem;
   color: var(--ink-subtle);
   margin-top: 3px;
   letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
 }
-.pie-legend {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
+.pie-legend { display: grid; gap: var(--sp-2); min-width: 0; }
 .pie-legend-row {
   display: grid;
-  grid-template-columns: 10px 1fr auto;
-  gap: 8px;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  gap: var(--sp-2);
   align-items: center;
   font-size: 0.8125rem;
 }
+.pie-legend-row.is-zero { opacity: 0.42; }
 .pie-legend-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
   display: inline-block;
 }
-.pie-legend-name { color: var(--ink); font-weight: 500; }
-.pie-legend-count { color: var(--ink-subtle); font-variant-numeric: tabular-nums; font-size: 0.75rem; }
+.pie-legend-name {
+  color: var(--ink-muted);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pie-legend-count {
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+}
 
-/* Filtros de status */
+/* Filtros de status — linha única rolável no mobile */
 .production-filters {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  align-items: center;
+  gap: var(--sp-2);
   margin-bottom: var(--sp-3);
+  flex-wrap: wrap;
 }
 .production-filter-chip {
+  flex: 0 0 auto;
+  font-family: inherit;
   font-size: 0.75rem;
   font-weight: 500;
-  padding: 4px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--ink-muted);
   cursor: pointer;
-  transition: all 120ms ease;
+  white-space: nowrap;
+  transition: background 140ms var(--ease), color 140ms var(--ease), border-color 140ms var(--ease);
 }
-.production-filter-chip:hover { border-color: var(--brand); color: var(--ink); }
+.production-filter-chip:hover { border-color: var(--border-strong); color: var(--ink); }
 .production-filter-chip.is-active {
   background: var(--brand);
-  color: var(--brand-ink, #fff);
+  color: var(--brand-ink);
   border-color: var(--brand);
 }
+.production-filter-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .production-filter-clear {
+  flex: 0 0 auto;
+  font-family: inherit;
   font-size: 0.75rem;
   color: var(--ink-subtle);
   background: none;
   border: 0;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px 4px;
+  white-space: nowrap;
   text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .production-filter-clear:hover { color: var(--status-atrasado); }
+
+/* Aviso do escopo ativo acima da lista */
+.production-scope-note {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  margin-bottom: var(--sp-2);
+}
+.production-scope-note strong { color: var(--ink); font-weight: 600; }
+
 .production-empty-filtered {
-  padding: var(--sp-5) var(--sp-2);
+  padding: var(--sp-6) var(--sp-4);
   text-align: center;
   color: var(--ink-muted);
   font-size: 0.875rem;
   border: 1px dashed var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
 }
+
+/* Botão "mostrar mais" — evita despejar 100+ etapas de uma vez */
+.production-more {
+  width: 100%;
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 140ms var(--ease), color 140ms var(--ease);
+}
+.production-more:hover { background: var(--surface-2); color: var(--ink); }
 
 /* Badges dentro da linha de etapa (prazo, prioridade) */
 .production-stage-badges {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 4px;
+  margin-top: 5px;
 }
 .production-stage-badges .tag {
   font-size: 0.6875rem;
   font-weight: 600;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 999px;
-  background: color-mix(in oklch, var(--ink-subtle) 12%, var(--surface));
+  background: var(--surface-2);
   color: var(--ink-muted);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
-.production-stage-badges .tag.is-alta { background: color-mix(in oklch, var(--status-atrasado) 18%, var(--surface)); color: var(--status-atrasado); }
-.production-stage-badges .tag.is-atrasada { background: color-mix(in oklch, var(--status-atrasado) 18%, var(--surface)); color: var(--status-atrasado); }
-.production-stage-badges .tag.is-hoje { background: color-mix(in oklch, var(--status-em-andamento) 18%, var(--surface)); color: var(--status-em-andamento); }
-.production-list { display: grid; gap: var(--sp-2); }
+.production-stage-badges .tag.is-alta,
+.production-stage-badges .tag.is-atrasada {
+  background: color-mix(in oklch, var(--status-atrasado) 16%, var(--surface));
+  color: var(--status-atrasado);
+}
+.production-stage-badges .tag.is-hoje {
+  background: color-mix(in oklch, var(--status-em-andamento) 18%, var(--surface));
+  color: var(--status-em-andamento);
+}
+.production-list { display: grid; gap: var(--sp-1); }
 .production-stage {
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
   gap: var(--sp-3);
-  padding: var(--sp-2) var(--sp-3);
+  padding: var(--sp-3);
   border: 1px solid transparent;
   border-radius: var(--radius-md);
+  cursor: grab;
+  position: relative;
+  transition: background 140ms var(--ease), border-color 140ms var(--ease), opacity 140ms var(--ease);
 }
+.production-stage:nth-child(odd) { background: color-mix(in oklch, var(--surface) 55%, transparent); }
+.production-stage:hover { background: var(--surface); border-color: var(--border); }
 .production-stage.is-active {
-  background: color-mix(in oklch, var(--status-em-andamento) 6%, var(--surface));
+  background: color-mix(in oklch, var(--status-em-andamento) 8%, var(--surface));
   border-color: var(--status-em-andamento);
 }
-.production-stage-main { gap: var(--sp-3); min-width: 0; }
-.production-stage-icon {
-  flex: 0 0 1.1rem;
-  color: var(--ink-subtle);
-  font-size: 1.1rem;
-  font-weight: 700;
-  text-align: center;
-}
-.production-stage.is-completed .production-stage-icon { color: var(--status-liberado); }
-.production-stage.is-in-progress .production-stage-icon { color: var(--status-em-andamento); }
-.production-stage-copy { min-width: 0; }
-.production-stage-name {
-  color: var(--ink-dark);
-  font-size: 0.875rem;
-  overflow-wrap: anywhere;
-}
-.production-stage {
-  cursor: grab;
-  transition: background 120ms var(--ease), transform 80ms var(--ease), border-color 120ms var(--ease);
-  position: relative;
-}
-.production-stage.is-dragging {
-  cursor: grabbing;
-  opacity: 0.5;
-  transform: scale(0.99);
-}
+.production-stage.is-completed { opacity: 0.62; }
+.production-stage.is-completed:hover { opacity: 1; }
+.production-stage.is-not-applicable { opacity: 0.45; }
+.production-stage.is-dragging { cursor: grabbing; opacity: 0.4; }
 .production-stage.drop-above { box-shadow: inset 0 2px 0 var(--accent); }
 .production-stage.drop-below { box-shadow: inset 0 -2px 0 var(--accent); }
 
 .production-drag-handle {
-  flex: 0 0 auto;
   color: var(--ink-subtle);
-  font-size: 1rem;
+  font-size: 0.875rem;
   letter-spacing: -2px;
-  padding: 0 var(--sp-1);
   cursor: grab;
   user-select: none;
-  opacity: 0.5;
-  transition: opacity 120ms var(--ease), color 120ms var(--ease);
+  opacity: 0;
+  transition: opacity 140ms var(--ease);
 }
-.production-stage:hover .production-drag-handle { opacity: 1; color: var(--ink); }
-.production-stage.is-completed .production-drag-handle { opacity: 0.25; }
+.production-stage:hover .production-drag-handle { opacity: 0.7; }
 
-.production-move-group {
-  display: inline-flex;
-  gap: 2px;
-  margin-right: 4px;
-}
-.production-move-btn {
-  width: 24px;
-  height: 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
+.production-stage-icon {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
   color: var(--ink-subtle);
   font-size: 0.75rem;
-  transition: background 120ms var(--ease), color 120ms var(--ease);
+  font-weight: 700;
+  flex: 0 0 auto;
 }
-.production-move-btn:hover:not([disabled]) { background: var(--surface-2); color: var(--ink); }
-.production-move-btn[disabled] { opacity: 0.3; cursor: not-allowed; }
+.production-stage.is-completed .production-stage-icon {
+  color: var(--brand-ink);
+  background: var(--status-liberado);
+  border-color: var(--status-liberado);
+}
+.production-stage.is-in-progress .production-stage-icon,
+.production-stage.is-active .production-stage-icon {
+  color: var(--status-em-andamento);
+  border-color: var(--status-em-andamento);
+}
 
-.production-stage.is-active .production-stage-name { font-weight: 600; }
+.production-stage-copy { min-width: 0; }
+.production-stage-name {
+  display: block;
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.production-stage.is-active .production-stage-name { font-weight: 650; }
+.production-stage.is-completed .production-stage-name {
+  color: var(--ink-muted);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
 .production-stage-comodo {
   display: inline-block;
   margin-left: 6px;
   padding: 1px 8px;
-  border-radius: 10px;
+  border-radius: 999px;
   background: var(--surface-2);
-  border: 1px solid var(--border-strong);
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--ink);
-  vertical-align: middle;
-}
-.production-stage-comodo::before {
-  content: '';
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--accent);
-  margin-right: 4px;
-  vertical-align: middle;
-}
-.production-stage.is-completed .production-stage-name {
+  border: 1px solid var(--border);
+  font-size: 0.6875rem;
+  font-weight: 600;
   color: var(--ink-muted);
-  text-decoration: line-through;
+  vertical-align: middle;
+  text-decoration: none;
+  white-space: nowrap;
 }
 .production-stage-meta,
 .production-stage-note {
@@ -2300,19 +2409,139 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   font-size: 0.6875rem;
   overflow-wrap: anywhere;
 }
-.production-stage-meta { color: var(--ink-muted); }
-.production-stage-note { color: var(--status-em-andamento); margin-top: 2px; }
+.production-stage-meta {
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.production-stage-note { color: var(--status-em-andamento); margin-top: 3px; }
+
 .production-stage-actions {
-  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: var(--sp-2);
+  gap: var(--sp-1);
+  flex: 0 0 auto;
 }
 .production-stage-actions .btn {
   font-size: 0.75rem;
-  padding: var(--sp-1) var(--sp-3);
+  padding: 6px var(--sp-3);
+  white-space: nowrap;
 }
-.production-stage-actions .btn-ghost { font-size: 0.6875rem; padding: 2px 6px; }
+.production-stage-actions .btn-ghost { font-size: 0.75rem; padding: 6px var(--sp-2); }
+/* Rótulos que encurtam no celular */
+.production-stage-actions .lbl-short { display: none; }
+@media (max-width: 768px) {
+  .production-stage-actions .lbl-full { display: none; }
+  .production-stage-actions .lbl-short { display: inline; }
+}
+
+.production-move-group { display: inline-flex; gap: 2px; }
+.production-move-btn {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: none;
+  border-radius: var(--radius-sm);
+  color: var(--ink-subtle);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 140ms var(--ease), color 140ms var(--ease);
+}
+.production-move-btn:hover:not([disabled]) { background: var(--surface-2); color: var(--ink); }
+.production-move-btn[disabled] { opacity: 0.25; cursor: not-allowed; }
+
+/* --------------------------------------------------------------------------
+   MOBILE — a seção inteira precisa caber no polegar.
+   Donut sobe (é o resumo), lista de cômodos encolhe, etapas viram cartão
+   de duas linhas com alvos de toque de 32px+, drag & reordenar somem
+   (não funcionam bem em toque; o modal de edição cobre o caso).
+   -------------------------------------------------------------------------- */
+@media (max-width: 860px) {
+  .production-overview { grid-template-columns: 1fr; }
+  .production-pie-block { order: -1; }
+  .production-overview-scroll { max-height: 232px; }
+}
+@media (max-width: 768px) {
+  .production-card { padding: var(--sp-3); }
+
+  .production-overview-block { padding: var(--sp-3); }
+  .pie-chart-wrap {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: var(--sp-3);
+  }
+  .pie-chart { width: 96px; height: 96px; }
+  .pie-chart-hole { width: 62px; height: 62px; }
+  .pie-chart-pct { font-size: 1.25rem; }
+  .pie-legend { gap: 5px; }
+  .pie-legend-row { font-size: 0.75rem; }
+
+  /* Chips numa faixa rolável, sem quebrar em 3 linhas */
+  .production-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-left: calc(var(--sp-3) * -1);
+    margin-right: calc(var(--sp-3) * -1);
+    padding: 2px var(--sp-3);
+  }
+  .production-filters::-webkit-scrollbar { display: none; }
+  .production-filter-chip { scroll-snap-align: start; padding: 7px 14px; }
+
+  /* Etapa: conteúdo em cima, ações embaixo alinhadas à direita */
+  .production-stage {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--sp-2) var(--sp-3);
+    padding: var(--sp-3) var(--sp-2);
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+  }
+  .production-stage:nth-child(odd) { background: none; }
+  .production-stage:hover { background: none; border-color: transparent; border-bottom-color: var(--border); }
+  .production-stage.is-active {
+    background: color-mix(in oklch, var(--status-em-andamento) 8%, var(--surface));
+    border-radius: var(--radius-md);
+    border-color: var(--status-em-andamento);
+  }
+  .production-drag-handle,
+  .production-move-group { display: none; }
+  .production-stage-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+  }
+  .production-stage-actions .btn {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 var(--sp-3);
+  }
+  .production-stage-actions .btn-ghost { min-height: 34px; padding: 0 var(--sp-2); }
+  .production-stage-name { font-size: 0.9375rem; }
+
+  /* Categoria e badges dividem a mesma linha — economiza uma altura de linha
+     por etapa, que com 100+ etapas faz diferença real no scroll. */
+  .production-stage-meta {
+    display: inline;
+    margin-right: 6px;
+  }
+  .production-stage-badges {
+    display: inline-flex;
+    margin-top: 0;
+    vertical-align: middle;
+  }
+
+  .production-more { padding: var(--sp-4); min-height: 44px; }
+}
 
 /* Quadro do chão de fábrica ------------------------------------------------ */
 .chao-board {
@@ -2428,11 +2657,13 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
 .chao-etapa .chao-select:hover { border-color: var(--brand); color: var(--ink); }
 
 @media (max-width: 768px) {
-  .production-header { align-items: flex-start; flex-direction: column; }
-  .production-status { max-width: 100%; white-space: normal; }
+  /* Header e barra de progresso — o resto da seção vive no bloco
+     responsivo próprio, logo acima de "Quadro do chão de fábrica". */
+  .production-header { align-items: stretch; flex-direction: column; gap: var(--sp-3); }
+  .production-header > div:last-child { display: flex; gap: var(--sp-2); }
+  .production-header .btn { flex: 1; justify-content: center; min-height: 40px; }
+  .production-status { max-width: 100%; white-space: normal; text-align: center; }
   .production-summary-line { align-items: flex-start; flex-direction: column; gap: var(--sp-1); }
-  .production-stage { align-items: flex-start; flex-direction: column; }
-  .production-stage-actions { width: 100%; justify-content: flex-start; }
   .chao-board {
     margin-left: calc(var(--sp-4) * -1);
     margin-right: calc(var(--sp-4) * -1);
@@ -7953,18 +8184,36 @@ window.addEventListener('load', () => {
   inicializarWelcome();
 });
 
+/* Quantas etapas a lista mostra por vez antes do "Mostrar mais". */
+const PRODUCAO_PAGINA = 25;
+
 /* Aplica um filtro no Acompanhamento e re-renderiza. Chamado pelos chips e pelas linhas do overview. */
 function setFiltroProducao(projetoId, tipo, valor) {
-  const f = producaoFiltros[projetoId] || (producaoFiltros[projetoId] = { ambiente: null, categoria: null, status: 'todas' });
+  const f = producaoFiltros[projetoId] || (producaoFiltros[projetoId] = { ambiente: null, categoria: null, status: 'todas', limite: PRODUCAO_PAGINA });
   if (tipo === 'clear') { f.ambiente = null; f.categoria = null; f.status = 'todas'; }
   else if (tipo === 'ambiente') { f.ambiente = f.ambiente === valor ? null : valor; }
   else if (tipo === 'categoria') { f.categoria = f.categoria === valor ? null : valor; }
   else if (tipo === 'status') { f.status = valor || 'todas'; }
+  // Trocar de filtro sempre volta pra primeira página.
+  f.limite = PRODUCAO_PAGINA;
   const p = projetos.find(x => x.id === projetoId);
   const container = document.getElementById('producao-acompanhamento');
   if (p && container) renderAcompanhamentoProducao(p, container);
 }
 window.setFiltroProducao = setFiltroProducao;
+
+/* "Mostrar mais" — aumenta o limite da lista sem perder a posição do scroll. */
+function verMaisProducao(projetoId) {
+  const f = producaoFiltros[projetoId] || (producaoFiltros[projetoId] = { ambiente: null, categoria: null, status: 'todas', limite: PRODUCAO_PAGINA });
+  f.limite = (f.limite || PRODUCAO_PAGINA) + PRODUCAO_PAGINA;
+  const p = projetos.find(x => x.id === projetoId);
+  const container = document.getElementById('producao-acompanhamento');
+  if (!p || !container) return;
+  const y = window.scrollY;
+  renderAcompanhamentoProducao(p, container);
+  window.scrollTo({ top: y });
+}
+window.verMaisProducao = verMaisProducao;
 
 function renderAcompanhamentoProducao(projeto, container) {
   if (!container) return;
@@ -8019,7 +8268,7 @@ function renderAcompanhamentoProducao(projeto, container) {
   const cntAlta = aplicaveis.filter(t => t.status !== 'completed' && t.prioridade === 'alta').length;
 
   // Estado de filtro por projeto
-  const filtro = producaoFiltros[projeto.id] || (producaoFiltros[projeto.id] = { ambiente: null, categoria: null, status: 'todas' });
+  const filtro = producaoFiltros[projeto.id] || (producaoFiltros[projeto.id] = { ambiente: null, categoria: null, status: 'todas', limite: PRODUCAO_PAGINA });
 
   // Agrupa tarefas aplicáveis por cômodo e por categoria
   const porAmbiente = new Map();
@@ -8033,21 +8282,31 @@ function renderAcompanhamentoProducao(projeto, container) {
     porCategoria.get(cat).push(t);
   });
   const renderGroupBlock = (map, tipo, ativo, titulo) => {
-    if (map.size === 0) return `<div class="production-overview-empty">Nenhuma etapa aplicável.</div>`;
-    const rows = [...map.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([nome, arr]) => {
+    if (map.size === 0) {
+      return `<div class="production-overview-title"><span>${titulo}</span></div>
+              <div class="production-overview-empty">Nenhuma etapa aplicável.</div>`;
+    }
+    // Ordena por menor progresso primeiro — o que precisa de atenção sobe.
+    const entradas = [...map.entries()].sort((a, b) => {
+      const pa = a[1].length ? a[1].filter(x => x.status === 'completed').length / a[1].length : 0;
+      const pb = b[1].length ? b[1].filter(x => x.status === 'completed').length / b[1].length : 0;
+      return pa - pb || a[0].localeCompare(b[0]);
+    });
+    const rows = entradas.map(([nome, arr]) => {
       const t = arr.length;
       const c = arr.filter(x => x.status === 'completed').length;
       const p = t ? Math.round((c / t) * 100) : 0;
       const cls = ativo === nome ? 'is-active' : '';
+      const safe = nome.replace(/'/g, "\\'");
       return `
-        <div class="production-overview-row ${cls}" onclick="setFiltroProducao('${projeto.id}','${tipo}', '${nome.replace(/'/g, "\\'")}')">
-          <div class="grp">${nome}<small>${c}/${t} concluídas · ${p}%</small></div>
-          <div class="mini-bar"><span style="width:${p}%"></span></div>
-        </div>`;
+        <button type="button" class="production-overview-row ${cls}" aria-pressed="${ativo === nome}" onclick="setFiltroProducao('${projeto.id}','${tipo}', '${safe}')">
+          <span class="grp">${nome}<small>${c}/${t} concluídas · ${p}%</small></span>
+          <span class="mini-bar"><span style="width:${p}%"></span></span>
+        </button>`;
     }).join('');
     return `
-      <div class="production-overview-title">${titulo}</div>
-      ${rows}
+      <div class="production-overview-title"><span>${titulo}</span><span class="count">${map.size}</span></div>
+      <div class="production-overview-scroll">${rows}</div>
     `;
   };
   // Bloco direito: donut chart com o breakdown de status do escopo
@@ -8082,7 +8341,7 @@ function renderAcompanhamentoProducao(projeto, container) {
   const legendaHtml = segs.map(s => {
     const pctSeg = cScopeTotal ? Math.round((s.count / cScopeTotal) * 100) : 0;
     return `
-      <div class="pie-legend-row">
+      <div class="pie-legend-row ${s.count === 0 ? 'is-zero' : ''}">
         <span class="pie-legend-dot" style="background:${s.color}"></span>
         <span class="pie-legend-name">${s.label}</span>
         <span class="pie-legend-count">${s.count} · ${pctSeg}%</span>
@@ -8095,10 +8354,13 @@ function renderAcompanhamentoProducao(projeto, container) {
         ${renderGroupBlock(porAmbiente, 'ambiente', filtro.ambiente, 'Por cômodo / subdivisão')}
       </div>
       <div class="production-overview-block production-pie-block">
-        <div class="production-overview-title">Status · ${escopoLabel}</div>
+        <div class="production-overview-title">
+          <span class="scope">${escopoLabel}</span>
+          ${filtro.ambiente ? `<span class="count">filtrado</span>` : ''}
+        </div>
         ${cScopeTotal === 0 ? `<div class="production-overview-empty">Nenhuma etapa aplicável.</div>` : `
           <div class="pie-chart-wrap">
-            <div class="pie-chart" style="background:${donutBg}">
+            <div class="pie-chart" style="background:${donutBg}" role="img" aria-label="${pctScope}% concluído, ${cScopeConc} de ${cScopeTotal} etapas">
               <div class="pie-chart-hole">
                 <span class="pie-chart-pct">${pctScope}%</span>
                 <small class="pie-chart-sub">${cScopeConc}/${cScopeTotal}</small>
@@ -8130,15 +8392,27 @@ function renderAcompanhamentoProducao(projeto, container) {
   });
 
   const chipsHtml = `
-    <div class="production-filters">
+    <div class="production-filters" role="group" aria-label="Filtrar etapas por status">
       ${['todas','pendentes','andamento','concluidas','alta'].map(s => {
         const label = { todas:`Todas (${cntTodas})`, pendentes:`Pendentes (${cntPend})`, andamento:`Em andamento (${cntAnd})`, concluidas:`Concluídas (${cntConc})`, alta:`Prioridade alta (${cntAlta})` }[s];
         const active = (filtro.status || 'todas') === s ? 'is-active' : '';
-        return `<button type="button" class="production-filter-chip ${active}" onclick="setFiltroProducao('${projeto.id}','status', '${s}')">${label}</button>`;
+        return `<button type="button" class="production-filter-chip ${active}" aria-pressed="${!!active}" onclick="setFiltroProducao('${projeto.id}','status', '${s}')">${label}</button>`;
       }).join('')}
       ${filtroAtivo ? `<button type="button" class="production-filter-clear" onclick="setFiltroProducao('${projeto.id}','clear', null)">Limpar filtros</button>` : ''}
     </div>
   `;
+
+  // Paginação — despejar 100+ linhas de uma vez trava o scroll no celular.
+  const limite = filtro.limite || PRODUCAO_PAGINA;
+  const totalFiltrado = tarefasFiltradas.length;
+  const ocultas = Math.max(0, totalFiltrado - limite);
+  tarefasFiltradas = tarefasFiltradas.slice(0, limite);
+
+  const scopeNoteHtml = filtroAtivo
+    ? `<div class="production-scope-note">
+         Mostrando <strong>${tarefasFiltradas.length}</strong> de ${totalFiltrado} etapas${filtro.ambiente ? ` em <strong>${filtro.ambiente}</strong>` : ''}
+       </div>`
+    : '';
 
   // Acha a tarefa ativa atual (primeira não concluída)
   const activeTask = projeto.tasks.find(t => t.is_applicable !== false && t.status !== 'completed');
@@ -8182,8 +8456,9 @@ function renderAcompanhamentoProducao(projeto, container) {
       }
     }
 
+    // Rótulo longo no desktop, abreviado no celular (o CSS troca qual span aparece).
     const applicabilityButton = !isCompleted && t.order !== 23
-      ? `<button class="btn btn-ghost" style="font-size:0.6875rem; padding:2px 6px;" onclick="alternarAplicabilidadeTarefa('${projeto.id}', '${t.id}')">${isNotApplicable ? 'Aplicável' : 'Não se aplica'}</button>`
+      ? `<button class="btn btn-ghost" onclick="alternarAplicabilidadeTarefa('${projeto.id}', '${t.id}')"><span class="lbl-full">${isNotApplicable ? 'Aplicável' : 'Não se aplica'}</span><span class="lbl-short">${isNotApplicable ? 'Aplicar' : 'N/A'}</span></button>`
       : '';
     // "Editar" abre o modal completo — nome, cômodo, prazo, prioridade,
     // status, categoria, observações. Também vale pra tarefa concluída
@@ -8227,14 +8502,12 @@ function renderAcompanhamentoProducao(projeto, container) {
     return `
       <div class="production-stage ${stateClasses}" draggable="true" data-task-id="${t.id}" data-index="${index}">
         <span class="production-drag-handle" aria-hidden="true" title="Arraste para reordenar">⋮⋮</span>
-        <div class="production-stage-main">
-          <span class="production-stage-icon" aria-hidden="true">${icon}</span>
-          <div class="production-stage-copy">
-            <span class="production-stage-name">${t.order ? String(t.order).padStart(2, '0') + ' · ' : ''}${t.name}${t.ambiente ? ` <span class="production-stage-comodo">${t.ambiente}</span>` : ''}</span>
-            <small class="production-stage-meta">${stateMeta}</small>
-            ${badgesHtml}
-            ${notesHtml}
-          </div>
+        <span class="production-stage-icon" aria-hidden="true">${icon}</span>
+        <div class="production-stage-copy">
+          <span class="production-stage-name">${t.order ? String(t.order).padStart(2, '0') + ' · ' : ''}${t.name}${t.ambiente ? ` <span class="production-stage-comodo">${t.ambiente}</span>` : ''}</span>
+          <small class="production-stage-meta">${stateMeta}</small>
+          ${badgesHtml}
+          ${notesHtml}
         </div>
         <div class="production-stage-actions">
           <div class="production-move-group">${upDownBtns}</div>
@@ -8260,7 +8533,7 @@ function renderAcompanhamentoProducao(projeto, container) {
       <div class="production-summary">
         <div class="production-summary-line">
           <span>Progresso da fabricação</span>
-          <strong>${pct}% (${concluidoCount} de ${total} aplicáveis concluídas)</strong>
+          <strong><b class="production-pct">${pct}%</b> · ${concluidoCount} de ${total} concluídas</strong>
         </div>
         <div class="progresso-bar" style="height: 10px;">
           <div class="progresso-fill" style="width: ${pct}%; background: var(--status-em-andamento);"></div>
@@ -8269,10 +8542,12 @@ function renderAcompanhamentoProducao(projeto, container) {
 
       ${overviewHtml}
       ${chipsHtml}
+      ${scopeNoteHtml}
 
       <div class="production-list" id="production-list-${projeto.id}">
         ${tarefasFiltradas.length ? listHtml : `<div class="production-empty-filtered">Nenhuma etapa corresponde ao filtro atual.</div>`}
       </div>
+      ${ocultas > 0 ? `<button type="button" class="production-more" onclick="verMaisProducao('${projeto.id}')">Mostrar mais ${Math.min(ocultas, PRODUCAO_PAGINA)} de ${ocultas} restantes</button>` : ''}
     </div>
   `;
 
