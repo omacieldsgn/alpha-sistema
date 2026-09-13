@@ -2067,6 +2067,70 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
 .production-overview-row:hover { background: color-mix(in oklch, var(--brand) 6%, transparent); }
 .production-overview-row.is-active { background: color-mix(in oklch, var(--brand) 10%, transparent); }
 
+/* Donut chart do escopo selecionado */
+.production-pie-block { display: flex; flex-direction: column; }
+.pie-chart-wrap {
+  display: grid;
+  grid-template-columns: 128px 1fr;
+  gap: var(--sp-4);
+  align-items: center;
+}
+@media (max-width: 720px) {
+  .pie-chart-wrap { grid-template-columns: 1fr; justify-items: center; text-align: left; }
+}
+.pie-chart {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  position: relative;
+  display: grid;
+  place-items: center;
+  transition: background 220ms ease;
+}
+.pie-chart-hole {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.pie-chart-pct {
+  font-family: var(--font-display, inherit);
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1;
+}
+.pie-chart-sub {
+  font-size: 0.6875rem;
+  color: var(--ink-subtle);
+  margin-top: 3px;
+  letter-spacing: 0.03em;
+}
+.pie-legend {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.pie-legend-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+.pie-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.pie-legend-name { color: var(--ink); font-weight: 500; }
+.pie-legend-count { color: var(--ink-subtle); font-variant-numeric: tabular-nums; font-size: 0.75rem; }
+
 /* Filtros de status */
 .production-filters {
   display: flex;
@@ -7986,13 +8050,63 @@ function renderAcompanhamentoProducao(projeto, container) {
       ${rows}
     `;
   };
+  // Bloco direito: donut chart com o breakdown de status do escopo
+  // selecionado. Quando não há subdivisão marcada, mostra o projeto todo.
+  const escopoLabel = filtro.ambiente || 'Todo o projeto';
+  const escopoTasks = filtro.ambiente ? (porAmbiente.get(filtro.ambiente) || []) : aplicaveis;
+  const cScopeConc = escopoTasks.filter(t => t.status === 'completed').length;
+  const cScopeAnd = escopoTasks.filter(t => t.status === 'in_progress').length;
+  const cScopePend = escopoTasks.filter(t => t.status === 'pending').length;
+  const cScopeBloq = escopoTasks.filter(t => t.status === 'blocked').length;
+  const cScopeTotal = escopoTasks.length;
+  const pctScope = cScopeTotal ? Math.round((cScopeConc / cScopeTotal) * 100) : 0;
+
+  // Monta o conic-gradient acumulando as fatias na ordem: concluídas,
+  // em andamento, pendentes, bloqueadas.
+  const segs = [
+    { label: 'Concluídas',   count: cScopeConc, color: 'var(--status-liberado)' },
+    { label: 'Em andamento', count: cScopeAnd,  color: 'var(--status-em-andamento)' },
+    { label: 'Pendentes',    count: cScopePend, color: 'var(--ink-subtle)' },
+    { label: 'Bloqueadas',   count: cScopeBloq, color: 'var(--status-atrasado)' }
+  ];
+  let acc = 0;
+  const stops = cScopeTotal
+    ? segs.filter(s => s.count > 0).map(s => {
+        const start = (acc / cScopeTotal) * 360;
+        acc += s.count;
+        const end = (acc / cScopeTotal) * 360;
+        return `${s.color} ${start}deg ${end}deg`;
+      }).join(', ')
+    : 'var(--border) 0deg 360deg';
+  const donutBg = `conic-gradient(${stops})`;
+  const legendaHtml = segs.map(s => {
+    const pctSeg = cScopeTotal ? Math.round((s.count / cScopeTotal) * 100) : 0;
+    return `
+      <div class="pie-legend-row">
+        <span class="pie-legend-dot" style="background:${s.color}"></span>
+        <span class="pie-legend-name">${s.label}</span>
+        <span class="pie-legend-count">${s.count} · ${pctSeg}%</span>
+      </div>`;
+  }).join('');
+
   const overviewHtml = `
     <div class="production-overview">
       <div class="production-overview-block">
         ${renderGroupBlock(porAmbiente, 'ambiente', filtro.ambiente, 'Por cômodo / subdivisão')}
       </div>
-      <div class="production-overview-block">
-        ${renderGroupBlock(porCategoria, 'categoria', filtro.categoria, 'Por etiqueta / categoria')}
+      <div class="production-overview-block production-pie-block">
+        <div class="production-overview-title">Status · ${escopoLabel}</div>
+        ${cScopeTotal === 0 ? `<div class="production-overview-empty">Nenhuma etapa aplicável.</div>` : `
+          <div class="pie-chart-wrap">
+            <div class="pie-chart" style="background:${donutBg}">
+              <div class="pie-chart-hole">
+                <span class="pie-chart-pct">${pctScope}%</span>
+                <small class="pie-chart-sub">${cScopeConc}/${cScopeTotal}</small>
+              </div>
+            </div>
+            <div class="pie-legend">${legendaHtml}</div>
+          </div>
+        `}
       </div>
     </div>
   `;
