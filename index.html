@@ -2906,18 +2906,22 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   text-align: center;
 }
 
-/* ---- A folha ------------------------------------------------------------ */
+/* ---- A folha ------------------------------------------------------------
+   As regras visuais vivem em _cssRelatorio() no JS e são injetadas em
+   <style id="rel-css-compartilhado"> no boot, para o preview, o PDF e o HTML
+   exportado usarem exatamente a mesma folha. Aqui fica só o enquadramento.
+   ------------------------------------------------------------------------- */
 .rel-paper {
   background: #FFFFFF;
   color: #211D19;
   width: 100%;
-  max-width: 640px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 44px 46px 40px;
+  padding: 46px 48px 42px;
   box-shadow: var(--shadow-md);
   font-family: var(--font-ui);
-  font-size: 11.5px;
-  line-height: 1.55;
+  font-size: 15px;
+  line-height: 1.6;
 }
 .rel-paper [contenteditable]:hover {
   background: color-mix(in oklch, #A9825A 12%, transparent);
@@ -2928,147 +2932,68 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
   outline-offset: 2px;
   border-radius: 3px;
 }
+.rel-paper .rel-titulo { font-family: var(--font-serif); }
 
-.rel-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  padding-bottom: 18px;
-  border-bottom: 2px solid #211D19;
-}
-.rel-head img { width: 132px; height: auto; display: block; }
-.rel-head-right { text-align: right; font-size: 10px; color: #6B655D; line-height: 1.7; }
-.rel-head-right strong { color: #211D19; display: block; font-size: 11px; }
-
-.rel-titulo {
-  font-family: var(--font-serif);
-  font-size: 26px;
-  font-weight: 340;
-  letter-spacing: -0.02em;
-  line-height: 1.12;
-  margin: 26px 0 4px;
-  color: #211D19;
-}
-.rel-sub { font-size: 11px; color: #6B655D; margin-bottom: 22px; }
-.rel-saudacao { font-size: 11.5px; line-height: 1.65; margin-bottom: 24px; color: #3A352E; }
-
-.rel-sec { margin-bottom: 22px; break-inside: avoid; }
-.rel-sec-titulo {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #A9825A;
-  padding-bottom: 5px;
-  margin-bottom: 10px;
-  border-bottom: 1px solid #E0D6C6;
-}
-
-/* Faixa de destaque: progresso e prazo */
-.rel-destaque {
+/* Fotos no painel de edição */
+.rel-fotos-acoes { display: flex; gap: var(--sp-2); }
+.rel-foto-btn { flex: 1; justify-content: center; font-size: 0.75rem; padding: 8px var(--sp-2); }
+.rel-fotos-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  padding: 16px 18px;
-  background: #F7F4EE;
-  border-radius: 8px;
-  margin-bottom: 22px;
-  break-inside: avoid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
 }
-.rel-destaque-item .lbl {
-  font-size: 8.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #8B857D;
+.rel-fotos-grid:empty { display: none; }
+.rel-foto-item { position: relative; }
+.rel-foto-item img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
   display: block;
-  margin-bottom: 3px;
 }
-.rel-destaque-item .val {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #211D19;
-  line-height: 1.1;
+.rel-foto-remover {
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 24px; height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(33 29 25 / 0.72);
+  color: #fff;
+  font-size: 0.9375rem;
+  line-height: 1;
+  cursor: pointer;
 }
-.rel-destaque-item .val small { font-size: 10px; font-weight: 500; color: #6B655D; display: block; margin-top: 2px; letter-spacing: 0; }
-
-.rel-bar {
-  height: 7px;
-  background: #E0D6C6;
-  border-radius: 99px;
-  overflow: hidden;
-  margin-top: 10px;
-}
-.rel-bar > span { display: block; height: 100%; background: #A9825A; border-radius: 99px; }
-
-/* Lista de ambientes */
-.rel-amb-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 54px 78px;
-  gap: 10px;
-  align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px solid #F0EAE0;
-  font-size: 10.5px;
-}
-.rel-amb-row:last-child { border-bottom: 0; }
-.rel-amb-row .nome { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rel-amb-row .pct { text-align: right; color: #6B655D; font-variant-numeric: tabular-nums; }
-.rel-amb-row .mini {
-  height: 5px; background: #E0D6C6; border-radius: 99px; overflow: hidden;
-}
-.rel-amb-row .mini > span { display: block; height: 100%; background: #A9825A; }
-
-/* Listas de etapas */
-.rel-lista { display: grid; gap: 4px; }
-.rel-item {
-  display: grid;
-  grid-template-columns: 14px minmax(0, 1fr);
-  gap: 8px;
-  align-items: baseline;
-  font-size: 10.5px;
-  padding: 3px 0;
-}
-.rel-item .mark { color: #A9825A; font-weight: 700; }
-.rel-item.is-done .mark { color: #2F332B; }
-.rel-item .txt { color: #3A352E; }
-.rel-item .comodo { color: #8B857D; }
-
-.rel-obs {
-  background: #F7F4EE;
-  border-left: 3px solid #A9825A;
-  padding: 12px 14px;
-  border-radius: 0 6px 6px 0;
-  font-size: 10.5px;
-  line-height: 1.6;
-  color: #3A352E;
-  break-inside: avoid;
+.rel-foto-remover:hover { background: var(--status-atrasado); }
+.rel-foto-legenda {
+  width: 100%;
+  margin-top: 4px;
+  padding: 5px var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.75rem;
 }
 
-.rel-foot {
-  margin-top: 30px;
-  padding-top: 14px;
-  border-top: 1px solid #E0D6C6;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
-  font-size: 9.5px;
-  color: #8B857D;
-}
-.rel-assinatura { font-size: 11px; color: #211D19; font-weight: 600; }
+.rel-footer { flex-wrap: wrap; justify-content: space-between; }
+.rel-footer-acoes { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
 
 @media (max-width: 860px) {
   .rel-layout { grid-template-columns: 1fr; overflow-y: auto; }
   .rel-form { overflow: visible; padding-right: 0; }
   .rel-preview-wrap { overflow: visible; padding: var(--sp-3); }
-  .rel-paper { padding: 28px 24px; font-size: 11px; }
-  .rel-destaque { grid-template-columns: 1fr; gap: 10px; }
-  .rel-titulo { font-size: 21px; }
+  .rel-paper { padding: 28px 22px; font-size: 14px; }
+  .rel-paper .rel-destaque { grid-template-columns: 1fr; }
+  .rel-paper .rel-titulo { font-size: 25px; }
+  .rel-paper .rel-galeria { grid-template-columns: 1fr; }
+  .rel-footer { flex-direction: column-reverse; }
+  .rel-footer-acoes { width: 100%; }
+  .rel-footer-acoes .btn { flex: 1; justify-content: center; }
 }
 
-/* ---- Impressão ---------------------------------------------------------- */
 @media print {
   /* Some com a interface inteira e deixa só a folha. */
   body > *:not(#modal-relatorio) { display: none !important; }
@@ -3086,7 +3011,7 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
     max-width: none; width: auto; max-height: none;
     box-shadow: none; border: 0; padding: 0; background: none;
   }
-  #modal-relatorio .rel-layout { display: block; overflow: visible; }
+  #modal-relatorio .rel-layout { display: block; overflow: visible; padding: 0; }
   #modal-relatorio .rel-preview-wrap {
     overflow: visible; background: none; padding: 0; border-radius: 0;
   }
@@ -3096,10 +3021,42 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
     margin: 0;
     padding: 0;
     box-shadow: none;
-    font-size: 10.5pt;
+    /* Em pt para a impressão: 11.5pt sai com o mesmo peso visual que o
+       preview tem na tela. O valor anterior encolhia tudo na folha. */
+    font-size: 11.5pt;
+    line-height: 1.55;
   }
   .rel-paper [contenteditable]:hover { background: none; }
-  @page { size: A4; margin: 16mm 15mm; }
+
+  /* Tipografia da folha impressa — proporcional, não miniaturizada. */
+  .rel-paper .rel-titulo { font-size: 27pt; margin: 22pt 0 4pt; }
+  .rel-paper .rel-sub { font-size: 10pt; margin-bottom: 16pt; }
+  .rel-paper .rel-saudacao { font-size: 11.5pt; margin-bottom: 20pt; }
+  .rel-paper .rel-head img { width: 118pt; }
+  .rel-paper .rel-head-right { font-size: 9.5pt; }
+  .rel-paper .rel-head-right strong { font-size: 11pt; }
+  .rel-paper .rel-sec { margin-bottom: 18pt; }
+  .rel-paper .rel-sec-titulo { font-size: 8.5pt; margin-bottom: 9pt; }
+  .rel-paper .rel-destaque { gap: 12pt; padding: 14pt 16pt; margin-bottom: 20pt; }
+  .rel-paper .rel-destaque-item .lbl { font-size: 8pt; }
+  .rel-paper .rel-destaque-item .val { font-size: 22pt; }
+  .rel-paper .rel-destaque-item .val--texto { font-size: 15pt; }
+  .rel-paper .rel-destaque-item .val small { font-size: 9pt; }
+  .rel-paper .rel-amb-row { font-size: 10.5pt; padding: 6pt 0; grid-template-columns: minmax(0,1fr) 70pt 82pt; }
+  .rel-paper .rel-amb-row .pct { font-size: 9.5pt; }
+  .rel-paper .rel-item { font-size: 10.5pt; padding: 2.5pt 0; }
+  .rel-paper .rel-fin-row { font-size: 10.5pt; padding: 6pt 0; }
+  .rel-paper .rel-fin-row strong { font-size: 11.5pt; }
+  .rel-paper .rel-obs { font-size: 10.5pt; padding: 11pt 13pt; }
+  .rel-paper .rel-foot { margin-top: 24pt; padding-top: 11pt; font-size: 9pt; }
+  .rel-paper .rel-assinatura { font-size: 11pt; }
+  .rel-paper .rel-foto figcaption { font-size: 9pt; }
+  /* Fotos não podem estourar a página nem quebrar no meio */
+  .rel-paper .rel-galeria { gap: 10pt; }
+  .rel-paper .rel-foto img { max-height: 78mm; object-fit: cover; }
+  .rel-paper .rel-sec-fotos { break-inside: auto; }
+
+  @page { size: A4; margin: 14mm 13mm; }
 }
 
 /* Toast ------------------------------------------------------------------- */
@@ -6109,8 +6066,21 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         </div>
 
         <div class="rel-form-group">
-          <label class="rel-label" for="rel-prazo">Prazo previsto (texto livre)</label>
-          <input class="input" id="rel-prazo" oninput="atualizarPreviewRelatorio()">
+          <label class="rel-label" for="rel-data-prevista">Data prevista de entrega</label>
+          <input type="date" class="input" id="rel-data-prevista" oninput="atualizarPreviewRelatorio()">
+          <p class="rel-dica" id="rel-dias-hint">Os dias restantes são calculados a partir desta data.</p>
+        </div>
+
+        <div class="rel-form-group">
+          <label class="rel-label" for="rel-fotos">Fotos do andamento</label>
+          <div class="rel-fotos-acoes">
+            <button type="button" class="btn btn-secondary rel-foto-btn" onclick="document.getElementById('rel-fotos').click()">Escolher da galeria</button>
+            <button type="button" class="btn btn-secondary rel-foto-btn" onclick="document.getElementById('rel-camera').click()">Tirar foto</button>
+          </div>
+          <input type="file" id="rel-fotos" accept="image/*" multiple hidden onchange="adicionarFotosRelatorio(this.files)">
+          <input type="file" id="rel-camera" accept="image/*" capture="environment" hidden onchange="adicionarFotosRelatorio(this.files)">
+          <div class="rel-fotos-grid" id="rel-fotos-grid"></div>
+          <p class="rel-dica">As imagens são reduzidas antes de entrar no relatório, para o arquivo não ficar pesado.</p>
         </div>
 
         <div class="rel-form-group">
@@ -6145,9 +6115,13 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       </div>
     </div>
 
-    <div class="modal-footer">
+    <div class="modal-footer rel-footer">
       <button class="btn btn-ghost" onclick="fecharRelatorio()">Cancelar</button>
-      <button class="btn btn-primary" onclick="gerarPdfRelatorio()">Gerar PDF</button>
+      <div class="rel-footer-acoes">
+        <button class="btn btn-secondary" onclick="baixarHtmlRelatorio()">Baixar HTML</button>
+        <button class="btn btn-secondary" onclick="gerarPdfRelatorio()">Gerar PDF</button>
+        <button class="btn btn-primary" onclick="enviarRelatorioWhatsApp()">Enviar no WhatsApp</button>
+      </div>
     </div>
   </div>
 </div>
@@ -10925,21 +10899,43 @@ function renderChao() {
    vetorial e evita carregar biblioteca de renderização.
    ============================================================================ */
 
+/* Fotos anexadas ao relatório (data URIs já reduzidos). */
+let relatorioFotos = [];
+
+/* Logo em data URI, para o HTML exportado não depender do arquivo externo.
+   Carregado uma vez, sob demanda, na primeira abertura do relatório. */
+let _logoSvgInline = null;
+async function _carregarLogoInline() {
+  if (_logoSvgInline) return;
+  try {
+    const r = await fetch('SIMBOLO SISTEMA .svg');
+    if (!r.ok) return;
+    const svg = await r.text();
+    _logoSvgInline = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+  } catch (e) {
+    console.warn('Logo não embutido no relatório; usando wordmark em texto.', e);
+  }
+}
+
 function abrirRelatorioCliente() {
   const p = projetos.find(x => x.id === projetoSelecionadoId);
   if (!p) { showToast('Abra um projeto primeiro.'); return; }
 
-  // Pré-preenche os campos com um texto que já faz sentido sozinho.
-  const primeiroNome = (p.cliente || '').trim().split(/\s+/)[0] || 'cliente';
-  document.getElementById('rel-titulo').value = 'Andamento do seu projeto';
+  const nome = (p.cliente || 'cliente').trim();
+  const hoje = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  document.getElementById('rel-titulo').value = 'Acompanhamento do seu projeto';
+  // Saudação completa: nome inteiro, o que é o documento e a data de referência.
   document.getElementById('rel-saudacao').value =
-    `Olá, ${primeiroNome}. Segue um resumo de como está a fabricação dos seus móveis planejados. ` +
-    `Qualquer dúvida, é só falar com a gente.`;
-  document.getElementById('rel-prazo').value = p.prazo
-    ? `Entrega prevista para ${fmtDate(p.prazo)}`
-    : 'Prazo a confirmar';
+    `Olá, ${nome}. Este é o relatório de andamento do seu projeto de móveis planejados, ` +
+    `com a situação atualizada em ${hoje}. Abaixo você acompanha o que já foi concluído, ` +
+    `o que está em execução agora e quais são os próximos passos. Qualquer dúvida, é só falar com a nossa equipe.`;
+  document.getElementById('rel-data-prevista').value = p.prazo || '';
   document.getElementById('rel-obs').value = '';
   document.getElementById('rel-assinatura').value = 'Equipe Alpha Móveis Planejados';
+  relatorioFotos = [];
+  renderFotosRelatorio();
+  _carregarLogoInline();   // não bloqueia: o HTML só precisa dele na exportação
 
   atualizarPreviewRelatorio();
   document.getElementById('modal-relatorio').classList.add('open');
@@ -10953,14 +10949,81 @@ function fecharRelatorio() {
 }
 window.fecharRelatorio = fecharRelatorio;
 
-function atualizarPreviewRelatorio() {
-  const p = projetos.find(x => x.id === projetoSelecionadoId);
-  const paper = document.getElementById('rel-paper');
-  if (!p || !paper) return;
+/* ---- Fotos --------------------------------------------------------------
+   Reduz no canvas antes de guardar: uma foto de celular tem 3-8MB e entraria
+   inteira no HTML como base64, deixando o arquivo impossível de enviar.
+   ------------------------------------------------------------------------- */
+async function adicionarFotosRelatorio(fileList) {
+  const arquivos = [...(fileList || [])].filter(f => f.type.startsWith('image/'));
+  for (const f of arquivos) {
+    try {
+      const dataUri = await _reduzirImagem(f, 1100, 0.72);
+      relatorioFotos.push({ src: dataUri, legenda: '' });
+    } catch (e) {
+      console.warn('Falha ao processar imagem', e);
+    }
+  }
+  renderFotosRelatorio();
+  atualizarPreviewRelatorio();
+  // Zera os inputs para permitir escolher a mesma foto de novo.
+  const g = document.getElementById('rel-fotos'); if (g) g.value = '';
+  const c = document.getElementById('rel-camera'); if (c) c.value = '';
+}
+window.adicionarFotosRelatorio = adicionarFotosRelatorio;
 
+function _reduzirImagem(file, larguraMax, qualidade) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const escala = Math.min(1, larguraMax / img.width);
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * escala);
+        cv.height = Math.round(img.height * escala);
+        const ctx = cv.getContext('2d');
+        ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        resolve(cv.toDataURL('image/jpeg', qualidade));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderFotosRelatorio() {
+  const grid = document.getElementById('rel-fotos-grid');
+  if (!grid) return;
+  grid.innerHTML = relatorioFotos.map((f, i) => `
+    <div class="rel-foto-item">
+      <img src="${f.src}" alt="Foto ${i + 1}">
+      <button type="button" class="rel-foto-remover" onclick="removerFotoRelatorio(${i})" aria-label="Remover foto">×</button>
+      <input class="rel-foto-legenda" placeholder="Legenda (opcional)" value="${(f.legenda || '').replace(/"/g, '&quot;')}"
+             oninput="definirLegendaFoto(${i}, this.value)">
+    </div>`).join('');
+}
+
+function removerFotoRelatorio(i) {
+  relatorioFotos.splice(i, 1);
+  renderFotosRelatorio();
+  atualizarPreviewRelatorio();
+}
+window.removerFotoRelatorio = removerFotoRelatorio;
+
+function definirLegendaFoto(i, txt) {
+  if (relatorioFotos[i]) relatorioFotos[i].legenda = txt;
+  atualizarPreviewRelatorio();
+}
+window.definirLegendaFoto = definirLegendaFoto;
+
+/* ---- Dados que alimentam preview, PDF e HTML ---------------------------- */
+function _dadosRelatorio() {
+  const p = projetos.find(x => x.id === projetoSelecionadoId);
+  if (!p) return null;
   const val = id => document.getElementById(id)?.value || '';
   const marcado = id => !!document.getElementById(id)?.checked;
-  const esc = s => String(s == null ? '' : s).replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]));
 
   const tasks = (p.tasks || []).filter(t => t.is_applicable !== false);
   const concluidas = tasks.filter(t => t.status === 'completed');
@@ -10968,146 +11031,418 @@ function atualizarPreviewRelatorio() {
   const pendentes = tasks.filter(t => t.status === 'pending' || t.status === 'blocked');
   const pct = tasks.length ? Math.round((concluidas.length / tasks.length) * 100) : 0;
 
-  // Fase legível para o cliente — sem jargão de status interno.
   const fase = pct === 100 ? 'Concluído'
     : emAndamento.length ? 'Em produção'
     : pct > 0 ? 'Em andamento'
     : 'Em preparação';
 
-  const dias = p.prazo ? diasAte(p.prazo) : null;
-  const prazoInfo = dias == null ? '—'
-    : dias >= 0 ? `${dias} dia${dias === 1 ? '' : 's'}` : `${Math.abs(dias)} dia${Math.abs(dias) === 1 ? '' : 's'} de atraso`;
+  // Dias restantes calculados a partir da data escolhida no formulário.
+  const dataPrevista = val('rel-data-prevista');
+  let prazoTexto = 'A confirmar', prazoNota = 'Data ainda não definida';
+  if (dataPrevista) {
+    const d = new Date(dataPrevista + 'T00:00:00');
+    const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+    const dias = Math.round((d - hoje) / 86400000);
+    prazoNota = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+    prazoTexto = dias > 1 ? `Faltam ${dias} dias`
+      : dias === 1 ? 'Amanhã'
+      : dias === 0 ? 'É hoje'
+      : `${Math.abs(dias)} ${Math.abs(dias) === 1 ? 'dia' : 'dias'} de atraso`;
+  }
 
-  // Agrupa por cômodo
   const porAmb = new Map();
   tasks.forEach(t => {
     const a = (t.ambiente || '').trim() || 'Geral';
     if (!porAmb.has(a)) porAmb.set(a, []);
     porAmb.get(a).push(t);
   });
+  const ambientes = [...porAmb.entries()].map(([nome, arr]) => {
+    const c = arr.filter(t => t.status === 'completed').length;
+    return {
+      nome, total: arr.length, concluidas: c,
+      pct: arr.length ? Math.round((c / arr.length) * 100) : 0,
+      itensConcluidos: arr.filter(t => t.status === 'completed').map(t => t.name),
+      itensAndamento: arr.filter(t => t.status === 'in_progress').map(t => t.name)
+    };
+  }).sort((a, b) => a.nome.localeCompare(b.nome));
 
-  const hoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+  return {
+    p, tasks, concluidas, emAndamento, pendentes, pct, fase,
+    prazoTexto, prazoNota, dataPrevista,
+    ambientes,
+    titulo: val('rel-titulo'),
+    saudacao: val('rel-saudacao'),
+    obs: val('rel-obs').trim(),
+    assinatura: val('rel-assinatura'),
+    fotos: relatorioFotos,
+    sec: {
+      resumo: marcado('rel-sec-resumo'),
+      ambientes: marcado('rel-sec-ambientes'),
+      concluidas: marcado('rel-sec-concluidas'),
+      proximas: marcado('rel-sec-proximas'),
+      financeiro: marcado('rel-sec-financeiro')
+    },
+    hoje: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+  };
+}
 
-  const secResumo = marcado('rel-sec-resumo') ? `
+function _esc(s) {
+  return String(s == null ? '' : s).replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+}
+
+/* Nome padrão do arquivo: STATUS PROJETO - CLIENTE - ALPHA PLANEJADOS - DATA */
+function _nomeArquivoRelatorio(p) {
+  const cliente = (p.cliente || 'CLIENTE').toUpperCase();
+  const data = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase();
+  return `STATUS PROJETO - ${cliente} - ALPHA PLANEJADOS - ${data}`
+    .replace(/[\\/:*?"<>|]/g, '')   // caracteres proibidos em nome de arquivo
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function atualizarPreviewRelatorio() {
+  const d = _dadosRelatorio();
+  const paper = document.getElementById('rel-paper');
+  if (!d || !paper) return;
+
+  // Dica de dias restantes ao lado do campo de data
+  const hint = document.getElementById('rel-dias-hint');
+  if (hint) {
+    // A frase muda com o caso: "Faltam amanhã" e "Faltam 3 dias de atraso"
+    // não são português.
+    hint.textContent = d.dataPrevista
+      ? `${d.prazoTexto} · ${d.prazoNota}`
+      : 'Os dias restantes são calculados a partir desta data.';
+  }
+
+  paper.innerHTML = _corpoRelatorioHtml(d, { editavel: true });
+}
+window.atualizarPreviewRelatorio = atualizarPreviewRelatorio;
+
+/* Corpo compartilhado entre a pré-visualização, o PDF e o HTML exportado. */
+function _corpoRelatorioHtml(d, { editavel = false } = {}) {
+  const ed = editavel ? ' contenteditable="true"' : '';
+  const p = d.p;
+
+  const secResumo = d.sec.resumo ? `
     <div class="rel-destaque">
       <div class="rel-destaque-item">
-        <span class="lbl">Andamento</span>
-        <span class="val">${pct}%<small>${concluidas.length} de ${tasks.length} etapas</small></span>
+        <span class="lbl">Andamento geral</span>
+        <span class="val">${d.pct}%<small>${d.concluidas.length} de ${d.tasks.length} etapas concluídas</small></span>
       </div>
       <div class="rel-destaque-item">
         <span class="lbl">Fase atual</span>
-        <span class="val" style="font-size:14px;">${fase}<small>${emAndamento.length} etapa${emAndamento.length === 1 ? '' : 's'} em execução</small></span>
+        <span class="val val--texto">${d.fase}<small>${d.emAndamento.length} etapa${d.emAndamento.length === 1 ? '' : 's'} em execução</small></span>
       </div>
       <div class="rel-destaque-item">
-        <span class="lbl">Prazo</span>
-        <span class="val" style="font-size:14px;">${prazoInfo}<small>${p.prazo ? fmtDate(p.prazo) : 'a confirmar'}</small></span>
+        <span class="lbl">Entrega prevista</span>
+        <span class="val val--texto">${_esc(d.prazoTexto)}<small>${_esc(d.prazoNota)}</small></span>
       </div>
-      <div style="grid-column:1/-1;">
-        <div class="rel-bar"><span style="width:${pct}%"></span></div>
+      <div class="rel-destaque-barra">
+        <div class="rel-bar"><span style="width:${d.pct}%"></span></div>
       </div>
     </div>` : '';
 
-  const secAmbientes = marcado('rel-sec-ambientes') && porAmb.size ? `
+  const secAmbientes = d.sec.ambientes && d.ambientes.length ? `
     <div class="rel-sec">
       <div class="rel-sec-titulo">Progresso por ambiente</div>
-      ${[...porAmb.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([nome, arr]) => {
-        const c = arr.filter(t => t.status === 'completed').length;
-        const pp = arr.length ? Math.round((c / arr.length) * 100) : 0;
-        return `<div class="rel-amb-row">
-          <span class="nome">${esc(nome)}</span>
-          <span class="mini"><span style="width:${pp}%"></span></span>
-          <span class="pct">${c}/${arr.length} · ${pp}%</span>
-        </div>`;
-      }).join('')}
+      ${d.ambientes.map(a => `
+        <div class="rel-amb-row">
+          <span class="nome">${_esc(a.nome)}</span>
+          <span class="mini"><span style="width:${a.pct}%"></span></span>
+          <span class="pct">${a.concluidas}/${a.total} · ${a.pct}%</span>
+        </div>`).join('')}
     </div>` : '';
 
-  const secConcluidas = marcado('rel-sec-concluidas') && concluidas.length ? `
+  const secConcluidas = d.sec.concluidas && d.concluidas.length ? `
     <div class="rel-sec">
       <div class="rel-sec-titulo">Etapas já concluídas</div>
       <div class="rel-lista">
-        ${concluidas.slice(0, 18).map(t => `
+        ${d.concluidas.slice(0, 24).map(t => `
           <div class="rel-item is-done">
             <span class="mark">✓</span>
-            <span class="txt">${esc(t.name)}${t.ambiente ? ` <span class="comodo">· ${esc(t.ambiente)}</span>` : ''}</span>
+            <span class="txt">${_esc(t.name)}${t.ambiente ? ` <span class="comodo">· ${_esc(t.ambiente)}</span>` : ''}</span>
           </div>`).join('')}
-        ${concluidas.length > 18 ? `<div class="rel-item"><span class="mark"></span><span class="txt" style="color:#8B857D;">e mais ${concluidas.length - 18} etapa${concluidas.length - 18 === 1 ? '' : 's'} concluída${concluidas.length - 18 === 1 ? '' : 's'}.</span></div>` : ''}
+        ${d.concluidas.length > 24 ? `<div class="rel-item"><span class="mark"></span><span class="txt rel-mais">e mais ${d.concluidas.length - 24} etapas concluídas.</span></div>` : ''}
       </div>
     </div>` : '';
 
-  const proximas = [...emAndamento, ...pendentes].slice(0, 8);
-  const secProximas = marcado('rel-sec-proximas') && proximas.length ? `
+  const proximas = [...d.emAndamento, ...d.pendentes].slice(0, 10);
+  const secProximas = d.sec.proximas && proximas.length ? `
     <div class="rel-sec">
       <div class="rel-sec-titulo">Próximas etapas</div>
       <div class="rel-lista">
         ${proximas.map(t => `
           <div class="rel-item">
             <span class="mark">${t.status === 'in_progress' ? '▸' : '·'}</span>
-            <span class="txt">${esc(t.name)}${t.ambiente ? ` <span class="comodo">· ${esc(t.ambiente)}</span>` : ''}${t.status === 'in_progress' ? ' <span class="comodo">(em execução)</span>' : ''}</span>
+            <span class="txt">${_esc(t.name)}${t.ambiente ? ` <span class="comodo">· ${_esc(t.ambiente)}</span>` : ''}${t.status === 'in_progress' ? ' <span class="comodo">(em execução)</span>' : ''}</span>
           </div>`).join('')}
       </div>
     </div>` : '';
 
   const saldo = (p.valor || 0) - (p.recebido || 0);
-  const secFinanceiro = marcado('rel-sec-financeiro') ? `
+  const secFinanceiro = d.sec.financeiro ? `
     <div class="rel-sec">
       <div class="rel-sec-titulo">Resumo financeiro</div>
-      <div class="rel-amb-row" style="grid-template-columns:minmax(0,1fr) auto;">
-        <span class="nome" style="font-weight:500;">Valor contratado</span><span class="pct" style="color:#211D19;font-weight:600;">${fmtBRL(p.valor)}</span>
-      </div>
-      <div class="rel-amb-row" style="grid-template-columns:minmax(0,1fr) auto;">
-        <span class="nome" style="font-weight:500;">Total recebido</span><span class="pct" style="color:#211D19;font-weight:600;">${fmtBRL(p.recebido)}</span>
-      </div>
-      <div class="rel-amb-row" style="grid-template-columns:minmax(0,1fr) auto;">
-        <span class="nome" style="font-weight:500;">Saldo a receber</span><span class="pct" style="color:#211D19;font-weight:600;">${fmtBRL(saldo)}</span>
+      <div class="rel-fin-row"><span>Valor contratado</span><strong>${fmtBRL(p.valor)}</strong></div>
+      <div class="rel-fin-row"><span>Total recebido</span><strong>${fmtBRL(p.recebido)}</strong></div>
+      <div class="rel-fin-row"><span>Saldo a receber</span><strong>${fmtBRL(saldo)}</strong></div>
+    </div>` : '';
+
+  const secFotos = d.fotos.length ? `
+    <div class="rel-sec rel-sec-fotos">
+      <div class="rel-sec-titulo">Registro fotográfico</div>
+      <div class="rel-galeria">
+        ${d.fotos.map(f => `
+          <figure class="rel-foto">
+            <img src="${f.src}" alt="${_esc(f.legenda || 'Foto do andamento')}">
+            ${f.legenda ? `<figcaption>${_esc(f.legenda)}</figcaption>` : ''}
+          </figure>`).join('')}
       </div>
     </div>` : '';
 
-  const obs = val('rel-obs').trim();
-  const secObs = obs ? `
+  const secObs = d.obs ? `
     <div class="rel-sec">
       <div class="rel-sec-titulo">Observações</div>
-      <div class="rel-obs" contenteditable="true">${esc(obs).replace(/\n/g, '<br>')}</div>
+      <div class="rel-obs"${ed}>${_esc(d.obs).replace(/\n/g, '<br>')}</div>
     </div>` : '';
 
-  paper.innerHTML = `
+  return `
     <div class="rel-head">
       <img src="SIMBOLO SISTEMA .svg" alt="Alpha Móveis Planejados">
       <div class="rel-head-right">
-        <strong>${esc(p.codigo || 'Projeto')}</strong>
-        ${esc(p.cliente || '')}<br>
-        ${esc(p.endereco || '')}
+        <strong>${_esc(p.codigo || 'Projeto')}</strong>
+        ${_esc(p.cliente || '')}<br>
+        ${_esc(p.endereco || '')}
       </div>
     </div>
 
-    <h1 class="rel-titulo" contenteditable="true">${esc(val('rel-titulo'))}</h1>
-    <div class="rel-sub">Emitido em ${hoje} · ${esc(val('rel-prazo'))}</div>
+    <h1 class="rel-titulo"${ed}>${_esc(d.titulo)}</h1>
+    <div class="rel-sub">Emitido em ${d.hoje}</div>
 
-    <div class="rel-saudacao" contenteditable="true">${esc(val('rel-saudacao')).replace(/\n/g, '<br>')}</div>
+    <div class="rel-saudacao"${ed}>${_esc(d.saudacao).replace(/\n/g, '<br>')}</div>
 
     ${secResumo}
     ${secAmbientes}
     ${secConcluidas}
     ${secProximas}
+    ${secFotos}
     ${secFinanceiro}
     ${secObs}
 
     <div class="rel-foot">
       <div>
-        <div class="rel-assinatura" contenteditable="true">${esc(val('rel-assinatura'))}</div>
-        <div style="margin-top:2px;">Alpha Móveis Planejados</div>
+        <div class="rel-assinatura"${ed}>${_esc(d.assinatura)}</div>
+        <div class="rel-foot-sub">Relatório gerado em ${d.hoje}</div>
       </div>
-      <div style="text-align:right;">${esc(p.codigo || '')}<br>${hoje}</div>
+      <div class="rel-foot-dir">${_esc(p.codigo || '')}<br>${_esc(p.cliente || '')}</div>
     </div>
   `;
 }
-window.atualizarPreviewRelatorio = atualizarPreviewRelatorio;
 
+/* ---- PDF ----------------------------------------------------------------
+   O navegador usa document.title como nome sugerido do arquivo, então
+   trocamos pelo padrão pedido durante a impressão e devolvemos depois.
+   ------------------------------------------------------------------------- */
 function gerarPdfRelatorio() {
-  // O @media print já esconde a interface e solta só .rel-paper na folha.
-  // O usuário escolhe "Salvar como PDF" no diálogo do navegador.
+  const d = _dadosRelatorio();
+  if (!d) return;
+  const titleOriginal = document.title;
+  document.title = _nomeArquivoRelatorio(d.p);
+  const restaurar = () => { document.title = titleOriginal; };
+  window.addEventListener('afterprint', restaurar, { once: true });
+  setTimeout(restaurar, 60000);  // rede de segurança se afterprint não vier
   window.print();
 }
 window.gerarPdfRelatorio = gerarPdfRelatorio;
+
+/* ---- HTML autocontido ---------------------------------------------------
+   Um arquivo só, com CSS embutido e as fotos em base64 — abre em qualquer
+   navegador sem depender do sistema.
+   ------------------------------------------------------------------------- */
+function _htmlRelatorioCompleto(d) {
+  const nome = _nomeArquivoRelatorio(d.p);
+  // O logo é um SVG externo — embutimos inline para o arquivo abrir sozinho
+  // em qualquer lugar. Se não tiver carregado ainda, cai num wordmark em texto.
+  const logo = _logoSvgInline
+    ? `<img src="${_logoSvgInline}" alt="Alpha Móveis Planejados">`
+    : '<div class="rel-logo-txt">ALPHA<span>Móveis Planejados</span></div>';
+  const corpo = _corpoRelatorioHtml(d, { editavel: false })
+    .replace(/<img src="SIMBOLO SISTEMA \.svg"[^>]*>/, logo);
+
+  return `<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${_esc(nome)}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #EFEAE1;
+    color: #211D19;
+    font-family: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+  }
+  .folha {
+    max-width: 820px;
+    margin: 28px auto;
+    background: #fff;
+    padding: 52px 56px 46px;
+    border-radius: 6px;
+    box-shadow: 0 12px 40px rgba(33,29,25,.10);
+  }
+  ${_cssRelatorio()}
+  .rel-logo-txt {
+    font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1; color: #211D19;
+  }
+  .rel-logo-txt span {
+    display: block; font-size: 10px; font-weight: 500; letter-spacing: .18em;
+    text-transform: uppercase; color: #8B857D; margin-top: 5px;
+  }
+  .barra-topo {
+    position: sticky; top: 0; z-index: 5;
+    background: rgba(247,244,238,.94);
+    backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid #E0D6C6;
+    padding: 12px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .barra-topo .id { font-size: 12px; color: #6B655D; }
+  .barra-topo .id strong { color: #211D19; display: block; font-size: 13px; }
+  .btn-imprimir {
+    border: 1px solid #211D19; background: #211D19; color: #F7F4EE;
+    font: inherit; font-size: 13px; font-weight: 600;
+    padding: 9px 18px; border-radius: 999px; cursor: pointer;
+  }
+  .btn-imprimir:hover { background: #3A352E; }
+  @media (max-width: 640px) {
+    .folha { margin: 0; padding: 26px 20px 32px; border-radius: 0; box-shadow: none; }
+    .rel-destaque { grid-template-columns: 1fr; }
+    .rel-titulo { font-size: 25px; }
+    .rel-galeria { grid-template-columns: 1fr; }
+  }
+  @media print {
+    body { background: #fff; }
+    .barra-topo { display: none; }
+    .folha { margin: 0; padding: 0; box-shadow: none; max-width: none; border-radius: 0; }
+    @page { size: A4; margin: 15mm 14mm; }
+  }
+</style>
+</head>
+<body>
+  <div class="barra-topo">
+    <div class="id"><strong>${_esc(d.p.codigo || 'Projeto')}</strong>Atualizado em ${d.hoje}</div>
+    <button class="btn-imprimir" onclick="window.print()">Salvar em PDF</button>
+  </div>
+  <div class="folha">${corpo}</div>
+</body>
+</html>`;
+}
+
+/* CSS do relatório, usado tanto no app quanto no HTML exportado. Mantido em
+   JS para não duplicar a folha de estilo nos dois lugares. */
+function _cssRelatorio() {
+  return `
+  .rel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; padding-bottom:20px; border-bottom:2px solid #211D19; }
+  .rel-head img { width:150px; height:auto; display:block; }
+  .rel-head-right { text-align:right; font-size:12.5px; color:#6B655D; line-height:1.7; }
+  .rel-head-right strong { color:#211D19; display:block; font-size:14px; }
+  .rel-titulo { font-family:Georgia,'Times New Roman',serif; font-size:34px; font-weight:400; letter-spacing:-.02em; line-height:1.12; margin:30px 0 5px; color:#211D19; }
+  .rel-sub { font-size:13px; color:#8B857D; margin-bottom:24px; }
+  .rel-saudacao { font-size:15px; line-height:1.68; margin-bottom:30px; color:#3A352E; }
+  .rel-sec { margin-bottom:28px; break-inside:avoid; }
+  .rel-sec-titulo { font-size:11.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#A9825A; padding-bottom:7px; margin-bottom:14px; border-bottom:1px solid #E0D6C6; }
+  .rel-destaque { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; padding:22px 24px; background:#F7F4EE; border-radius:10px; margin-bottom:30px; break-inside:avoid; }
+  .rel-destaque-item .lbl { font-size:10.5px; letter-spacing:.11em; text-transform:uppercase; color:#8B857D; display:block; margin-bottom:6px; }
+  .rel-destaque-item .val { font-size:30px; font-weight:700; letter-spacing:-.025em; color:#211D19; line-height:1.05; display:block; }
+  .rel-destaque-item .val--texto { font-size:21px; }
+  .rel-destaque-item .val small { font-size:12px; font-weight:500; color:#6B655D; display:block; margin-top:5px; letter-spacing:0; line-height:1.45; }
+  .rel-destaque-barra { grid-column:1/-1; }
+  .rel-bar { height:9px; background:#E0D6C6; border-radius:99px; overflow:hidden; }
+  .rel-bar > span { display:block; height:100%; background:#A9825A; border-radius:99px; }
+  .rel-amb-row { display:grid; grid-template-columns:minmax(0,1fr) 90px 108px; gap:14px; align-items:center; padding:9px 0; border-bottom:1px solid #F0EAE0; font-size:13.5px; }
+  .rel-amb-row:last-child { border-bottom:0; }
+  .rel-amb-row .nome { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rel-amb-row .pct { text-align:right; color:#6B655D; font-variant-numeric:tabular-nums; font-size:12.5px; }
+  .rel-amb-row .mini { height:6px; background:#E0D6C6; border-radius:99px; overflow:hidden; }
+  .rel-amb-row .mini > span { display:block; height:100%; background:#A9825A; }
+  .rel-lista { display:grid; gap:6px; }
+  .rel-item { display:grid; grid-template-columns:16px minmax(0,1fr); gap:10px; align-items:baseline; font-size:13.5px; padding:4px 0; }
+  .rel-item .mark { color:#A9825A; font-weight:700; }
+  .rel-item.is-done .mark { color:#2F332B; }
+  .rel-item .txt { color:#3A352E; }
+  .rel-item .comodo { color:#8B857D; }
+  .rel-mais { color:#8B857D; font-style:italic; }
+  .rel-fin-row { display:flex; justify-content:space-between; align-items:baseline; gap:16px; padding:9px 0; border-bottom:1px solid #F0EAE0; font-size:13.5px; }
+  .rel-fin-row:last-child { border-bottom:0; }
+  .rel-fin-row strong { font-size:15px; font-variant-numeric:tabular-nums; }
+  .rel-galeria { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  .rel-foto { margin:0; break-inside:avoid; }
+  .rel-foto img { width:100%; height:auto; display:block; border-radius:8px; border:1px solid #E0D6C6; }
+  .rel-foto figcaption { font-size:11.5px; color:#6B655D; margin-top:6px; line-height:1.45; }
+  .rel-obs { background:#F7F4EE; border-left:4px solid #A9825A; padding:16px 18px; border-radius:0 8px 8px 0; font-size:13.5px; line-height:1.65; color:#3A352E; break-inside:avoid; }
+  .rel-foot { margin-top:38px; padding-top:18px; border-top:1px solid #E0D6C6; display:flex; justify-content:space-between; align-items:flex-end; gap:24px; font-size:12px; color:#8B857D; }
+  .rel-assinatura { font-size:14px; color:#211D19; font-weight:600; }
+  .rel-foot-sub { margin-top:3px; }
+  .rel-foot-dir { text-align:right; }
+  `;
+}
+
+function baixarHtmlRelatorio() {
+  const d = _dadosRelatorio();
+  if (!d) return;
+  const blob = new Blob([_htmlRelatorioCompleto(d)], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = _nomeArquivoRelatorio(d.p) + '.html';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  showToast('Relatório HTML baixado.');
+}
+window.baixarHtmlRelatorio = baixarHtmlRelatorio;
+
+/* ---- WhatsApp -----------------------------------------------------------
+   Nenhuma API de navegador escolhe a conversa por nós. No celular, o
+   navigator.share entrega o arquivo à folha de compartilhamento do sistema e
+   o próprio WhatsApp pergunta para quem enviar. No desktop isso não existe:
+   baixamos o arquivo e abrimos a conversa do cliente com o texto pronto,
+   para ele anexar.
+   ------------------------------------------------------------------------- */
+async function enviarRelatorioWhatsApp() {
+  const d = _dadosRelatorio();
+  if (!d) return;
+
+  const nome = _nomeArquivoRelatorio(d.p);
+  const html = _htmlRelatorioCompleto(d);
+  const arquivo = new File([html], nome + '.html', { type: 'text/html' });
+  const texto = `${d.p.cliente} — relatório de andamento do seu projeto (${d.p.codigo || ''}), atualizado em ${d.hoje}. Andamento geral: ${d.pct}%.`;
+
+  // Caminho 1: compartilhar o arquivo (celular)
+  if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+    try {
+      await navigator.share({ files: [arquivo], title: nome, text: texto });
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;   // usuário cancelou
+      console.warn('share falhou, caindo para o download', e);
+    }
+  }
+
+  // Caminho 2: baixa o arquivo e abre a conversa do cliente com o texto pronto
+  baixarHtmlRelatorio();
+  const fone = String(d.p.cliente_telefone || '').replace(/\D/g, '');
+  const numero = fone ? (fone.length <= 11 ? '55' + fone : fone) : '';
+  const url = `https://wa.me/${numero}?text=${encodeURIComponent(texto + '\n\nO relatório completo vai em anexo.')}`;
+  window.open(url, '_blank', 'noopener');
+  showToast(numero ? 'Arquivo baixado — anexe na conversa aberta.' : 'Arquivo baixado — anexe no WhatsApp.');
+}
+window.enviarRelatorioWhatsApp = enviarRelatorioWhatsApp;
 
 /* O acordeão só vale no celular — no desktop o kanban horizontal continua. */
 function _chaoAcordeao() {
@@ -12073,6 +12408,16 @@ renderDashboard();
 const savedTheme = localStorage.getItem('alpha-theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 aplicarIconesTema(savedTheme);
+
+// A folha do relatório é a mesma no preview, no PDF e no HTML exportado.
+// Injetada a partir de _cssRelatorio() para não existir em duas versões.
+// Não precisa de prefixo: as classes .rel-* só aparecem dentro do relatório.
+(function injetarCssRelatorio() {
+  const st = document.createElement('style');
+  st.id = 'rel-css-compartilhado';
+  st.textContent = _cssRelatorio();
+  document.head.appendChild(st);
+})();
 </script>
 </body>
 </html>
