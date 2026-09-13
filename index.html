@@ -226,8 +226,8 @@ p { text-wrap: pretty; }
   min-height: 100vh;
   transition: background 240ms var(--ease);
 }
-[data-mode="chao"] .app { grid-template-columns: 1fr; }
-[data-mode="chao"] .sidebar { display: none; }
+/* O Meu Dia troca a paleta, mas a navegação continua — sem o antigo botão
+   "Modo Gestor", esconder a sidebar prenderia o usuário nessa tela. */
 
 /* Sidebar -----------------------------------------------------------------
    Três faixas: marca (fixa) · nav (a que cede e rola) · rodapé (fixo).
@@ -325,13 +325,22 @@ p { text-wrap: pretty; }
   color: var(--ink);
   font-weight: 600;
 }
-.nav-item .dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--ink-subtle);
+/* Ícone de cada aba — mesmo desenho usado na navbar inferior do mobile */
+.nav-ico {
+  width: 18px;
+  height: 18px;
   flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.75;
+  transition: opacity 140ms var(--ease);
 }
-.nav-item[aria-current="page"] .dot { background: var(--accent); }
+.nav-item[aria-current="page"] .nav-ico { opacity: 1; color: var(--accent); }
+.nav-item:hover .nav-ico { opacity: 1; }
+.nav-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .nav-item .badge {
   margin-left: auto;
@@ -344,39 +353,15 @@ p { text-wrap: pretty; }
   font-variant-numeric: tabular-nums;
 }
 
-/* Rodapé — modo e tema numa linha só, para não roubar altura do nav */
-.sidebar-footer {
+/* Topo da sidebar — marca e tema lado a lado. O toggle de tema sai do
+   rodapé (onde ficava escondido) e passa a morar junto da marca. */
+.sidebar-top {
   flex: 0 0 auto;
   display: flex;
-  align-items: stretch;
-  gap: var(--sp-2);
-  padding-top: var(--sp-3);
-  border-top: 1px solid var(--border);
-}
-.mode-switch {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--sp-2);
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 8px var(--sp-3);
-  border-radius: var(--radius-md);
-  background: var(--surface-2);
-  font-size: 0.75rem;
-  color: var(--ink-muted);
-  cursor: pointer;
-  transition: background 120ms var(--ease);
 }
-.mode-switch:hover { background: var(--surface-warm); color: var(--ink); }
-.mode-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.mode-switch strong {
-  color: var(--ink);
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+.sidebar-top .brand-home { flex: 1 1 auto; min-width: 0; }
 
 .theme-switch {
   display: inline-flex;
@@ -384,17 +369,22 @@ p { text-wrap: pretty; }
   justify-content: center;
   flex: 0 0 auto;
   width: 38px;
+  height: 38px;
   padding: 0;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface-2);
   color: var(--ink-muted);
   cursor: pointer;
-  transition: background 120ms var(--ease), color 120ms var(--ease);
+  transition: background 140ms var(--ease), color 140ms var(--ease), border-color 140ms var(--ease);
 }
-.theme-switch:hover { background: var(--surface-warm); color: var(--ink); }
+.theme-switch:hover { background: var(--surface-warm); color: var(--ink); border-color: var(--border-strong); }
 .theme-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.theme-switch svg { width: 17px; height: 17px; }
-.theme-switch #theme-label { display: none; }
+.theme-switch svg { width: 18px; height: 18px; }
+
+/* Navbar inferior (mobile) — escondida no desktop */
+.bottom-nav { display: none; }
+.sheet-backdrop, .more-sheet { display: none; }
 
 /* Main -------------------------------------------------------------------- */
 .main {
@@ -3392,43 +3382,207 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 }
 
 /* ============================================================================
-   MOBILE TOP BAR + DRAWER
+   TOP BAR (MOBILE) — marca à esquerda, tema à direita. Compacta: a navegação
+   mora na navbar inferior, então aqui só precisa caber a identidade.
    ============================================================================ */
 .topbar {
   display: none;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sp-4) var(--sp-5);
-  background: var(--surface);
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-4);
+  background: color-mix(in oklch, var(--surface) 94%, transparent);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
 }
-.topbar .brand-mark { padding: 0; gap: var(--sp-2); }
+.topbar .brand-mark { padding: 0; gap: var(--sp-2); width: auto; }
+.topbar .brand-mark img { width: auto; height: 38px; max-width: 128px; }
 .topbar .brand-mark .wordmark { font-size: 1rem; }
 .topbar .brand-mark .sub { font-size: 0.5625rem; }
 
-.hamburger {
-  width: 40px; height: 40px;
-  border-radius: var(--radius-md);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--ink);
-  transition: background 120ms var(--ease);
+/* ============================================================================
+   NAVBAR INFERIOR (MOBILE)
+   Substitui o drawer lateral: quatro destinos fixos mais "Mais", que abre um
+   sheet com o resto. Respeita a safe-area do iPhone.
+   ============================================================================ */
+.bottom-nav {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: var(--z-sticky);
+  display: none;
+  align-items: stretch;
+  background: color-mix(in oklch, var(--surface) 94%, transparent);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-.hamburger:hover, .hamburger:focus-visible { background: var(--surface-2); outline: none; }
-.hamburger svg { display: block; }
+.bnav-item {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 2px 7px;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink-subtle);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 140ms var(--ease);
+}
+.bnav-item span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bnav-item .nav-ico { width: 22px; height: 22px; opacity: 1; stroke-width: 1.6; }
+.bnav-item[aria-current="page"] { color: var(--accent); font-weight: 650; }
+.bnav-item[aria-current="page"]::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 26px; height: 2.5px;
+  border-radius: 0 0 3px 3px;
+  background: var(--accent);
+}
+.bnav-item:active { color: var(--ink); }
+.bnav-badge {
+  position: absolute;
+  top: 6px;
+  left: calc(50% + 8px);
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--status-atrasado);
+  box-shadow: 0 0 0 2px var(--surface);
+}
 
-.drawer-backdrop {
+/* Sheet "Mais" — sobe de baixo, acima da navbar */
+.sheet-backdrop {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgb(33 29 25 / 0.4);
+  background: rgb(33 29 25 / 0.42);
   z-index: var(--z-modal-backdrop);
   opacity: 0;
   transition: opacity 240ms var(--ease);
 }
-.drawer-backdrop.open { opacity: 1; }
+.sheet-backdrop.open { opacity: 1; }
+.more-sheet {
+  display: none;
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: var(--z-modal);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-lg);
+  padding: var(--sp-2) var(--sp-4) calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
+  transform: translateY(100%);
+  transition: transform 300ms var(--ease);
+}
+.more-sheet.open { transform: translateY(0); }
+.more-sheet-grip {
+  width: 38px; height: 4px;
+  border-radius: 999px;
+  background: var(--border-strong);
+  opacity: 0.5;
+  margin: var(--sp-2) auto var(--sp-3);
+}
+.more-sheet-list { display: grid; gap: 2px; margin-bottom: var(--sp-3); }
+.more-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--sp-3);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms var(--ease);
+}
+.more-item:active { background: var(--surface-2); }
+.more-item .nav-ico { width: 20px; height: 20px; opacity: 0.8; }
+.more-item[aria-current="page"] { background: var(--surface-2); }
+.more-item[aria-current="page"] .nav-ico { color: var(--accent); opacity: 1; }
+.more-theme {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.more-theme strong { color: var(--ink); font-weight: 600; }
+.more-theme:active { background: var(--surface-warm); }
+
+/* ============================================================================
+   DETALHE DO PROJETO
+   ============================================================================ */
+.detalhe-acoes { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.btn-perigo { color: var(--status-atrasado); border-color: var(--status-atrasado); }
+
+.detalhe-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-6);
+}
+
+/* Lista de dados do cliente — rótulo e valor em colunas próprias, para o
+   valor longo (endereço) quebrar sem encostar no rótulo. */
+.detalhe-dl { font-size: 0.9375rem; }
+.detalhe-dl > div {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: var(--sp-3);
+  align-items: start;
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+.detalhe-dl > div:last-child { border-bottom: 0; }
+.detalhe-dl dt { color: var(--ink-subtle); font-weight: 500; }
+.detalhe-dl dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+
+@media (max-width: 1024px) {
+  .detalhe-grid { grid-template-columns: 1fr; gap: var(--sp-4); }
+}
+@media (max-width: 768px) {
+  .detalhe-acoes { width: 100%; }
+  .detalhe-acoes .btn { flex: 1; justify-content: center; min-height: 42px; }
+  .detalhe-dl > div { grid-template-columns: 1fr; gap: 2px; }
+  .detalhe-dl dd { text-align: left; }
+  /* Tabela de entradas rola em vez de espremer as colunas */
+  .tabela-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tabela-scroll > table { min-width: 460px; }
+}
 
 /* ============================================================================
    BACK BUTTON
@@ -3477,26 +3631,30 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 }
 
 /* Mobile (< 768px) */
-@media (max-width: 768px) {
+/* Troca de navegação num breakpoint próprio (720px), mais estreito que o
+   resto do mobile: tablets a partir de 768px continuam com a sidebar. */
+@media (max-width: 720px) {
   .app { grid-template-columns: 1fr; }
+  /* A topbar é filha do grid: sem isso ela ocuparia uma coluna própria. */
+  .topbar { display: flex; grid-column: 1 / -1; }
+  .sidebar { display: none; }
+  .bottom-nav { display: flex; }
+  .sheet-backdrop { display: block; pointer-events: none; }
+  .sheet-backdrop.open { pointer-events: auto; }
+  .more-sheet { display: block; }
 
-  /* Show topbar, transform sidebar into drawer */
-  .topbar { display: flex; }
-  .sidebar {
-    position: fixed;
-    top: 0; left: 0;
-    height: 100vh;
-    width: 280px;
-    z-index: var(--z-modal);
-    transform: translateX(-100%);
-    transition: transform 280ms var(--ease);
-    padding-top: var(--sp-5);
-  }
-  .sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
-  .sidebar .brand-mark { display: none; }
-  .drawer-backdrop { display: block; pointer-events: none; }
-  .drawer-backdrop.open { pointer-events: auto; }
+  /* Espaço para a navbar não cobrir o fim do conteúdo */
+  .main { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px) + var(--sp-5)); }
+  .toast { bottom: calc(76px + env(safe-area-inset-bottom, 0px) + var(--sp-3)); }
+}
 
+/* Sidebar mais enxuta no tablet retrato, onde 240px pesam demais. Faixa
+   fechada: abaixo de 721px quem manda é a navbar inferior. */
+@media (min-width: 721px) and (max-width: 768px) {
+  .app { grid-template-columns: 208px 1fr; }
+}
+
+@media (max-width: 768px) {
   .main { padding: var(--sp-5) var(--sp-4); }
 
   /* Typography */
@@ -3645,7 +3803,13 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 
 /* Very small (< 380px) */
 @media (max-width: 380px) {
-  .main { padding: var(--sp-4) var(--sp-3); }
+  .main {
+    padding: var(--sp-4) var(--sp-3);
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px) + var(--sp-4));
+  }
+  /* Em telas muito estreitas o rótulo some e fica só o ícone */
+  .bnav-item { font-size: 0.5625rem; }
+  .bnav-item .nav-ico { width: 21px; height: 21px; }
   .custos-header { grid-template-columns: 1fr; }
   .projeto-header .meta-list { grid-template-columns: 1fr; }
 }
@@ -4149,78 +4313,129 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
     <button class="brand-mark brand-home" onclick="irParaInicio()" aria-label="Ir para o painel inicial">
       <img src="SIMBOLO SISTEMA .svg" width="82" height="82" alt="Alpha Móveis" style="flex: 0 0 auto; object-fit: contain;">
     </button>
-    <button class="hamburger" onclick="toggleDrawer()" aria-label="Abrir menu">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="4" y1="7" x2="20" y2="7"/>
-        <line x1="4" y1="12" x2="20" y2="12"/>
-        <line x1="4" y1="17" x2="20" y2="17"/>
+    <button class="theme-switch" onclick="toggleTheme()" aria-label="Alternar tema claro e escuro" title="Alternar tema">
+      <svg class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
       </svg>
     </button>
   </header>
 
-  <!-- Drawer backdrop (mobile) -->
-  <div class="drawer-backdrop" id="drawer-backdrop" onclick="toggleDrawer()"></div>
-
-  <!-- Sidebar -->
+  <!-- Sidebar (desktop e tablet) -->
   <aside class="sidebar">
-    <button class="brand-mark brand-home" onclick="irParaInicio()" aria-label="Ir para o painel inicial">
-      <!-- Símbolo isolado da marca — arquivo SVG externo -->
-      <img src="SIMBOLO SISTEMA .svg" alt="Alpha Móveis" style="width: 100%; height: auto; display: block; object-fit: contain; max-width: 180px; margin: 0 auto;">
-    </button>
+    <div class="sidebar-top">
+      <button class="brand-mark brand-home" onclick="irParaInicio()" aria-label="Ir para o painel inicial">
+        <!-- Símbolo isolado da marca — arquivo SVG externo -->
+        <img src="SIMBOLO SISTEMA .svg" alt="Alpha Móveis" style="width: 100%; height: auto; display: block; object-fit: contain; max-width: 180px; margin: 0 auto;">
+      </button>
+      <button class="theme-switch" onclick="toggleTheme()" aria-label="Alternar tema claro e escuro" title="Alternar tema">
+        <svg class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
 
     <nav class="nav">
       <div class="nav-group">
         <div class="nav-label t-micro">Operação</div>
         <button class="nav-item" data-view="painel" aria-current="page">
-          <span class="dot"></span> Painel
+          <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          <span class="nav-txt">Painel</span>
         </button>
         <button class="nav-item" data-view="projetos">
-          <span class="dot"></span> Projetos
+          <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <span class="nav-txt">Projetos</span>
           <span class="badge" id="projetos-badge" style="display: none;"></span>
         </button>
         <button class="nav-item" data-view="novo-projeto">
-          <span class="dot"></span> Novo projeto
+          <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          <span class="nav-txt">Novo projeto</span>
         </button>
         <button class="nav-item" data-view="agenda">
-          <span class="dot"></span> Agenda
+          <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+          <span class="nav-txt">Agenda</span>
         </button>
         <button class="nav-item" data-view="custos">
-          <span class="dot"></span> Financeiro
+          <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M16 7.5c0-1.4-1.8-2.5-4-2.5S8 6.1 8 7.5s1.8 2.2 4 2.8 4 1.4 4 2.8-1.8 2.5-4 2.5-4-1.1-4-2.5"/></svg>
+          <span class="nav-txt">Financeiro</span>
         </button>
       </div>
 
       <div class="nav-group">
         <div class="nav-label t-micro">Equipe</div>
         <button class="nav-item" data-view="chao">
-          <span class="dot"></span> Meu Dia
+          <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <span class="nav-txt">Meu Dia</span>
         </button>
       </div>
 
       <div class="nav-group">
         <div class="nav-label t-micro">Integrações</div>
         <button class="nav-item" data-view="integracao-agenda">
-          <span class="dot"></span> Google Agenda
+          <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-14.3 4.9M4 12.5a8 8 0 0 1 14.3-4.9"/><path d="M18 3v5h-5M6 21v-5h5"/></svg>
+          <span class="nav-txt">Google Agenda</span>
         </button>
         <button class="nav-item" data-view="configuracao">
-          <span class="dot"></span> Configuração
+          <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4a1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H1a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 2.6 7a1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V1a2 2 0 1 1 4 0v.1A1.7 1.7 0 0 0 17 2.6a1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H23a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1.5z" transform="scale(0.82) translate(2.6 2.6)"/></svg>
+          <span class="nav-txt">Configuração</span>
         </button>
       </div>
     </nav>
+  </aside>
 
-    <div class="sidebar-footer">
-      <button class="mode-switch" onclick="toggleMode()">
-        <span>Modo</span>
-        <strong id="mode-label">Gestor</strong>
+  <!-- Navbar inferior (mobile) — 4 destinos fixos + "Mais" -->
+  <nav class="bottom-nav" aria-label="Navegação principal">
+    <button class="bnav-item" data-view="painel" aria-current="page">
+      <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      <span>Painel</span>
+    </button>
+    <button class="bnav-item" data-view="projetos">
+      <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Projetos</span>
+      <i class="bnav-badge" id="bnav-projetos-badge" hidden></i>
+    </button>
+    <button class="bnav-item" data-view="chao">
+      <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <span>Meu Dia</span>
+    </button>
+    <button class="bnav-item" data-view="custos">
+      <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M16 7.5c0-1.4-1.8-2.5-4-2.5S8 6.1 8 7.5s1.8 2.2 4 2.8 4 1.4 4 2.8-1.8 2.5-4 2.5-4-1.1-4-2.5"/></svg>
+      <span>Financeiro</span>
+    </button>
+    <button class="bnav-item bnav-more" onclick="abrirMaisSheet()" aria-haspopup="dialog">
+      <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+      <span>Mais</span>
+    </button>
+  </nav>
+
+  <!-- Sheet "Mais" (mobile) -->
+  <div class="sheet-backdrop" id="sheet-backdrop" onclick="fecharMaisSheet()"></div>
+  <div class="more-sheet" id="more-sheet" role="dialog" aria-modal="true" aria-label="Mais opções">
+    <div class="more-sheet-grip" aria-hidden="true"></div>
+    <div class="more-sheet-list">
+      <button class="more-item" data-view="agenda">
+        <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        <span>Agenda</span>
       </button>
-      <button class="theme-switch" onclick="toggleTheme()" aria-label="Alternar tema claro e escuro" title="Alternar tema">
-        <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <!-- Ícone de lua (dark mode) -->
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-        <span id="theme-label">Claro</span>
+      <button class="more-item" data-view="novo-projeto">
+        <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        <span>Novo projeto</span>
+      </button>
+      <button class="more-item" data-view="integracao-agenda">
+        <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-14.3 4.9M4 12.5a8 8 0 0 1 14.3-4.9"/><path d="M18 3v5h-5M6 21v-5h5"/></svg>
+        <span>Google Agenda</span>
+      </button>
+      <button class="more-item" data-view="configuracao">
+        <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.6 13.5a1.6 1.6 0 0 0 .3 1.8l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.3a1.9 1.9 0 1 1-3.8 0v-.2a1.6 1.6 0 0 0-2.8-1.1l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1a1.6 1.6 0 0 0-1.1-2.7h-.2a1.9 1.9 0 1 1 0-3.8h.2a1.6 1.6 0 0 0 1.1-2.8l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.6 1.6 0 0 0 2.8-1.1v-.2a1.9 1.9 0 1 1 3.8 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.6 1.6 0 0 0 1.1 2.8h.2a1.9 1.9 0 1 1 0 3.8h-.2a1.6 1.6 0 0 0-1.4.9z"/></svg>
+        <span>Configuração</span>
       </button>
     </div>
-  </aside>
+    <button class="more-theme" onclick="toggleTheme()">
+      <svg class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <span>Tema <strong class="theme-label">Claro</strong></span>
+    </button>
+  </div>
 
   <!-- Main -->
   <main class="main">
@@ -4329,24 +4544,23 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
           <h1 class="t-hero" id="detalhe-nome"></h1>
           <p class="lede" id="detalhe-lede"></p>
         </div>
-        <div style="display: flex; gap: var(--sp-2);">
+        <div class="detalhe-acoes">
           <button class="btn btn-secondary" onclick="abrirModalEditarProjeto()">Editar projeto</button>
-          <button class="btn btn-ghost" style="color: var(--status-atrasado); border-color: var(--status-atrasado);" onclick="excluirProjetoAtual()">Excluir projeto</button>
-          <button class="btn btn-ghost" onclick="switchView('projetos')">Voltar</button>
+          <button class="btn btn-ghost btn-perigo" onclick="excluirProjetoAtual()">Excluir projeto</button>
         </div>
       </header>
 
       <!-- Grid com duas colunas principais -->
-      <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: var(--sp-6); margin-bottom: var(--sp-6);">
+      <div class="detalhe-grid">
         <!-- Coluna 1: Informações do Cliente & Arquivos -->
         <div class="stack stack-5">
           <!-- Dados do Cliente -->
           <div class="card" style="padding: var(--sp-4);">
             <h3 class="t-h3" style="margin-bottom: var(--sp-3); font-family: var(--font-display);">Dados do cliente</h3>
-            <dl class="meta-list" style="font-size: 0.9375rem;">
-              <div style="display: flex; justify-content: space-between; padding: var(--sp-2) 0; border-bottom: 1px solid var(--border);"><dt style="color: var(--ink-subtle); font-weight: 500;">Telefone</dt><dd id="detalhe-cli-tel" style="font-weight: 600;">—</dd></div>
-              <div style="display: flex; justify-content: space-between; padding: var(--sp-2) 0; border-bottom: 1px solid var(--border);"><dt style="color: var(--ink-subtle); font-weight: 500;">CPF/CNPJ</dt><dd id="detalhe-cli-cpf" style="font-weight: 600;">—</dd></div>
-              <div style="display: flex; justify-content: space-between; padding: var(--sp-2) 0; border-bottom: 1px solid var(--border);"><dt style="color: var(--ink-subtle); font-weight: 500;">Endereço</dt><dd id="detalhe-cli-end" style="font-weight: 600;">—</dd></div>
+            <dl class="detalhe-dl">
+              <div><dt>Telefone</dt><dd id="detalhe-cli-tel">—</dd></div>
+              <div><dt>CPF/CNPJ</dt><dd id="detalhe-cli-cpf">—</dd></div>
+              <div><dt>Endereço</dt><dd id="detalhe-cli-end">—</dd></div>
             </dl>
           </div>
 
@@ -4396,6 +4610,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
               <button class="btn btn-primary" onclick="abrirModalAdicionarEntrada()" style="font-size: 0.75rem; padding: var(--sp-1) var(--sp-2);">+ Adicionar entrada</button>
             </div>
 
+            <div class="tabela-scroll">
             <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
               <thead>
                 <tr style="border-bottom: 2px solid var(--border); color: var(--ink-subtle); font-weight: 600;">
@@ -4409,6 +4624,7 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
                 <!-- JS -->
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       </div>
@@ -5752,15 +5968,15 @@ function renderDashboard() {
 }
 
 function atualizarContadorProjetos() {
-  const badge = document.getElementById('projetos-badge');
-  if (!badge) return;
   const count = projetos.length;
-  if (count > 0) {
+  // Sidebar: número. Navbar inferior: só um ponto (não cabe número).
+  const badge = document.getElementById('projetos-badge');
+  if (badge) {
     badge.textContent = count;
-    badge.style.display = 'inline-block';
-  } else {
-    badge.style.display = 'none';
+    badge.style.display = count > 0 ? 'inline-block' : 'none';
   }
+  const dot = document.getElementById('bnav-projetos-badge');
+  if (dot) dot.hidden = count === 0;
 }
 
 /* ============================================================================
@@ -10168,17 +10384,21 @@ function switchView(name, opts = {}) {
   if (!target) return;
   target.classList.add('active');
 
-  document.querySelectorAll('.nav-item').forEach(b => b.removeAttribute('aria-current'));
-  const btn = document.querySelector(`.nav-item[data-view="${name}"]`);
-  if (btn) btn.setAttribute('aria-current', 'page');
+  // Marca a aba ativa nas três superfícies de navegação: sidebar (desktop),
+  // navbar inferior e sheet "Mais" (mobile).
+  document.querySelectorAll('.nav-item, .bnav-item, .more-item').forEach(b => b.removeAttribute('aria-current'));
+  document.querySelectorAll(`.nav-item[data-view="${name}"], .bnav-item[data-view="${name}"], .more-item[data-view="${name}"]`)
+    .forEach(b => b.setAttribute('aria-current', 'page'));
+  // Quando o destino mora no sheet, "Mais" fica aceso no lugar dele.
+  const noSheet = !!document.querySelector(`.more-item[data-view="${name}"]`);
+  const maisBtn = document.querySelector('.bnav-more');
+  if (maisBtn) maisBtn.toggleAttribute('aria-current', noSheet);
+  if (maisBtn && noSheet) maisBtn.setAttribute('aria-current', 'page');
 
-  // Auto-switch mode for chao
   if (name === 'chao') {
     document.body.setAttribute('data-mode', 'chao');
-    document.getElementById('mode-label').textContent = 'Meu Dia';
   } else {
     document.body.removeAttribute('data-mode');
-    document.getElementById('mode-label').textContent = 'Gestor';
   }
 
   currentView = name;
@@ -10233,22 +10453,30 @@ window.addEventListener('popstate', (e) => {
   }
 });
 
-/* Mobile drawer */
-function toggleDrawer() {
-  const sidebar = document.querySelector('.sidebar');
-  const backdrop = document.getElementById('drawer-backdrop');
-  const isOpen = sidebar.classList.toggle('open');
-  backdrop.classList.toggle('open', isOpen);
-  document.body.style.overflow = isOpen ? 'hidden' : '';
+/* Sheet "Mais" (mobile) — abriga os destinos que não cabem na navbar. */
+function abrirMaisSheet() {
+  document.getElementById('more-sheet')?.classList.add('open');
+  document.getElementById('sheet-backdrop')?.classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
-function closeDrawer() {
-  const sidebar = document.querySelector('.sidebar');
-  const backdrop = document.getElementById('drawer-backdrop');
-  sidebar.classList.remove('open');
-  backdrop.classList.remove('open');
+function fecharMaisSheet() {
+  document.getElementById('more-sheet')?.classList.remove('open');
+  document.getElementById('sheet-backdrop')?.classList.remove('open');
   document.body.style.overflow = '';
 }
+window.abrirMaisSheet = abrirMaisSheet;
+window.fecharMaisSheet = fecharMaisSheet;
+
+/* Fecha o sheet ao trocar de view — chamado pelo switchView. */
+function closeDrawer() {
+  fecharMaisSheet();
+}
+
+/* Esc fecha o sheet */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') fecharMaisSheet();
+});
 
 /* Logotipo → painel inicial. Zera o histórico: a home é a raiz, não um passo atrás. */
 function irParaInicio() {
@@ -10258,34 +10486,31 @@ function irParaInicio() {
   updateBackButton();
 }
 
-function toggleMode() {
-  const isChao = document.body.getAttribute('data-mode') === 'chao';
-  if (isChao) {
-    switchView('painel');
-  } else {
-    switchView('chao');
-  }
+/* O toggle de tema existe em três lugares (sidebar, topbar e sheet), então
+   pintar o ícone é uma função à parte que varre todos eles. */
+const SVG_SOL = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+const SVG_LUA = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+
+function aplicarIconesTema(theme) {
+  const dark = theme === 'dark';
+  document.querySelectorAll('.theme-icon').forEach(el => {
+    el.innerHTML = dark ? SVG_SOL : SVG_LUA;
+  });
+  document.querySelectorAll('.theme-label').forEach(el => {
+    el.textContent = dark ? 'Escuro' : 'Claro';
+  });
+  document.querySelectorAll('.theme-switch').forEach(el => {
+    el.setAttribute('title', dark ? 'Mudar para tema claro' : 'Mudar para tema escuro');
+  });
 }
+window.aplicarIconesTema = aplicarIconesTema;
 
 function toggleTheme() {
   const html = document.documentElement;
-  const isDark = html.getAttribute('data-theme') === 'dark';
-  const newTheme = isDark ? 'light' : 'dark';
-
+  const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   html.setAttribute('data-theme', newTheme);
   localStorage.setItem('alpha-theme', newTheme);
-
-  // Atualizar label e ícone
-  const label = document.getElementById('theme-label');
-  const icon = document.getElementById('theme-icon');
-
-  if (newTheme === 'dark') {
-    label.textContent = 'Escuro';
-    icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
-  } else {
-    label.textContent = 'Claro';
-    icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
-  }
+  aplicarIconesTema(newTheme);
 }
 
 function obterPublicUrl(path) {
@@ -10934,7 +11159,8 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2600);
 }
-document.querySelectorAll('.nav-item').forEach(btn => {
+// Um só binding cobre sidebar, navbar inferior e sheet "Mais".
+document.querySelectorAll('.nav-item[data-view], .bnav-item[data-view], .more-item[data-view]').forEach(btn => {
   btn.addEventListener('click', () => switchView(btn.dataset.view));
 });
 
@@ -10988,10 +11214,7 @@ renderDashboard();
 // Carregar tema salvo
 const savedTheme = localStorage.getItem('alpha-theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
-if (savedTheme === 'dark') {
-  document.getElementById('theme-label').textContent = 'Escuro';
-  document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
-}
+aplicarIconesTema(savedTheme);
 </script>
 </body>
 </html>
