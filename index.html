@@ -3483,89 +3483,284 @@ button.empresa-row:focus-visible { outline: 2px solid var(--accent); outline-off
 .auth-overlay.visible { display: flex; }
 
 /* ============================================================================
-   WELCOME OVERLAY (tela de boas-vindas)
+   WELCOME — tela de entrada
+   Palco escuro da marca. Sequência: o símbolo Alpha se desenha em dourado,
+   a saudação revela palavra a palavra, os números do dia contam, e a saída
+   sobe como cortina revelando o sistema. Tudo em CSS; o JS só orquestra.
    ============================================================================ */
 .welcome-overlay {
+  --w-bg: #131110;
+  --w-bg-2: #1c1916;
+  --w-gold: #9E7A46;
+  --w-gold-lt: #C9A574;
+  --w-cream: #FFF6EE;
+  --w-mute: #8C8378;
   display: none;
   position: fixed;
   inset: 0;
-  background: linear-gradient(135deg, var(--bg) 0%, var(--surface) 100%);
   z-index: var(--z-modal);
-  padding: var(--sp-6);
+  background: var(--w-bg);
+  color: var(--w-cream);
+  overflow: hidden;
   align-items: center;
   justify-content: center;
-  overflow-y: auto;
-  animation: fadeIn 300ms var(--ease);
+  padding: var(--sp-6) var(--sp-5);
+  padding-bottom: calc(var(--sp-6) + env(safe-area-inset-bottom, 0px));
 }
 .welcome-overlay.visible { display: flex; }
 
-.welcome-card {
-  width: 100%;
-  max-width: 480px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: var(--sp-8);
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-}
-
-.welcome-card::before {
+/* Luz dourada que respira devagar atrás do conteúdo */
+.welcome-overlay::before {
   content: '';
   position: absolute;
-  right: -80px;
-  top: -80px;
-  width: 320px;
-  height: 320px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%236D6250' stroke-width='0.5'><polyline points='10,80 30,20 50,80 70,20 90,80'/></svg>");
-  background-size: contain;
-  background-repeat: no-repeat;
-  opacity: 0.04;
+  inset: -20%;
+  background:
+    radial-gradient(40% 35% at 50% 38%, rgba(158,122,70,.22), transparent 70%),
+    radial-gradient(60% 50% at 80% 110%, rgba(109,98,80,.18), transparent 70%);
+  animation: wGlow 9s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+/* Grão fino — tira o aspecto de gradiente digital */
+.welcome-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.5'/></svg>");
+  opacity: .06;
+  mix-blend-mode: overlay;
   pointer-events: none;
 }
 
-.welcome-logo {
-  margin-bottom: var(--sp-6);
-  animation: slideDown 500ms var(--ease);
+/* Linhas finas que atravessam o palco — ecoam o traço do símbolo */
+.welcome-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: .5;
 }
+.welcome-lines path {
+  fill: none;
+  stroke: var(--w-gold);
+  stroke-width: .6;
+  stroke-dasharray: 2400;
+  stroke-dashoffset: 2400;
+  opacity: .35;
+  animation: wDraw 2.8s cubic-bezier(.65,0,.35,1) forwards;
+}
+.welcome-lines path:nth-child(2) { animation-delay: .25s; opacity: .2; }
 
-.welcome-content {
+.welcome-stage {
   position: relative;
   z-index: 1;
+  width: 100%;
+  max-width: 560px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Símbolo: primeiro o contorno se desenha, depois o preenchimento acende */
+.welcome-mark {
+  width: 104px;
+  height: auto;
   margin-bottom: var(--sp-6);
+  overflow: visible;
+  filter: drop-shadow(0 0 28px rgba(201,165,116,.25));
+}
+.welcome-mark path {
+  stroke: var(--w-gold-lt);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  fill: var(--w-gold-lt);
+  fill-opacity: 0;
+  stroke-dasharray: 1400;
+  stroke-dashoffset: 1400;
+  animation:
+    wDraw 1.6s cubic-bezier(.65,0,.35,1) .15s forwards,
+    wFill .7s ease 1.45s forwards;
+}
+
+.welcome-eyebrow {
+  font-size: .6875rem;
+  font-weight: 600;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: var(--w-gold-lt);
+  margin-bottom: var(--sp-4);
+  opacity: 0;
+  animation: wRise .8s var(--ease) 1.3s forwards;
 }
 
 .welcome-greeting {
   font-family: var(--font-serif);
-  font-size: 2.5rem;
   font-weight: 340;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-  margin-bottom: var(--sp-2);
-  animation: slideUp 500ms var(--ease) 100ms backwards;
+  font-size: clamp(2.5rem, 9vw, 4.25rem);
+  line-height: 1.02;
+  letter-spacing: -.03em;
+  color: var(--w-cream);
+  margin-bottom: var(--sp-4);
+}
+/* Cada palavra entra por baixo de uma máscara */
+.welcome-greeting .w-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: .08em;
+}
+.welcome-greeting .w-word > span {
+  display: inline-block;
+  transform: translateY(105%);
+  animation: wWord .9s cubic-bezier(.2,.8,.2,1) forwards;
+}
+.welcome-greeting em {
+  font-style: italic;
+  color: var(--w-gold-lt);
+}
+
+.welcome-rule {
+  width: 56px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--w-gold-lt), transparent);
+  margin: 0 auto var(--sp-4);
+  transform: scaleX(0);
+  animation: wRule .9s var(--ease) 2.05s forwards;
 }
 
 .welcome-message {
-  font-size: 1.125rem;
-  color: var(--ink-muted);
-  margin-bottom: var(--sp-5);
-  line-height: 1.5;
-  animation: slideUp 500ms var(--ease) 200ms backwards;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: #CFC5B8;
+  max-width: 34ch;
+  margin: 0 auto var(--sp-6);
+  opacity: 0;
+  animation: wRise .8s var(--ease) 2.2s forwards;
 }
+
+/* Números do dia */
+.welcome-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  max-width: 420px;
+  margin-bottom: var(--sp-6);
+  border-top: 1px solid rgba(255,246,238,.08);
+  border-bottom: 1px solid rgba(255,246,238,.08);
+  opacity: 0;
+  animation: wRise .8s var(--ease) 2.45s forwards;
+}
+.welcome-stat { padding: var(--sp-4) var(--sp-2); }
+.welcome-stat + .welcome-stat { border-left: 1px solid rgba(255,246,238,.08); }
+.welcome-stat b {
+  display: block;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.875rem;
+  line-height: 1;
+  color: var(--w-cream);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 6px;
+}
+.welcome-stat span {
+  font-size: .625rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--w-mute);
+}
+
+.welcome-enter {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+  min-height: 54px;
+  padding: 0 var(--sp-6);
+  border: 0;
+  border-radius: 999px;
+  background: var(--w-cream);
+  color: #131110;
+  font-family: inherit;
+  font-size: .9375rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  cursor: pointer;
+  opacity: 0;
+  animation: wRise .8s var(--ease) 2.7s forwards;
+  transition: transform 160ms var(--ease), box-shadow 240ms var(--ease);
+  box-shadow: 0 10px 40px rgba(201,165,116,.18);
+}
+/* Brilho que passa pelo botão de tempos em tempos */
+.welcome-enter::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.75), transparent);
+  transform: skewX(-18deg);
+  animation: wShine 4.5s ease-in-out 3.6s infinite;
+}
+.welcome-enter svg { width: 18px; height: 18px; transition: transform 240ms var(--ease); }
+.welcome-enter:hover { box-shadow: 0 14px 50px rgba(201,165,116,.32); }
+.welcome-enter:hover svg { transform: translateX(4px); }
+.welcome-enter:active { transform: scale(.97); }
+.welcome-enter:focus-visible { outline: 2px solid var(--w-gold-lt); outline-offset: 4px; }
 
 .welcome-time {
-  font-size: 0.875rem;
-  color: var(--ink-subtle);
-  font-weight: 500;
-  animation: slideUp 500ms var(--ease) 300ms backwards;
+  margin-top: var(--sp-5);
+  font-size: .75rem;
+  letter-spacing: .06em;
+  color: var(--w-mute);
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  animation: wRise .8s var(--ease) 2.9s forwards;
+}
+.welcome-time kbd {
+  font-family: inherit;
+  font-size: .6875rem;
+  padding: 1px 6px;
+  border: 1px solid rgba(255,246,238,.16);
+  border-radius: 4px;
+  margin-left: 4px;
 }
 
-.welcome-card .btn {
-  width: 100%;
-  justify-content: center;
-  animation: slideUp 500ms var(--ease) 400ms backwards;
+/* Saída: o conteúdo recua e o palco sobe como cortina */
+.welcome-overlay.is-leaving .welcome-stage {
+  animation: wStageOut .45s cubic-bezier(.4,0,1,1) forwards;
+}
+.welcome-overlay.is-leaving {
+  animation: wCurtain .8s cubic-bezier(.76,0,.24,1) .25s forwards;
+}
+
+@keyframes wDraw  { to { stroke-dashoffset: 0; } }
+@keyframes wFill  { to { fill-opacity: 1; stroke-opacity: .25; } }
+@keyframes wRise  { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes wWord  { to { transform: translateY(0); } }
+@keyframes wRule  { to { transform: scaleX(1); } }
+@keyframes wGlow  { from { transform: translate3d(-2%, -1%, 0) scale(1); } to { transform: translate3d(2%, 2%, 0) scale(1.08); } }
+@keyframes wShine { 0% { left: -60%; } 22%, 100% { left: 130%; } }
+@keyframes wStageOut { to { opacity: 0; transform: translateY(-24px) scale(.98); filter: blur(4px); } }
+@keyframes wCurtain  { to { clip-path: inset(0 0 100% 0); } }
+
+@media (max-width: 480px) {
+  .welcome-mark { width: 84px; margin-bottom: var(--sp-5); }
+  .welcome-stat { padding: var(--sp-3) 4px; }
+  .welcome-stat b { font-size: 1.5rem; }
+  /* Rótulos numa linha só, senão as três colunas ficam com alturas diferentes */
+  .welcome-stat span { font-size: .5625rem; letter-spacing: .06em; white-space: nowrap; }
+  .welcome-message { font-size: 1rem; }
+  .welcome-time kbd { display: none; }
+}
+/* Movimento reduzido: tudo aparece de uma vez, sem desenho nem cortina */
+@media (prefers-reduced-motion: reduce) {
+  .welcome-overlay * { opacity: 1 !important; transform: none !important; stroke-dashoffset: 0 !important; }
+  .welcome-mark path { fill-opacity: 1 !important; }
 }
 
 @keyframes slideDown {
@@ -6132,18 +6327,35 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   <div id="toast-msg">Ação concluída</div>
 </div>
 
-<!-- Welcome overlay — tela de boas-vindas baseada no horário -->
-<div class="welcome-overlay" id="welcome-overlay">
-  <div class="welcome-card">
-    <div class="welcome-logo">
-      <img src="SIMBOLO SISTEMA .svg" alt="Alpha Móveis" style="width: 80px; height: auto; object-fit: contain;">
+<!-- Welcome — tela de entrada animada -->
+<div class="welcome-overlay" id="welcome-overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-greeting">
+  <svg class="welcome-lines" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <path d="M-40 760 L360 180 L720 700 L1080 180 L1480 760"/>
+    <path d="M-40 840 L360 260 L720 780 L1080 260 L1480 840"/>
+  </svg>
+
+  <div class="welcome-stage">
+    <svg class="welcome-mark" viewBox="68 36 133 134" aria-hidden="true">
+      <path d="M193.94,43.16l-43.41,75.19-19-15.95-19,15.95-43.41-75.19v12.18l.12.21h-.12v107.17l41.76-35.04,20.65,35.77h0s0,0,0,0h0s0,0,0,0l20.65-35.77,41.76,35.04V55.55h-.12l.12-.21v-12.18ZM75.21,149.66v-83.77l32.58,56.43-32.58,27.34ZM131.53,151.26l-15.91-27.56,15.91-13.35,15.91,13.35-15.91,27.56ZM187.86,149.66l-32.58-27.34,32.58-56.43v83.77Z"/>
+    </svg>
+
+    <div class="welcome-eyebrow">Alpha Móveis Planejados</div>
+    <h1 class="welcome-greeting" id="welcome-greeting">Bom dia, Jhonata.</h1>
+    <div class="welcome-rule" aria-hidden="true"></div>
+    <p class="welcome-message" id="welcome-message">O galpão está pronto para produzir.</p>
+
+    <div class="welcome-stats" id="welcome-stats" aria-live="polite">
+      <div class="welcome-stat"><b data-count="projetos">—</b><span>Projetos ativos</span></div>
+      <div class="welcome-stat"><b data-count="andamento">—</b><span>Em andamento</span></div>
+      <div class="welcome-stat"><b data-count="hoje">—</b><span>Vencem hoje</span></div>
     </div>
-    <div class="welcome-content">
-      <div class="welcome-greeting" id="welcome-greeting">Bom dia, Jhonata!</div>
-      <div class="welcome-message" id="welcome-message">O galpão está pronto para produzir. Vamos lá?</div>
-      <div class="welcome-time" id="welcome-time">Segunda, 27 de julho · 14:32</div>
-    </div>
-    <button class="btn btn-primary" onclick="fecharWelcome()">Entrar no sistema</button>
+
+    <button class="welcome-enter" id="welcome-enter" onclick="fecharWelcome()">
+      Entrar no sistema
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+
+    <div class="welcome-time" id="welcome-time">—</div>
   </div>
 </div>
 
@@ -12490,21 +12702,87 @@ const welcomeMessages = {
 function getTimeOfDay() { const h = new Date().getHours(); if (h >= 0 && h < 6) return 'madrugada'; if (h >= 6 && h < 12) return 'manhã'; if (h >= 12 && h < 18) return 'tarde'; return 'noite'; }
 function getRandomMessage(p) { const m = welcomeMessages[p].messages; return m[Math.floor(Math.random() * m.length)]; }
 function inicializarWelcome() {
-  const period = getTimeOfDay();
-  const greeting = welcomeMessages[period].greeting;
-  const message = getRandomMessage(period);
+  const overlay = document.getElementById('welcome-overlay');
+  if (!overlay) return;
   const now = new Date();
-  const dayName = now.toLocaleDateString('pt-BR', { weekday: 'long' });
-  const dateStr = now.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
-  const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  document.getElementById('welcome-greeting').textContent = greeting;
-  document.getElementById('welcome-message').textContent = message;
-  document.getElementById('welcome-time').textContent = `${dayName.charAt(0).toUpperCase() + dayName.slice(1)}, ${dateStr} · ${timeStr}`;
-  const lastWelcome = localStorage.getItem('alpha-welcome-date');
-  const today = now.toDateString();
-  if (lastWelcome !== today) { document.getElementById('welcome-overlay').classList.add('visible'); }
+  if (localStorage.getItem('alpha-welcome-date') === now.toDateString()) return;
+
+  const period = getTimeOfDay();
+  const saud = { madrugada: 'Boa madrugada', 'manhã': 'Bom dia', tarde: 'Boa tarde', noite: 'Boa noite' }[period];
+
+  // Saudação quebrada em palavras, cada uma com o próprio atraso de entrada.
+  // O nome ganha itálico dourado — é o ponto focal da tela.
+  const palavras = [...`${saud},`.split(' '), 'Jhonata.'];
+  document.getElementById('welcome-greeting').innerHTML = palavras.map((w, i) => {
+    const conteudo = i === palavras.length - 1 ? `<em>${w}</em>` : w;
+    return `<span class="w-word"><span style="animation-delay:${(1.45 + i * 0.12).toFixed(2)}s">${conteudo}</span></span>`;
+  }).join(' ');
+
+  // As mensagens antigas terminam com pergunta/exclamação; aqui ficam mais sóbrias.
+  document.getElementById('welcome-message').textContent = getRandomMessage(period);
+
+  const dia = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const hora = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('welcome-time').innerHTML =
+    `${dia.charAt(0).toUpperCase() + dia.slice(1)} · ${hora} <kbd>Enter</kbd>`;
+
+  overlay.classList.add('visible');
+  document.body.style.overflow = 'hidden';
+  _welcomeTeclado = e => { if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); fecharWelcome(); } };
+  document.addEventListener('keydown', _welcomeTeclado);
+
+  // Os números dependem do Supabase, que carrega em paralelo. Espera os
+  // projetos chegarem (até ~6s) e conta a partir do momento em que a linha
+  // de estatísticas já está visível na sequência.
+  let tentativas = 0;
+  const aguardar = setInterval(() => {
+    tentativas++;
+    const pronto = Array.isArray(projetos) && projetos.length > 0;
+    if (!pronto && tentativas < 24) return;
+    clearInterval(aguardar);
+    setTimeout(_contarNumerosWelcome, Math.max(0, 2600 - tentativas * 250));
+  }, 250);
 }
-function fecharWelcome() { localStorage.setItem('alpha-welcome-date', new Date().toDateString()); document.getElementById('welcome-overlay').classList.remove('visible'); }
+
+let _welcomeTeclado = null;
+
+function _contarNumerosWelcome() {
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const tasks = (projetos || []).flatMap(p => (p.tasks || []).filter(t => t.is_applicable !== false));
+  const valores = {
+    projetos: (projetos || []).filter(p => p.status !== 'concluido').length,
+    andamento: tasks.filter(t => t.status === 'in_progress').length,
+    hoje: tasks.filter(t => t.status !== 'completed' && t.prazo &&
+      +new Date(t.prazo + 'T00:00:00') === +hoje).length
+  };
+  document.querySelectorAll('#welcome-stats [data-count]').forEach(el => {
+    const alvo = valores[el.dataset.count] || 0;
+    const ini = performance.now(), dur = 1100;
+    const passo = t => {
+      const k = Math.min(1, (t - ini) / dur);
+      const eased = 1 - Math.pow(1 - k, 3);
+      el.textContent = String(Math.round(alvo * eased));
+      if (k < 1) requestAnimationFrame(passo);
+    };
+    requestAnimationFrame(passo);
+  });
+}
+
+function fecharWelcome() {
+  const overlay = document.getElementById('welcome-overlay');
+  if (!overlay || overlay.classList.contains('is-leaving')) return;
+  localStorage.setItem('alpha-welcome-date', new Date().toDateString());
+  if (_welcomeTeclado) document.removeEventListener('keydown', _welcomeTeclado);
+  overlay.classList.add('is-leaving');
+  const concluir = () => {
+    overlay.classList.remove('visible', 'is-leaving');
+    document.body.style.overflow = '';
+  };
+  // Com movimento reduzido não há animação para esperar.
+  const reduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setTimeout(concluir, reduzido ? 0 : 1080);
+}
+window.fecharWelcome = fecharWelcome;
 
 /* Init — custos e compromissos chegam pelo initSupabase, que os carrega
    depois dos projetos e re-renderiza. Aqui só o primeiro paint. */
