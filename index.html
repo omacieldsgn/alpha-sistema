@@ -575,18 +575,6 @@ p { text-wrap: pretty; }
   overflow: hidden;
   box-shadow: var(--shadow-card);
 }
-.termometro::after {
-  content: '';
-  position: absolute;
-  /* No topo: embaixo ela cruzaria os tiles de KPI e pareceria defeito. */
-  right: -30px; top: -70px;
-  width: 240px; height: 240px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23F1F1EF' stroke-width='1'><polyline points='10,80 30,20 50,80 70,20 90,80'/></svg>");
-  background-size: contain;
-  background-repeat: no-repeat;
-  opacity: 0.10;
-  pointer-events: none;
-}
 .termometro .eyebrow { margin-bottom: var(--sp-3); color: var(--hero-dim); }
 .termometro .hero-number {
   font-family: var(--font-display);
@@ -4366,7 +4354,6 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
   /* Termômetro */
   .termometro { padding: var(--sp-5); }
   .termometro .hero-number { font-size: 2rem; }
-  .termometro::after { width: 160px; height: 160px; right: -30px; bottom: -40px; }
   .termometro-kpis {
     grid-template-columns: 1fr;
     gap: var(--sp-4);
@@ -5083,6 +5070,117 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
 }
 
 /* =============================================================================
+   EQUIPE — painel de controle de um colaborador (gestor)
+   ============================================================================= */
+.equipe-nome-btn {
+  display: block; max-width: 100%; padding: 0; border: 0; background: none;
+  font: inherit; font-weight: 600; color: var(--ink); text-align: left; cursor: pointer;
+}
+.equipe-nome-btn:hover { text-decoration: underline; text-underline-offset: 3px; }
+.equipe-nome-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+.cd-perfil { display: flex; align-items: center; gap: var(--sp-4); min-width: 0; }
+.cd-perfil > div:last-child { min-width: 0; }
+.cd-avatar {
+  flex: none; width: 60px; height: 60px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--brand); color: var(--brand-ink); font-size: 1.125rem; font-weight: 600;
+}
+.page-header .cd-perfil .lede { margin-top: var(--sp-1); }
+.cd-acoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sp-2); }
+
+.cd-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-3); margin-bottom: var(--sp-5); }
+.cd-kpi {
+  padding: var(--sp-4); text-align: left; font: inherit; color: inherit; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--card-line); border-radius: var(--radius-lg);
+  transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+@media (hover: hover) { .cd-kpi:hover { border-color: var(--border-strong); } }
+.cd-kpi:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cd-kpi.is-active { border-color: var(--ink); }
+.cd-kpi .num { display: block; font-size: 1.75rem; font-weight: 600; line-height: 1.1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.cd-kpi .lbl { display: block; margin-top: 4px; font-size: 0.8125rem; color: var(--ink-muted); }
+.cd-kpi.is-alerta .num { color: var(--status-atrasado); }
+
+.cd-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--sp-5); align-items: start; }
+.cd-coluna { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
+.cd-agora-vazio { font-size: 0.9375rem; color: var(--ink-muted); }
+.cd-agora-vazio strong { color: var(--ink); font-weight: 600; }
+.cd-agora-item { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-4); }
+.cd-agora-item + .cd-agora-item { margin-top: var(--sp-4); padding-top: var(--sp-4); border-top: 1px solid var(--border); }
+.cd-pulso { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 0.75rem; font-weight: 500; color: var(--ink-muted); }
+.cd-pulso::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); animation: colabPulse 2.2s ease-in-out infinite; }
+.cd-agora-titulo { font-size: 1.125rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.025em; overflow-wrap: anywhere; }
+.cd-agora-meta { margin-top: 2px; font-size: 0.875rem; color: var(--ink-muted); }
+
+.cd-filtros { display: flex; gap: var(--sp-2); margin-bottom: var(--sp-3); padding-bottom: 2px; overflow-x: auto; scrollbar-width: none; }
+.cd-filtros::-webkit-scrollbar { display: none; }
+.cd-tarefa {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center;
+  padding: var(--sp-3) 0; border-top: 1px solid var(--border);
+}
+.cd-tarefa:first-child { border-top: 0; }
+.cd-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--border-strong); }
+.cd-tarefa[data-status="in_progress"] .cd-dot { background: var(--ink-muted); border-color: var(--ink-muted); }
+.cd-tarefa[data-status="completed"] .cd-dot { background: var(--ink); border-color: var(--ink); }
+.cd-tarefa-titulo { font-weight: 500; line-height: 1.35; overflow-wrap: anywhere; }
+.cd-tarefa[data-status="completed"] .cd-tarefa-titulo { color: var(--ink-subtle); text-decoration: line-through; }
+.cd-tarefa-meta { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 2px; font-size: 0.8125rem; color: var(--ink-muted); }
+.cd-atraso { color: var(--status-atrasado); font-weight: 500; }
+.cd-alta { color: var(--ink); font-weight: 600; }
+.cd-tarefa-acoes { display: flex; align-items: center; gap: 2px; }
+.cd-tarefa-acoes .select { width: auto; min-height: 38px; margin-right: var(--sp-1); padding: 6px 10px; font-size: 0.8125rem; border-radius: var(--radius-sm); }
+.cd-icone {
+  display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 0;
+  border-radius: var(--radius-sm); background: none; color: var(--ink-muted); cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.cd-icone:hover { background: var(--ui-tint); color: var(--ink); }
+.cd-icone.is-perigo:hover { color: var(--status-atrasado); }
+.cd-icone:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.cd-icone svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cd-vazio { padding: var(--sp-6) var(--sp-4); text-align: center; font-size: 0.9375rem; color: var(--ink-muted); }
+
+.cd-atividade { margin: 0; padding: 0; list-style: none; }
+.cd-atividade li { position: relative; padding: 0 0 var(--sp-4) 22px; font-size: 0.875rem; line-height: 1.45; overflow-wrap: anywhere; }
+.cd-atividade li::before { content: ''; position: absolute; left: 2px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--border-strong); }
+.cd-atividade li::after { content: ''; position: absolute; left: 5.5px; top: 18px; bottom: 2px; width: 1px; background: var(--border); }
+.cd-atividade li:last-child { padding-bottom: 0; }
+.cd-atividade li:last-child::after,
+.cd-atividade .cd-atividade-vazio::before { display: none; }
+.cd-atividade .cd-atividade-vazio { padding-left: 0; color: var(--ink-muted); }
+.cd-atividade strong { font-weight: 600; }
+.cd-atividade .quando { display: block; margin-top: 2px; font-size: 0.75rem; color: var(--ink-subtle); }
+
+.cd-atribuir-busca { margin: 6px 0 var(--sp-3); }
+.cd-atribuir-lista { max-height: min(52vh, 460px); overflow-y: auto; margin: 0 calc(var(--sp-2) * -1); padding: 0 var(--sp-2); }
+.cd-atribuir-grupo { margin: var(--sp-4) 0 var(--sp-1); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-subtle); }
+.cd-atribuir-grupo:first-child { margin-top: 0; }
+.cd-atribuir-item { display: flex; align-items: flex-start; gap: var(--sp-3); min-height: 44px; padding: 10px var(--sp-2); border-radius: var(--radius-md); cursor: pointer; }
+.cd-atribuir-item:hover { background: var(--ui-tint); }
+.cd-atribuir-item input { flex: none; width: 18px; height: 18px; margin-top: 2px; accent-color: var(--brand); }
+.cd-atribuir-item small { display: block; font-size: 0.8125rem; color: var(--ink-muted); }
+
+@media (max-width: 1100px) {
+  .cd-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  .cd-perfil { align-items: flex-start; }
+  .cd-avatar { width: 48px; height: 48px; font-size: 1rem; }
+  .cd-acoes { justify-content: stretch; }
+  .cd-acoes .btn { flex: 1 1 calc(50% - var(--sp-2)); justify-content: center; min-height: 44px; }
+  .cd-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cd-agora-item { flex-direction: column; }
+  .cd-agora-item .btn { width: 100%; justify-content: center; min-height: 44px; }
+  .cd-tarefa { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+  .cd-dot { margin-top: 6px; }
+  .cd-tarefa-acoes { grid-column: 2; }
+  .cd-tarefa-acoes .select { flex: 1; min-height: 44px; }
+  .cd-icone { width: 44px; height: 44px; }
+  .production-filter-chip { min-height: 36px; }
+}
+
+/* =============================================================================
    COLABORADOR — Painel Meu Dia (modo escuro, isolado do sistema principal)
    Ativado quando body.is-colaborador. Nesse modo, sidebar/topbar/bottom-nav
    somem e a view-meu-dia toma a tela toda.
@@ -5486,7 +5584,7 @@ body.is-colaborador #colab-warn-modal .colab-warn { color: var(--c-cream); }
   overflow-y: auto;
   color: var(--c-cream);
 }
-#colab-task-modal.open .colab-modal { transform: translateY(0); }
+.modal-overlay.open .colab-modal { transform: translateY(0); }
 .colab-modal-handle {
   width: 40px; height: 4px;
   background: var(--c-line);
@@ -5561,9 +5659,9 @@ body.is-colaborador #colab-warn-modal .colab-warn { color: var(--c-cream); }
 }
 .colab-action-btn:active { transform: scale(0.98); }
 .colab-action-btn svg { width: 16px; height: 16px; }
-.colab-start { background: var(--c-gold); color: var(--c-bg); }
-.colab-start:hover { background: var(--c-gold-lt); }
-.colab-complete { background: var(--c-done); color: var(--c-cream); }
+.colab-start { background: var(--c-cream); color: var(--c-bg); }
+.colab-start:hover { background: #ffffff; }
+.colab-complete { background: var(--c-cream); color: var(--c-bg); }
 .colab-reopen {
   background: var(--c-bg-3);
   color: var(--c-cream-dim);
@@ -5594,6 +5692,67 @@ body.is-colaborador #colab-warn-modal .colab-warn { color: var(--c-cream); }
 }
 .colab-warn p { color: var(--c-cream-dim); font-size: 14px; margin-bottom: 20px; }
 #colab-warn-modal.warn { align-items: center; padding: 20px; }
+
+/* Base dos overlays do modo colaborador: bottom sheet no celular. */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: var(--z-modal);
+  display: none; align-items: flex-end; justify-content: center;
+  background: rgb(0 0 0 / 0.55);
+}
+.modal-overlay.open { display: flex; }
+
+/* Estados de entrada: carregando, link inválido, sem conexão, saiu */
+.colab-estado { position: relative; z-index: 1; display: grid; place-items: center; min-height: 100dvh; padding: 32px 24px; text-align: center; }
+.colab-estado[hidden], .colab-conteudo[hidden] { display: none; }
+.colab-estado img { display: block; width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 18px; }
+.colab-estado h2 { margin: 0 0 8px; font-size: 22px; font-weight: 600; letter-spacing: -0.03em; color: var(--c-cream); }
+.colab-estado p { max-width: 32ch; margin: 0 auto; font-size: 14px; line-height: 1.55; color: var(--c-cream-dim); }
+
+.colab-header-acoes { display: flex; align-items: center; gap: 6px; flex: none; }
+.colab-instalar {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px;
+  border: 1px solid var(--c-line); border-radius: 999px; background: var(--c-bg-2);
+  font: inherit; font-size: 13px; font-weight: 500; color: var(--c-cream); cursor: pointer;
+  transition: background 160ms var(--ease);
+}
+.colab-instalar[hidden] { display: none; }
+.colab-instalar:hover { background: var(--c-bg-3); }
+.colab-instalar svg { width: 16px; height: 16px; }
+/* Celular estreito: só o ícone, para não espremer a saudação. */
+@media (max-width: 480px) {
+  .colab-instalar { width: 40px; padding: 0; justify-content: center; }
+  .colab-instalar-txt { display: none; }
+}
+.colab-instalar:focus-visible, .colab-icon-btn:focus-visible, .colab-filter:focus-visible,
+.colab-cta:focus-visible, .colab-action-btn:focus-visible, .colab-whats:focus-visible,
+.colab-task:focus-visible, .colab-focus-card:focus-visible { outline: 2px solid var(--c-cream); outline-offset: 2px; }
+
+.colab-passos { margin: 0 0 20px; padding-left: 22px; font-size: 15px; line-height: 1.6; color: var(--c-cream-dim); }
+.colab-passos[hidden] { display: none; }
+.colab-passos li { margin-bottom: 10px; }
+.colab-passos b { font-weight: 600; color: var(--c-cream); }
+.colab-passos svg { width: 16px; height: 16px; vertical-align: -3px; }
+
+@media (hover: hover) {
+  .colab-task:hover .colab-task-title { text-decoration: underline; text-underline-offset: 3px; }
+  .colab-filter:hover { color: var(--c-cream); }
+}
+
+/* Computador e tablet deitado: foco à esquerda, lista à direita. */
+@media (min-width: 960px) {
+  body.is-colaborador .colab-app { max-width: 1120px; padding: 32px 32px 0; }
+  .colab-conteudo {
+    display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+    gap: 0 48px; align-items: start;
+  }
+  .colab-col--foco { position: sticky; top: 24px; }
+  .colab-col--lista { padding-top: 28px; }
+  .colab-footer { grid-column: 1 / -1; }
+  .colab-empty { padding-top: 24px; text-align: left; }
+  .colab-empty-text { margin: 0; }
+  .modal-overlay { align-items: center; padding: 24px; }
+  .colab-modal { border-radius: 20px; max-height: 86vh; }
+}
 
 /* =============================================================================
    COMERCIAL · hub de ferramentas e gerador de contratos
@@ -6313,29 +6472,12 @@ body.is-colaborador #colab-warn-modal .colab-warn { color: var(--c-cream); }
               </div>
               <div class="ct-duas">
                 <div class="ct-campo">
-                  <label class="field-label" for="ct-nacionalidade">Nacionalidade</label>
-                  <input class="input" id="ct-nacionalidade" data-ct="nacionalidade">
-                </div>
-                <div class="ct-campo">
-                  <label class="field-label" for="ct-estado-civil">Estado civil</label>
-                  <select class="input" id="ct-estado-civil" data-ct="estadoCivil">
-                    <option value="">Selecione</option>
-                    <option>solteiro(a)</option>
-                    <option>casado(a)</option>
-                    <option>em união estável</option>
-                    <option>divorciado(a)</option>
-                    <option>viúvo(a)</option>
-                  </select>
-                </div>
-              </div>
-              <div class="ct-duas">
-                <div class="ct-campo">
-                  <label class="field-label" for="ct-cpf">CPF</label>
+                  <label class="field-label" for="ct-cpf">CPF/CNPJ</label>
                   <input class="input" id="ct-cpf" data-ct="cpf" inputmode="numeric" placeholder="000.000.000-00">
                 </div>
                 <div class="ct-campo">
-                  <label class="field-label" for="ct-email">E-mail</label>
-                  <input class="input" id="ct-email" data-ct="email" type="email" placeholder="cliente@email.com">
+                  <label class="field-label" for="ct-telefone">Telefone</label>
+                  <input class="input" id="ct-telefone" data-ct="telefone" type="tel" placeholder="(31) 99999-9999">
                 </div>
               </div>
               <div class="ct-campo">
@@ -6427,18 +6569,76 @@ body.is-colaborador #colab-warn-modal .colab-warn { color: var(--c-cream); }
     </section>
 
     <!-- =========================================================================
+         VIEW: PAINEL DE CONTROLE DE UM COLABORADOR (gestor)
+         ========================================================================= -->
+    <section class="view" id="view-colaborador-detalhe">
+      <header class="page-header">
+        <div class="cd-perfil">
+          <div class="cd-avatar" id="cd-avatar" aria-hidden="true">—</div>
+          <div>
+            <div class="eyebrow t-micro">Colaborador</div>
+            <h1 class="t-hero" id="cd-nome">—</h1>
+            <p class="lede" id="cd-lede">—</p>
+          </div>
+        </div>
+        <div class="cd-acoes">
+          <button class="btn btn-secondary" onclick="mostrarLinkColaborador(colabSelecionadoId)">Link de acesso</button>
+          <button class="btn btn-secondary" onclick="abrirEditarColaborador(colabSelecionadoId)">Editar</button>
+          <button class="btn btn-secondary" onclick="abrirAtribuirTarefas()">Atribuir etapas</button>
+          <button class="btn btn-primary" onclick="abrirTarefaGestor()">+ Nova tarefa</button>
+        </div>
+      </header>
+
+      <div class="cd-kpis" id="cd-kpis"></div>
+
+      <div class="cd-grid">
+        <div class="cd-coluna">
+          <section class="card cd-agora">
+            <div class="card-title"><h3>Agora</h3></div>
+            <div id="cd-agora"></div>
+          </section>
+          <section class="card">
+            <div class="card-title"><h3>Tarefas</h3><span class="meta t-small" id="cd-lista-meta"></span></div>
+            <div class="cd-filtros" id="cd-filtros" role="group" aria-label="Filtrar tarefas"></div>
+            <div class="cd-lista" id="cd-lista"></div>
+          </section>
+        </div>
+        <aside class="card">
+          <div class="card-title"><h3>Atividade recente</h3></div>
+          <ul class="cd-atividade" id="cd-atividade"></ul>
+        </aside>
+      </div>
+    </section>
+
+    <!-- =========================================================================
          VIEW: MEU DIA (colaborador) — só aparece via link com token
          ========================================================================= -->
     <section class="view" id="view-meu-dia">
       <div class="colab-app">
+        <div class="colab-estado" id="colab-estado" role="status" aria-live="polite" hidden>
+          <div>
+            <img src="/apple-touch-icon.png" width="72" height="72" alt="Alpha">
+            <h2 id="colab-estado-titulo">Abrindo seu painel…</h2>
+            <p id="colab-estado-texto">Carregando suas tarefas.</p>
+          </div>
+        </div>
+
+        <div class="colab-conteudo" id="colab-conteudo">
+        <div class="colab-col colab-col--foco">
         <header class="colab-header">
           <div class="colab-greeting-block">
             <div class="colab-eyebrow" id="colab-date">—</div>
             <h1 class="colab-greeting" id="colab-greeting">—</h1>
           </div>
-          <button class="colab-icon-btn" onclick="sairModoColaborador()" title="Sair" aria-label="Sair">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 4h4a1 1 0 011 1v14a1 1 0 01-1 1h-4M10 17l-5-5 5-5M5 12h12" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+          <div class="colab-header-acoes">
+            <button class="colab-instalar" id="colab-instalar" onclick="instalarAppColab()" aria-label="Instalar app" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="colab-instalar-txt">Instalar app</span>
+            </button>
+            <button class="colab-icon-btn" onclick="sairModoColaborador()" title="Sair" aria-label="Sair">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 4h4a1 1 0 011 1v14a1 1 0 01-1 1h-4M10 17l-5-5 5-5M5 12h12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
         </header>
 
         <div class="colab-progress">
@@ -6450,19 +6650,23 @@ body.is-colaborador #colab-warn-modal .colab-warn { color: var(--c-cream); }
         </div>
 
         <div class="colab-filters" role="group" aria-label="Filtrar por período">
-          <button class="colab-filter active" data-colab-filter="hoje" onclick="filtrarMeuDia('hoje')">Hoje</button>
-          <button class="colab-filter" data-colab-filter="semana" onclick="filtrarMeuDia('semana')">Esta semana</button>
-          <button class="colab-filter" data-colab-filter="tudo" onclick="filtrarMeuDia('tudo')">Tudo</button>
+          <button class="colab-filter active" data-colab-filter="hoje" aria-pressed="true" onclick="filtrarMeuDia('hoje')">Hoje</button>
+          <button class="colab-filter" data-colab-filter="semana" aria-pressed="false" onclick="filtrarMeuDia('semana')">Esta semana</button>
+          <button class="colab-filter" data-colab-filter="tudo" aria-pressed="false" onclick="filtrarMeuDia('tudo')">Tudo</button>
         </div>
 
         <section class="colab-focus" id="colab-focus"><!-- populado por JS --></section>
+        </div>
+        <div class="colab-col colab-col--lista">
         <div id="colab-lista"><!-- populado por JS --></div>
+        </div>
 
         <div class="colab-footer">
           <button class="colab-whats" onclick="colabFalarGestor()">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
             <span id="colab-gestor-label">Falar com o gestor</span>
           </button>
+        </div>
         </div>
       </div>
     </section>
@@ -7405,6 +7609,118 @@ body.is-colaborador #colab-warn-modal .colab-warn { color: var(--c-cream); }
   </div>
 </div>
 
+<!-- Modal — Instalar o app (modo colaborador) -->
+<div class="modal-overlay" id="colab-instalar-modal" onclick="if(event.target===this) fecharInstalarColab()">
+  <div class="colab-modal" role="dialog" aria-modal="true" aria-labelledby="ci-titulo">
+    <div class="colab-modal-handle" aria-hidden="true"></div>
+    <div class="colab-modal-content">
+      <h2 class="colab-modal-title" id="ci-titulo">Instalar o app da Alpha</h2>
+      <ol class="colab-passos" id="ci-passos-ios">
+        <li>Toque em <b>Compartilhar</b> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1" stroke-linecap="round" stroke-linejoin="round"/></svg> na barra do Safari.</li>
+        <li>Escolha <b>Adicionar à Tela de Início</b>.</li>
+        <li>Toque em <b>Adicionar</b>. O ícone da Alpha aparece na sua tela e abre direto nas suas tarefas.</li>
+      </ol>
+      <ol class="colab-passos" id="ci-passos-android" hidden>
+        <li>Abra o menu do navegador <b>⋮</b>.</li>
+        <li>Escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</li>
+        <li>Confirme. O ícone da Alpha aparece na sua tela e abre direto nas suas tarefas.</li>
+      </ol>
+      <div class="colab-modal-actions">
+        <button class="colab-action-btn colab-start" onclick="fecharInstalarColab()">Entendi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal — Nova tarefa / editar tarefa (painel do colaborador, gestor) -->
+<div class="modal-backdrop" id="modal-tarefa-colab">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tc-titulo-modal" style="max-width: 580px;">
+    <div class="modal-header">
+      <div>
+        <h3 id="tc-titulo-modal">Nova tarefa</h3>
+        <p>Aparece na hora no painel do colaborador responsável.</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="tc-id">
+      <div class="modal-form-grid">
+        <div class="field">
+          <label class="field-label" for="tc-nome">Título <span class="req">*</span></label>
+          <input type="text" class="input" id="tc-nome" placeholder="Ex: Montar módulos inferiores da cozinha" autocomplete="off" aria-describedby="tc-erro">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="tc-responsavel">Responsável</label>
+            <select class="select" id="tc-responsavel"></select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="tc-projeto">Projeto</label>
+            <select class="select" id="tc-projeto"></select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="tc-ambiente">Ambiente</label>
+            <input type="text" class="input" id="tc-ambiente" placeholder="Ex: Cozinha">
+          </div>
+          <div class="field">
+            <label class="field-label" for="tc-prazo">Prazo</label>
+            <input type="date" class="input" id="tc-prazo">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="tc-prioridade">Prioridade</label>
+            <select class="select" id="tc-prioridade">
+              <option value="normal">Normal</option>
+              <option value="alta">Alta</option>
+              <option value="baixa">Baixa</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="tc-status">Status</label>
+            <select class="select" id="tc-status">
+              <option value="pending">Pendente</option>
+              <option value="in_progress">Em andamento</option>
+              <option value="completed">Concluída</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="tc-notas">Observações</label>
+          <textarea class="textarea" id="tc-notas" rows="3" placeholder="Medidas, materiais, cuidados na instalação…"></textarea>
+        </div>
+        <p class="field-error" id="tc-erro" role="alert" hidden></p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharTarefaGestor()">Cancelar</button>
+      <button class="btn btn-primary" id="tc-salvar" onclick="salvarTarefaGestor()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal — Atribuir etapas existentes a um colaborador -->
+<div class="modal-backdrop" id="modal-atribuir">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="at-titulo" style="max-width: 580px;">
+    <div class="modal-header">
+      <div>
+        <h3 id="at-titulo">Atribuir etapas</h3>
+        <p id="at-sub">Etapas em aberto sem responsável.</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <label class="field-label" for="at-busca">Buscar</label>
+      <input type="search" class="input cd-atribuir-busca" id="at-busca" placeholder="Etapa, cliente, código ou ambiente" oninput="renderAtribuirLista()" autocomplete="off">
+      <div class="cd-atribuir-lista" id="at-lista"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharAtribuir()">Cancelar</button>
+      <button class="btn btn-primary" id="at-confirmar" onclick="confirmarAtribuicao()">Atribuir</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal — Link de acesso do colaborador -->
 <div class="modal-backdrop" id="modal-link">
   <div class="modal" role="dialog" aria-modal="true" style="max-width: 520px;">
@@ -7421,7 +7737,7 @@ body.is-colaborador #colab-warn-modal .colab-warn { color: var(--c-cream); }
         <button class="btn btn-secondary" onclick="copiarLink()" style="flex:1;">Copiar link</button>
         <button class="btn btn-primary" onclick="enviarLinkWhatsApp()" style="flex:1;">Enviar no WhatsApp</button>
       </div>
-      <p class="link-nota">Se o colaborador perder o link, você pode gerar de novo aqui a qualquer momento. Se ele sair do time, desative na lista pra invalidar o acesso.</p>
+      <p class="link-nota">O link funciona no celular e no computador. Ao abrir, o colaborador pode tocar em “Instalar app” para ter o ícone da Alpha na tela de início. Se ele sair do time, desative o acesso na lista.</p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="fecharModalLink()">Fechar</button>
@@ -7604,6 +7920,9 @@ function initSupabase() {
       await Promise.all([carregarCustos(), carregarCompromissosLocais(), carregarEtapasAvulsas()]);
       renderCustosView();
       renderChao();
+      // No aparelho do colaborador a lista da equipe não é necessária.
+      if (!document.body.classList.contains('is-colaborador')) await carregarColaboradores();
+      _rerenderColaboradores();
     });
   } catch (e) {
     console.error('[Supabase] Erro ao inicializar:', e);
@@ -7621,8 +7940,11 @@ function configurarRealtimeProducao() {
     .channel('alfa-production-tasks')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'production_tasks' }, async payload => {
       console.info('[Supabase Realtime] Tarefa alterada:', payload.eventType);
-      await carregarProjetosDoBanco();
-      if (projetoSelecionadoId) abrirProjeto(projetoSelecionadoId);
+      // Etapas internas também podem ter responsável: recarrega as duas fontes.
+      await Promise.all([carregarProjetosDoBanco(), carregarEtapasAvulsas()]);
+      // Só reabre o detalhe se o gestor estiver nele; senão a tela pularia sozinha.
+      if (projetoSelecionadoId && currentView === 'projeto-detalhe') abrirProjeto(projetoSelecionadoId);
+      _rerenderColaboradores();
     })
     .subscribe(status => console.info('[Supabase Realtime] status:', status));
 }
@@ -12953,6 +13275,7 @@ const viewLabels = {
   'custos': 'Financeiro',
   'chao': 'Meu Dia',
   'equipe': 'Colaboradores',
+  'colaborador-detalhe': 'Colaborador',
   'comercial': 'Comercial',
   'contrato': 'Gerador de contratos',
   'meu-dia': 'Meu Dia (colaborador)'
@@ -13005,8 +13328,16 @@ function switchView(name, opts = {}) {
     // A view acabou de ficar visível; só agora a coluna do preview tem largura.
     requestAnimationFrame(_ctAjustarEscala);
   } else if (name === 'equipe') {
-    carregarColaboradores();
     renderEquipe();
+    carregarColaboradores().then(renderEquipe);
+  } else if (name === 'colaborador-detalhe') {
+    document.querySelectorAll('.nav-item[data-view="equipe"], .more-item[data-view="equipe"], .bnav-more')
+      .forEach(b => b.setAttribute('aria-current', 'page'));
+    if (!colaboradores.some(c => c.id === colabSelecionadoId)) {
+      switchView('equipe', { skipHistory: true });
+      return;
+    }
+    renderPainelColaborador();
   } else if (name === 'meu-dia') {
     // Só faz sentido ver esta view em modo colaborador. Fora dele, redireciona.
     if (!document.body.classList.contains('is-colaborador')) {
@@ -13920,28 +14251,72 @@ function fecharWelcome() {
 window.fecharWelcome = fecharWelcome;
 
 /* ============================================================================
-   COLABORADORES + PAINEL DO COLABORADOR (Meu Dia)
-   Temporário até a Fase 5 (Auth): guarda colaboradores em localStorage e
-   controla acesso por token na URL. Não é seguro; é preview funcional.
-   Migração pra Supabase Auth + tabela profiles mantém a mesma UI.
+   COLABORADORES
+   Cadastro na tabela colaboradores (Supabase) e tarefas ligadas por
+   production_tasks.assigned_to. O link com token funciona em qualquer aparelho
+   e o colaborador só enxerga o que foi atribuído a ele.
    ============================================================================ */
-const COLABS_KEY = 'alpha-colaboradores-v1';
+const COLABS_KEY = 'alpha-colaboradores-v1';               // cadastro antigo, só neste navegador
+const COLABS_MIGRADO_KEY = 'alpha-colaboradores-migrado-v1';
 const COLAB_SESSAO_KEY = 'alpha-colaborador-sessao';
 let colaboradores = [];
-let colabAtivo = null;       // objeto do colaborador logado (modo colaborador)
+let colabAtivo = null;       // colaborador logado (modo colaborador)
 let colabFiltro = 'hoje';
 let colabTarefaAtual = null;
 let linkColabAtual = '';     // URL gerada, usada por copiar/whatsapp
 let telefoneColabAtual = '';
+let colabSelecionadoId = null;   // painel de controle aberto pelo gestor
+let cdFiltro = 'abertas';
+const atribuirSelecionadas = new Set();
 
-function carregarColaboradores() {
-  try {
-    colaboradores = JSON.parse(localStorage.getItem(COLABS_KEY) || '[]');
-  } catch { colaboradores = []; }
+function _lerColabsLocais() {
+  try { return JSON.parse(localStorage.getItem(COLABS_KEY) || '[]'); } catch { return []; }
 }
-function salvarColaboradoresLS() {
-  localStorage.setItem(COLABS_KEY, JSON.stringify(colaboradores));
+
+/* O cliente do Supabase nasce no load; quem chega antes espera por ele. */
+function _esperarSupabase(ms = 10000) {
+  return new Promise(resolve => {
+    const inicio = Date.now();
+    (function tick() {
+      if (supabase) return resolve(supabase);
+      if (Date.now() - inicio > ms) return resolve(null);
+      setTimeout(tick, 100);
+    })();
+  });
 }
+
+/* Colaboradores cadastrados antes do banco sobem uma vez, com o mesmo token:
+   links que já foram enviados continuam valendo. */
+async function _migrarColabsLocais(sb) {
+  if (localStorage.getItem(COLABS_MIGRADO_KEY)) return;
+  const linhas = _lerColabsLocais()
+    .filter(c => c && c.nome && c.token)
+    .map(c => ({
+      nome: c.nome,
+      telefone: c.telefone || null,
+      funcao: c.funcao || null,
+      ativo: c.ativo !== false,
+      token: c.token,
+      legacy_id: c.id || null,
+      created_at: c.criadoEm || new Date().toISOString()
+    }));
+  if (linhas.length) {
+    const { error } = await sb.from('colaboradores').upsert(linhas, { onConflict: 'token', ignoreDuplicates: true });
+    if (error) { console.warn('Migração de colaboradores falhou:', error); return; }
+  }
+  localStorage.setItem(COLABS_MIGRADO_KEY, new Date().toISOString());
+}
+
+async function carregarColaboradores() {
+  const sb = await _esperarSupabase();
+  if (!sb) return colaboradores;
+  await _migrarColabsLocais(sb);
+  const { data, error } = await sb.from('colaboradores').select('*').order('created_at', { ascending: true });
+  if (error) { console.warn('Erro ao carregar colaboradores:', error); return colaboradores; }
+  colaboradores = data || [];
+  return colaboradores;
+}
+
 function _colabIniciais(nome) {
   return String(nome || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
 }
@@ -13964,6 +14339,95 @@ function _colabToken() {
   return (crypto.randomUUID?.() || (Date.now().toString(36) + Math.random().toString(36).slice(2))).replace(/-/g, '');
 }
 
+/* ---- Tarefas ---------------------------------------------------------------- */
+/* Etapas de projeto e etapas internas (sem projeto), cada uma com seu projeto. */
+function _todasTarefas() {
+  const lista = [];
+  (projetos || []).forEach(p => (p.tasks || []).forEach(t => lista.push({ t, p })));
+  (etapasAvulsas || []).forEach(t => lista.push({ t, p: null }));
+  return lista;
+}
+function _tarefasDoColab(colabId) {
+  return _todasTarefas().filter(x => x.t.assigned_to === colabId && x.t.is_applicable !== false);
+}
+function _hojeZero() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
+function _tarefaAtrasada(t) {
+  return !!t.prazo && t.status !== 'completed' && new Date(t.prazo + 'T00:00:00') < _hojeZero();
+}
+function _nomeProjeto(p) { return p ? (p.cliente || p.codigo) : 'Tarefa interna'; }
+const STATUS_TAREFA = { pending: 'Pendente', in_progress: 'Em andamento', completed: 'Concluída', blocked: 'Bloqueada' };
+
+function _prazoTxt(dataStr) {
+  if (!dataStr) return 'Sem prazo';
+  const hoje = _hojeZero();
+  const d = new Date(dataStr + 'T00:00:00');
+  const diff = Math.round((d - hoje) / 86400000);
+  if (diff < 0) return `${Math.abs(diff)} ${Math.abs(diff)===1?'dia':'dias'} de atraso`;
+  if (diff === 0) return 'Hoje';
+  if (diff === 1) return 'Amanhã';
+  if (diff < 7) return `Em ${diff} dias`;
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+function _tempoRelativo(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const min = Math.round((Date.now() - d.getTime()) / 60000);
+  if (min < 1) return 'agora';
+  if (min < 60) return `há ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `há ${h} h`;
+  const ontem = _hojeZero(); ontem.setDate(ontem.getDate() - 1);
+  if (d >= ontem) return 'ontem';
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+/* Tudo que mostra tarefa ou colaborador se redesenha a partir do estado local. */
+function _rerenderColaboradores() {
+  if (currentView === 'colaborador-detalhe') renderPainelColaborador();
+  if (currentView === 'equipe') renderEquipe();
+  if (colabAtivo) renderMeuDiaColab();
+  renderChao();
+  renderDashboard();
+  renderProjetosLista();
+}
+
+/* Alteração pontual com atualização otimista. Datas de início e conclusão
+   seguem a mesma regra do resto do sistema; o progresso do projeto acompanha. */
+async function _atualizarTarefa(taskId, patch) {
+  const alvo = _todasTarefas().find(x => x.t.id === taskId);
+  if (!alvo || !supabase) return false;
+  const { t, p } = alvo;
+  const backup = { ...t };
+  const agora = new Date().toISOString();
+  const upd = { ...patch, updated_at: agora };
+  if ('status' in patch && patch.status !== t.status) {
+    if (patch.status === 'in_progress') upd.started_at = t.started_at || agora;
+    if (patch.status === 'completed') upd.completed_at = agora;
+    if (t.status === 'completed' && patch.status !== 'completed') upd.completed_at = null;
+  }
+  Object.assign(t, upd);
+  if (p) atualizarProgressoEStatusLocal(p);
+  _rerenderColaboradores();
+
+  const { error } = await supabase.from('production_tasks').update(upd).eq('id', taskId);
+  if (error) {
+    console.error('Erro ao atualizar tarefa:', error);
+    Object.assign(t, backup);
+    if (p) atualizarProgressoEStatusLocal(p);
+    _rerenderColaboradores();
+    showToast('Não foi possível salvar. Tente de novo.');
+    return false;
+  }
+  if (p) { try { await salvarProgressoEStatusNoBanco(p); } catch (e) { console.warn(e); } }
+  return true;
+}
+
+async function _recarregarTarefas() {
+  await Promise.all([carregarProjetosDoBanco(), carregarEtapasAvulsas()]);
+}
+
+/* ---- Lista da equipe ------------------------------------------------------- */
 function renderEquipe() {
   const el = document.getElementById('equipe-lista');
   if (!el) return;
@@ -13976,18 +14440,27 @@ function renderEquipe() {
     return;
   }
   el.innerHTML = colaboradores.map(c => {
+    const ts = _tarefasDoColab(c.id).map(x => x.t);
+    const abertas = ts.filter(t => t.status !== 'completed').length;
+    const andamento = ts.filter(t => t.status === 'in_progress').length;
+    const atrasadas = ts.filter(_tarefaAtrasada).length;
     const inativa = c.ativo === false ? 'is-inativo' : '';
-    const statusTxt = c.ativo === false ? '<span class="status-inativo">Inativo</span>' : 'Ativo';
-    const funcao = c.funcao ? `<span>${_esc(c.funcao)}</span>` : '';
-    const tel = c.telefone ? `<span>${_esc(_colabTelFormatado(c.telefone))}</span>` : '';
+    const meta = [
+      c.ativo === false ? '<span class="status-inativo">Inativo</span>' : '<span>Ativo</span>',
+      c.funcao ? `<span>${_esc(c.funcao)}</span>` : '',
+      `<span>${abertas ? `${abertas} ${abertas === 1 ? 'tarefa aberta' : 'tarefas abertas'}` : 'Sem tarefas abertas'}</span>`,
+      andamento ? `<span>${andamento} em andamento</span>` : '',
+      atrasadas ? `<span class="status-inativo">${atrasadas} ${atrasadas === 1 ? 'atrasada' : 'atrasadas'}</span>` : ''
+    ].join('');
     return `
       <div class="equipe-row ${inativa}">
         <div class="equipe-avatar">${_colabIniciais(c.nome)}</div>
         <div class="equipe-info">
-          <div class="equipe-nome">${_esc(c.nome)}</div>
-          <div class="equipe-meta">${statusTxt}${funcao}${tel}</div>
+          <button type="button" class="equipe-nome equipe-nome-btn" onclick="abrirPainelColaborador('${c.id}')">${_esc(c.nome)}</button>
+          <div class="equipe-meta">${meta}</div>
         </div>
         <div class="equipe-acoes">
+          <button class="btn btn-primary" onclick="abrirPainelColaborador('${c.id}')">Abrir painel</button>
           <button class="btn btn-secondary" onclick="mostrarLinkColaborador('${c.id}')">Link</button>
           <button class="btn btn-ghost" onclick="abrirEditarColaborador('${c.id}')">Editar</button>
           <button class="btn btn-ghost" onclick="alternarAtivoColab('${c.id}')">${c.ativo === false ? 'Reativar' : 'Desativar'}</button>
@@ -14026,68 +14499,80 @@ function fecharModalColaborador() {
 }
 window.fecharModalColaborador = fecharModalColaborador;
 
-function salvarColaborador() {
+async function salvarColaborador() {
   const id = document.getElementById('colab-id').value;
   const nome = document.getElementById('colab-nome').value.trim();
-  const telefone = document.getElementById('colab-telefone').value.trim();
-  const funcao = document.getElementById('colab-funcao').value.trim();
+  const telefone = document.getElementById('colab-telefone').value.trim() || null;
+  const funcao = document.getElementById('colab-funcao').value.trim() || null;
   if (!nome) { showToast('Informe o nome do colaborador.'); return; }
-  if (id) {
-    const c = colaboradores.find(x => x.id === id);
-    if (c) { c.nome = nome; c.telefone = telefone; c.funcao = funcao; }
-    showToast('Colaborador atualizado.');
-  } else {
-    colaboradores.push({
-      id: 'colab-' + _colabToken().slice(0, 12),
-      nome, telefone, funcao,
-      ativo: true,
-      token: _colabToken(),
-      criadoEm: new Date().toISOString()
-    });
-    showToast('Colaborador cadastrado.');
+  if (!supabase) { showToast('Erro: Supabase não configurado.'); return; }
+
+  const btn = document.querySelector('#modal-colaborador .btn-primary');
+  if (btn) btn.disabled = true;
+  try {
+    const { error } = id
+      ? await supabase.from('colaboradores').update({ nome, telefone, funcao, updated_at: new Date().toISOString() }).eq('id', id)
+      : await supabase.from('colaboradores').insert({ nome, telefone, funcao, ativo: true, token: _colabToken() });
+    if (error) throw error;
+    await carregarColaboradores();
+    fecharModalColaborador();
+    _rerenderColaboradores();
+    showToast(id ? 'Colaborador atualizado.' : 'Colaborador cadastrado.');
+  } catch (e) {
+    console.error('Erro ao salvar colaborador:', e);
+    showToast('Não foi possível salvar o colaborador.');
+  } finally {
+    if (btn) btn.disabled = false;
   }
-  salvarColaboradoresLS();
-  renderEquipe();
-  fecharModalColaborador();
 }
 window.salvarColaborador = salvarColaborador;
 
-function alternarAtivoColab(id) {
+async function alternarAtivoColab(id) {
   const c = colaboradores.find(x => x.id === id);
-  if (!c) return;
-  c.ativo = c.ativo === false;
-  salvarColaboradoresLS();
-  renderEquipe();
-  showToast(c.ativo ? 'Colaborador reativado.' : 'Colaborador desativado. Link antigo não funciona mais.');
+  if (!c || !supabase) return;
+  const ativo = c.ativo === false;
+  const { error } = await supabase.from('colaboradores').update({ ativo, updated_at: new Date().toISOString() }).eq('id', id);
+  if (error) { console.error(error); showToast('Não foi possível alterar o acesso.'); return; }
+  c.ativo = ativo;
+  _rerenderColaboradores();
+  showToast(ativo ? 'Colaborador reativado.' : 'Colaborador desativado. O link dele parou de funcionar.');
 }
 window.alternarAtivoColab = alternarAtivoColab;
 
-function excluirColaborador(id) {
+async function excluirColaborador(id) {
   const c = colaboradores.find(x => x.id === id);
-  if (!c) return;
-  if (!confirm(`Excluir ${c.nome}? Isso também invalida o link de acesso dele.`)) return;
+  if (!c || !supabase) return;
+  if (!confirm(`Excluir ${c.nome}? O link de acesso deixa de funcionar e as tarefas dele ficam sem responsável.`)) return;
+  const { error } = await supabase.from('colaboradores').delete().eq('id', id);
+  if (error) { console.error(error); showToast('Não foi possível excluir.'); return; }
   colaboradores = colaboradores.filter(x => x.id !== id);
-  salvarColaboradoresLS();
-  renderEquipe();
+  _todasTarefas().forEach(({ t }) => { if (t.assigned_to === id) t.assigned_to = null; });
+  if (colabSelecionadoId === id && currentView === 'colaborador-detalhe') {
+    colabSelecionadoId = null;
+    switchView('equipe');
+  }
+  _rerenderColaboradores();
   showToast('Colaborador excluído.');
 }
 window.excluirColaborador = excluirColaborador;
 
+/* ---- Link de acesso -------------------------------------------------------- */
 function _linkColaborador(c) {
   const origem = location.origin && location.origin !== 'null' ? location.origin : location.href.split('#')[0].split('?')[0];
   return `${origem}/?token=${c.token}#meu-dia`;
 }
 
-function mostrarLinkColaborador(id) {
+async function mostrarLinkColaborador(id) {
   const c = colaboradores.find(x => x.id === id);
   if (!c) return;
   if (c.ativo === false) {
     if (!confirm('Este colaborador está desativado. Reativar antes de compartilhar o link?')) return;
-    c.ativo = true; salvarColaboradoresLS(); renderEquipe();
+    await alternarAtivoColab(id);
+    if (c.ativo === false) return;
   }
   linkColabAtual = _linkColaborador(c);
   telefoneColabAtual = c.telefone;
-  document.getElementById('modal-link-para').textContent = `Envie este link para ${c.nome}. Ele abre direto no painel dele, sem senha.`;
+  document.getElementById('modal-link-para').textContent = `Envie este link para ${c.nome}. Ele abre direto no painel dele, sem senha, no celular ou no computador.`;
   document.getElementById('link-valor').textContent = linkColabAtual;
   document.getElementById('modal-link').classList.add('open');
 }
@@ -14099,69 +14584,513 @@ window.fecharModalLink = fecharModalLink;
 async function copiarLink() {
   try {
     await navigator.clipboard.writeText(linkColabAtual);
-    showToast('Link copiado.');
   } catch {
-    // Fallback antigo
     const t = document.createElement('textarea');
     t.value = linkColabAtual;
     document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
-    showToast('Link copiado.');
   }
+  showToast('Link copiado.');
 }
 window.copiarLink = copiarLink;
 
 function enviarLinkWhatsApp() {
   const num = _colabTelWa(telefoneColabAtual);
-  const texto = encodeURIComponent(`Aqui está seu acesso ao sistema Alpha Móveis:\n\n${linkColabAtual}\n\nSalve este link — é a sua entrada.`);
+  const texto = encodeURIComponent(
+    `Aqui está seu acesso ao app da Alpha Planejados:\n\n${linkColabAtual}\n\n` +
+    `Abra no celular e toque em "Instalar app" para colocar o ícone da Alpha na tela de início.`
+  );
   const url = num ? `https://wa.me/${num}?text=${texto}` : `https://wa.me/?text=${texto}`;
   window.open(url, '_blank', 'noopener');
   if (!num) showToast('Sem telefone cadastrado. Abrimos o WhatsApp sem destinatário.');
 }
 window.enviarLinkWhatsApp = enviarLinkWhatsApp;
 
-/* ---- Modo colaborador (roteamento por token) ---------------------------- */
-function verificarTokenColaborador() {
-  // Um: token no query string. Dois: sessão persistida (o colaborador voltou).
-  const params = new URLSearchParams(location.search);
-  const token = params.get('token') || sessionStorage.getItem(COLAB_SESSAO_KEY);
-  if (!token) return false;
+/* ---- Painel de controle de um colaborador (gestor) ------------------------- */
+function abrirPainelColaborador(id) {
+  colabSelecionadoId = id;
+  cdFiltro = 'abertas';
+  switchView('colaborador-detalhe');
+}
+window.abrirPainelColaborador = abrirPainelColaborador;
 
-  carregarColaboradores();
-  const c = colaboradores.find(x => x.token === token && x.ativo !== false);
-  if (!c) {
-    // Token inválido: limpa e volta pra experiência do gestor.
-    sessionStorage.removeItem(COLAB_SESSAO_KEY);
-    if (params.get('token')) {
-      alert('Este link expirou ou foi desativado. Peça um novo link ao gestor.');
-      history.replaceState({}, '', location.pathname);
-    }
-    return false;
+function setFiltroColab(f) {
+  cdFiltro = f;
+  renderPainelColaborador();
+}
+window.setFiltroColab = setFiltroColab;
+
+const CD_ICONES = {
+  editar: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>',
+  soltar: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c.6-3.4 3-5.5 6-5.5s5.4 2.1 6 5.5M16 11h6"/></svg>',
+  excluir: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'
+};
+
+function renderPainelColaborador() {
+  const c = colaboradores.find(x => x.id === colabSelecionadoId);
+  if (!c) return;
+  const primeiro = String(c.nome || '').trim().split(/\s+/)[0] || 'colaborador';
+
+  document.getElementById('cd-avatar').textContent = _colabIniciais(c.nome);
+  document.getElementById('cd-nome').textContent = c.nome;
+  document.getElementById('cd-lede').textContent = [
+    c.funcao,
+    c.telefone ? _colabTelFormatado(c.telefone) : '',
+    c.ativo === false ? 'Acesso desativado' : 'Acesso ativo'
+  ].filter(Boolean).join(' · ');
+
+  const itens = _tarefasDoColab(c.id);
+  const abertas = itens.filter(x => x.t.status !== 'completed');
+  const andamento = itens.filter(x => x.t.status === 'in_progress');
+  const atrasadas = itens.filter(x => _tarefaAtrasada(x.t));
+  const concluidas = itens.filter(x => x.t.status === 'completed');
+  const semana = Date.now() - 7 * 86400000;
+  const concluidas7 = concluidas.filter(x => x.t.completed_at && new Date(x.t.completed_at).getTime() >= semana);
+
+  // Indicadores — cada um também filtra a lista
+  const kpis = [
+    ['abertas', abertas.length, 'Abertas'],
+    ['andamento', andamento.length, 'Em andamento'],
+    ['atrasadas', atrasadas.length, 'Atrasadas'],
+    ['concluidas', concluidas7.length, 'Concluídas em 7 dias']
+  ];
+  document.getElementById('cd-kpis').innerHTML = kpis.map(([k, n, lbl]) => `
+    <button type="button" class="cd-kpi ${cdFiltro === k ? 'is-active' : ''} ${k === 'atrasadas' && n ? 'is-alerta' : ''}" aria-pressed="${cdFiltro === k}" onclick="setFiltroColab('${k}')">
+      <span class="num">${n}</span><span class="lbl">${lbl}</span>
+    </button>`).join('');
+
+  // Agora
+  const agoraEl = document.getElementById('cd-agora');
+  if (andamento.length) {
+    agoraEl.innerHTML = andamento.map(({ t, p }) => `
+      <div class="cd-agora-item">
+        <div>
+          <div class="cd-pulso">Em andamento${t.started_at ? ` · iniciada ${_tempoRelativo(t.started_at)}` : ''}</div>
+          <div class="cd-agora-titulo">${_esc(t.name)}</div>
+          <div class="cd-agora-meta">${_esc(_nomeProjeto(p))} · ${_esc(t.ambiente || 'Geral')} · ${_prazoTxt(t.prazo)}</div>
+        </div>
+        <button class="btn btn-secondary" onclick="mudarStatusTarefaGestor('${t.id}', 'completed')">Concluir</button>
+      </div>`).join('');
+  } else {
+    const proxima = abertas
+      .map(x => x.t)
+      .sort((a, b) => (a.prazo || '9999').localeCompare(b.prazo || '9999'))[0];
+    agoraEl.innerHTML = `<p class="cd-agora-vazio">${_esc(primeiro)} não está com nenhuma tarefa em andamento agora.${
+      proxima ? ` Próxima da fila: <strong>${_esc(proxima.name)}</strong> (${_prazoTxt(proxima.prazo).toLowerCase()}).` : ''}</p>`;
   }
-  sessionStorage.setItem(COLAB_SESSAO_KEY, c.token);
-  entrarModoColaborador(c);
+
+  // Filtros
+  const filtros = [
+    ['abertas', 'Abertas', abertas.length],
+    ['andamento', 'Em andamento', andamento.length],
+    ['atrasadas', 'Atrasadas', atrasadas.length],
+    ['concluidas', 'Concluídas', concluidas.length],
+    ['todas', 'Todas', itens.length]
+  ];
+  document.getElementById('cd-filtros').innerHTML = filtros.map(([k, lbl, n]) => `
+    <button type="button" class="production-filter-chip ${cdFiltro === k ? 'is-active' : ''}" aria-pressed="${cdFiltro === k}" onclick="setFiltroColab('${k}')">${lbl} · ${n}</button>`).join('');
+  document.getElementById('cd-lista-meta').textContent = `${itens.length} ${itens.length === 1 ? 'atribuída' : 'atribuídas'}`;
+
+  // Lista
+  const base = { abertas, andamento, atrasadas, concluidas, todas: itens }[cdFiltro] || abertas;
+  const peso = t => t.status === 'in_progress' ? 0 : _tarefaAtrasada(t) ? 1 : t.status === 'completed' ? 3 : 2;
+  const lista = base.slice().sort((a, b) =>
+    peso(a.t) - peso(b.t) ||
+    (a.t.status === 'completed'
+      ? String(b.t.completed_at || '').localeCompare(String(a.t.completed_at || ''))
+      : (a.t.prazo || '9999').localeCompare(b.t.prazo || '9999')));
+
+  const vazio = {
+    abertas: `${_esc(primeiro)} não tem tarefas abertas. Use “+ Nova tarefa” ou “Atribuir etapas”.`,
+    andamento: 'Nenhuma tarefa em andamento.',
+    atrasadas: 'Nenhuma tarefa atrasada.',
+    concluidas: 'Nenhuma tarefa concluída ainda.',
+    todas: 'Nenhuma tarefa atribuída ainda.'
+  }[cdFiltro];
+
+  document.getElementById('cd-lista').innerHTML = lista.length ? lista.map(({ t, p }) => {
+    const atrasada = _tarefaAtrasada(t);
+    const opcoes = ['pending', 'in_progress', 'completed']
+      .concat(t.status === 'blocked' ? ['blocked'] : [])
+      .map(s => `<option value="${s}" ${t.status === s ? 'selected' : ''}>${STATUS_TAREFA[s]}</option>`).join('');
+    return `
+      <div class="cd-tarefa" data-status="${t.status}">
+        <span class="cd-dot" aria-hidden="true"></span>
+        <div>
+          <div class="cd-tarefa-titulo">${_esc(t.name)}</div>
+          <div class="cd-tarefa-meta">
+            <span>${_esc(_nomeProjeto(p))}</span>
+            <span>${_esc(t.ambiente || 'Geral')}</span>
+            ${t.status === 'completed'
+              ? `<span>Concluída ${_tempoRelativo(t.completed_at)}</span>`
+              : `<span class="${atrasada ? 'cd-atraso' : ''}">${_prazoTxt(t.prazo)}</span>`}
+            ${t.prioridade === 'alta' ? '<span class="cd-alta">Prioridade alta</span>' : ''}
+          </div>
+        </div>
+        <div class="cd-tarefa-acoes">
+          <select class="select" aria-label="Status de ${_esc(t.name)}" onchange="mudarStatusTarefaGestor('${t.id}', this.value)">${opcoes}</select>
+          <button type="button" class="cd-icone" title="Editar" aria-label="Editar ${_esc(t.name)}" onclick="abrirTarefaGestor('${t.id}')">${CD_ICONES.editar}</button>
+          <button type="button" class="cd-icone" title="Tirar de ${_esc(primeiro)}" aria-label="Tirar ${_esc(t.name)} de ${_esc(primeiro)}" onclick="desatribuirTarefa('${t.id}')">${CD_ICONES.soltar}</button>
+          <button type="button" class="cd-icone is-perigo" title="Excluir" aria-label="Excluir ${_esc(t.name)}" onclick="excluirTarefaGestor('${t.id}')">${CD_ICONES.excluir}</button>
+        </div>
+      </div>`;
+  }).join('') : `<p class="cd-vazio">${vazio}</p>`;
+
+  // Atividade: inícios e conclusões registrados nas tarefas dele
+  const eventos = [];
+  itens.forEach(({ t, p }) => {
+    if (t.started_at) eventos.push({ quando: t.started_at, acao: 'Iniciou', t, p });
+    if (t.completed_at) eventos.push({ quando: t.completed_at, acao: 'Concluiu', t, p });
+  });
+  eventos.sort((a, b) => String(b.quando).localeCompare(String(a.quando)));
+  document.getElementById('cd-atividade').innerHTML = eventos.length
+    ? eventos.slice(0, 12).map(e => `
+        <li><strong>${e.acao}</strong> ${_esc(e.t.name)}
+          <span class="quando">${_esc(_nomeProjeto(e.p))} · ${_tempoRelativo(e.quando)}</span></li>`).join('')
+    : '<li class="cd-atividade-vazio">Nada registrado ainda. Inícios e conclusões aparecem aqui assim que acontecem.</li>';
+}
+window.renderPainelColaborador = renderPainelColaborador;
+
+async function mudarStatusTarefaGestor(taskId, status) {
+  const ok = await _atualizarTarefa(taskId, { status });
+  if (ok) showToast({ pending: 'Tarefa voltou para pendente.', in_progress: 'Tarefa em andamento.', completed: 'Tarefa concluída.' }[status] || 'Tarefa atualizada.');
+}
+window.mudarStatusTarefaGestor = mudarStatusTarefaGestor;
+
+async function desatribuirTarefa(taskId) {
+  const ok = await _atualizarTarefa(taskId, { assigned_to: null });
+  if (ok) showToast('Tarefa ficou sem responsável.');
+}
+window.desatribuirTarefa = desatribuirTarefa;
+
+async function excluirTarefaGestor(taskId) {
+  const alvo = _todasTarefas().find(x => x.t.id === taskId);
+  if (!alvo || !supabase) return;
+  if (!confirm(`Excluir a tarefa "${alvo.t.name}"? Ela sai do sistema, não só deste colaborador.`)) return;
+  const { error } = await supabase.from('production_tasks').delete().eq('id', taskId);
+  if (error) { console.error(error); showToast('Não foi possível excluir a tarefa.'); return; }
+  await _recarregarTarefas();
+  if (alvo.p) {
+    const p = projetos.find(x => x.id === alvo.p.id);
+    if (p) { try { await salvarProgressoEStatusNoBanco(p); } catch (e) { console.warn(e); } }
+  }
+  _rerenderColaboradores();
+  showToast('Tarefa excluída.');
+}
+window.excluirTarefaGestor = excluirTarefaGestor;
+
+/* ---- Modal: nova tarefa / editar tarefa ------------------------------------ */
+function abrirTarefaGestor(taskId) {
+  const alvo = taskId ? _todasTarefas().find(x => x.t.id === taskId) : null;
+  const t = alvo ? alvo.t : null;
+  const responsavel = t ? (t.assigned_to || '') : (colabSelecionadoId || '');
+
+  document.getElementById('tc-titulo-modal').textContent = t ? 'Editar tarefa' : 'Nova tarefa';
+  document.getElementById('tc-id').value = t ? t.id : '';
+  document.getElementById('tc-nome').value = t ? t.name : '';
+  document.getElementById('tc-nome').classList.remove('error');
+  document.getElementById('tc-responsavel').innerHTML =
+    '<option value="">Sem responsável</option>' +
+    colaboradores
+      .filter(c => c.ativo !== false || c.id === responsavel)
+      .map(c => `<option value="${c.id}" ${c.id === responsavel ? 'selected' : ''}>${_esc(c.nome)}</option>`).join('');
+  const projetoAtual = t ? (t.project_id || '') : '';
+  document.getElementById('tc-projeto').innerHTML =
+    '<option value="">Tarefa interna (sem projeto)</option>' +
+    (projetos || []).map(p => `<option value="${p.id}" ${p.id === projetoAtual ? 'selected' : ''}>${_esc(p.codigo)} · ${_esc(p.cliente)}</option>`).join('');
+  document.getElementById('tc-ambiente').value = t ? (t.ambiente || '') : '';
+  document.getElementById('tc-prazo').value = t ? (t.prazo || '') : '';
+  document.getElementById('tc-prioridade').value = t ? (t.prioridade || 'normal') : 'normal';
+  document.getElementById('tc-status').value = t ? (t.status === 'blocked' ? 'pending' : t.status) : 'pending';
+  document.getElementById('tc-notas').value = t ? (t.notes || '') : '';
+  document.getElementById('tc-erro').hidden = true;
+  document.getElementById('modal-tarefa-colab').classList.add('open');
+  setTimeout(() => document.getElementById('tc-nome').focus(), 100);
+}
+window.abrirTarefaGestor = abrirTarefaGestor;
+
+function fecharTarefaGestor() {
+  document.getElementById('modal-tarefa-colab').classList.remove('open');
+}
+window.fecharTarefaGestor = fecharTarefaGestor;
+
+async function salvarTarefaGestor() {
+  if (!supabase) { showToast('Erro: Supabase não configurado.'); return; }
+  const id = document.getElementById('tc-id').value || null;
+  const nomeEl = document.getElementById('tc-nome');
+  const nome = nomeEl.value.trim();
+  const erro = document.getElementById('tc-erro');
+  if (!nome) {
+    nomeEl.classList.add('error');
+    erro.textContent = 'Informe o título da tarefa.';
+    erro.hidden = false;
+    nomeEl.focus();
+    return;
+  }
+  nomeEl.classList.remove('error');
+  erro.hidden = true;
+
+  const projetoId = document.getElementById('tc-projeto').value || null;
+  const status = document.getElementById('tc-status').value;
+  const agora = new Date().toISOString();
+  const payload = {
+    name: nome,
+    project_id: projetoId,
+    assigned_to: document.getElementById('tc-responsavel').value || null,
+    ambiente: document.getElementById('tc-ambiente').value.trim() || null,
+    prazo: document.getElementById('tc-prazo').value || null,
+    prioridade: document.getElementById('tc-prioridade').value,
+    notes: document.getElementById('tc-notas').value.trim() || null,
+    status,
+    is_applicable: true,
+    updated_at: agora
+  };
+
+  const anterior = id ? _todasTarefas().find(x => x.t.id === id) : null;
+  if (anterior) {
+    const t = anterior.t;
+    if (status !== t.status) {
+      if (status === 'in_progress') payload.started_at = t.started_at || agora;
+      if (status === 'completed') payload.completed_at = agora;
+      if (t.status === 'completed' && status !== 'completed') payload.completed_at = null;
+    }
+  } else {
+    payload.started_at = status === 'in_progress' ? agora : null;
+    payload.completed_at = status === 'completed' ? agora : null;
+    if (projetoId) {
+      const proj = projetos.find(p => p.id === projetoId);
+      payload.order = (proj?.tasks || []).reduce((acc, t) => Math.max(acc, t.order || 0), 0) + 1;
+    }
+  }
+
+  const btn = document.getElementById('tc-salvar');
+  btn.disabled = true;
+  try {
+    const { error } = id
+      ? await supabase.from('production_tasks').update(payload).eq('id', id)
+      : await supabase.from('production_tasks').insert(payload);
+    if (error) throw error;
+    await _recarregarTarefas();
+    // Progresso dos projetos envolvidos (o de antes e o de agora, se mudou)
+    const afetados = new Set([projetoId, anterior?.p?.id].filter(Boolean));
+    for (const pid of afetados) {
+      const p = projetos.find(x => x.id === pid);
+      if (p) { try { await salvarProgressoEStatusNoBanco(p); } catch (e) { console.warn(e); } }
+    }
+    fecharTarefaGestor();
+    _rerenderColaboradores();
+    showToast(id ? 'Tarefa atualizada.' : 'Tarefa criada.');
+  } catch (e) {
+    console.error('Erro ao salvar tarefa:', e);
+    erro.textContent = 'Não foi possível salvar a tarefa. Verifique a conexão e tente de novo.';
+    erro.hidden = false;
+  } finally {
+    btn.disabled = false;
+  }
+}
+window.salvarTarefaGestor = salvarTarefaGestor;
+
+/* ---- Modal: atribuir etapas que já existem --------------------------------- */
+function abrirAtribuirTarefas() {
+  const c = colaboradores.find(x => x.id === colabSelecionadoId);
+  if (!c) return;
+  atribuirSelecionadas.clear();
+  document.getElementById('at-busca').value = '';
+  document.getElementById('at-sub').textContent = `Etapas em aberto sem responsável. As marcadas passam para ${c.nome}.`;
+  renderAtribuirLista();
+  document.getElementById('modal-atribuir').classList.add('open');
+}
+window.abrirAtribuirTarefas = abrirAtribuirTarefas;
+
+function fecharAtribuir() {
+  document.getElementById('modal-atribuir').classList.remove('open');
+}
+window.fecharAtribuir = fecharAtribuir;
+
+function marcarAtribuicao(el) {
+  if (el.checked) atribuirSelecionadas.add(el.value); else atribuirSelecionadas.delete(el.value);
+  const n = atribuirSelecionadas.size;
+  document.getElementById('at-confirmar').textContent = n ? `Atribuir ${n}` : 'Atribuir';
+}
+window.marcarAtribuicao = marcarAtribuicao;
+
+function renderAtribuirLista() {
+  const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const q = norm(document.getElementById('at-busca').value);
+  const livres = _todasTarefas().filter(({ t, p }) =>
+    !t.assigned_to && t.status !== 'completed' && t.status !== 'blocked' && t.is_applicable !== false &&
+    (!q || norm(`${t.name} ${t.ambiente || ''} ${_nomeProjeto(p)} ${p?.codigo || ''}`).includes(q)));
+
+  const grupos = new Map();
+  livres.forEach(x => {
+    const k = x.p ? `${x.p.codigo} · ${x.p.cliente}` : 'Tarefas internas';
+    if (!grupos.has(k)) grupos.set(k, []);
+    grupos.get(k).push(x.t);
+  });
+
+  document.getElementById('at-lista').innerHTML = grupos.size
+    ? [...grupos.entries()].map(([nome, ts]) => `
+        <div class="cd-atribuir-grupo">${_esc(nome)}</div>
+        ${ts.map(t => `
+          <label class="cd-atribuir-item">
+            <input type="checkbox" value="${t.id}" ${atribuirSelecionadas.has(t.id) ? 'checked' : ''} onchange="marcarAtribuicao(this)">
+            <span>${_esc(t.name)}<small>${_esc(t.ambiente || 'Geral')} · ${_prazoTxt(t.prazo)}${t.status === 'in_progress' ? ' · em andamento' : ''}</small></span>
+          </label>`).join('')}`).join('')
+    : `<p class="cd-vazio">${q ? 'Nenhuma etapa encontrada.' : 'Todas as etapas em aberto já têm responsável.'}</p>`;
+  const n = atribuirSelecionadas.size;
+  document.getElementById('at-confirmar').textContent = n ? `Atribuir ${n}` : 'Atribuir';
+}
+window.renderAtribuirLista = renderAtribuirLista;
+
+async function confirmarAtribuicao() {
+  const c = colaboradores.find(x => x.id === colabSelecionadoId);
+  const ids = [...atribuirSelecionadas];
+  if (!c || !supabase) return;
+  if (!ids.length) { showToast('Marque ao menos uma etapa.'); return; }
+  const btn = document.getElementById('at-confirmar');
+  btn.disabled = true;
+  const { error } = await supabase.from('production_tasks')
+    .update({ assigned_to: c.id, updated_at: new Date().toISOString() })
+    .in('id', ids);
+  btn.disabled = false;
+  if (error) { console.error(error); showToast('Não foi possível atribuir as etapas.'); return; }
+  _todasTarefas().forEach(({ t }) => { if (atribuirSelecionadas.has(t.id)) t.assigned_to = c.id; });
+  fecharAtribuir();
+  _rerenderColaboradores();
+  showToast(`${ids.length} ${ids.length === 1 ? 'etapa atribuída' : 'etapas atribuídas'} a ${c.nome}.`);
+}
+window.confirmarAtribuicao = confirmarAtribuicao;
+
+/* ---- Modo colaborador (roteamento por token) ------------------------------- */
+/* Síncrono no boot: esconde o painel do gestor na hora e valida o token no
+   banco em seguida. Sem token, segue a experiência normal do gestor. */
+function verificarTokenColaborador() {
+  const params = new URLSearchParams(location.search);
+  let token = params.get('token');
+  if (!token) { try { token = sessionStorage.getItem(COLAB_SESSAO_KEY); } catch {} }
+  if (!token || !/^[A-Za-z0-9_-]{8,128}$/.test(token)) return false;
+
+  document.body.classList.add('is-colaborador');
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-meu-dia').classList.add('active');
+  _colabEstado('carregando');
+  _aplicarManifestColaborador(token);
+  _autenticarColaborador(token);
   return true;
 }
 
-function entrarModoColaborador(c) {
+function _colabEstado(tipo) {
+  const estado = document.getElementById('colab-estado');
+  const conteudo = document.getElementById('colab-conteudo');
+  if (!estado || !conteudo) return;
+  if (tipo === 'ok') { estado.hidden = true; conteudo.hidden = false; return; }
+  conteudo.hidden = true;
+  estado.hidden = false;
+  const [titulo, texto] = {
+    carregando: ['Abrindo seu painel…', 'Carregando suas tarefas.'],
+    invalido: ['Link sem acesso', 'Este link foi desativado ou não existe mais. Peça um novo link ao gestor da Alpha.'],
+    offline: ['Sem conexão', 'Não foi possível falar com o servidor. Confira a internet e abra o app de novo.'],
+    saiu: ['Você saiu', 'Para entrar de novo, abra o seu link de acesso ou o app da Alpha na tela de início.']
+  }[tipo];
+  document.getElementById('colab-estado-titulo').textContent = titulo;
+  document.getElementById('colab-estado-texto').textContent = texto;
+}
+
+async function _autenticarColaborador(token) {
+  const sb = await _esperarSupabase();
+  if (!sb) { _colabEstado('offline'); return; }
+  const { data, error } = await sb.from('colaboradores')
+    .select('*').eq('token', token).eq('ativo', true).maybeSingle();
+  if (error) { console.warn('Erro ao validar acesso:', error); _colabEstado('offline'); return; }
+  if (!data) {
+    try { sessionStorage.removeItem(COLAB_SESSAO_KEY); } catch {}
+    _colabEstado('invalido');
+    return;
+  }
+  try { sessionStorage.setItem(COLAB_SESSAO_KEY, token); } catch {}
+  entrarModoColaborador(data, token);
+}
+
+function entrarModoColaborador(c, token = c.token) {
   colabAtivo = c;
   document.body.classList.add('is-colaborador');
-  atualizarSaudacaoColab();
-  document.getElementById('colab-gestor-label').textContent = 'Falar com o gestor';
-  // Foco na view Meu Dia. switchView normal, mas com body.is-colaborador o CSS
-  // esconde tudo o resto.
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById('view-meu-dia').classList.add('active');
+  atualizarSaudacaoColab();
+  document.getElementById('colab-gestor-label').textContent = 'Falar com o gestor';
+  document.title = 'Alpha · Minhas tarefas';
+  _colabEstado('ok');
   renderMeuDiaColab();
-  history.replaceState({ view: 'meu-dia' }, '', location.pathname + '#meu-dia');
+  _prepararInstalacao();
+  // O token fica na URL: recarregar ou adicionar à tela de início mantém o acesso.
+  if (token) history.replaceState({ view: 'meu-dia' }, '', `${location.pathname}?token=${encodeURIComponent(token)}#meu-dia`);
 }
+
+/* Em produção o manifesto vem de /api/manifest com o token no start_url:
+   o ícone da Alpha na tela de início abre direto neste painel. */
+function _aplicarManifestColaborador(token) {
+  const link = document.querySelector('link[rel="manifest"]');
+  const local = /^(localhost|127\.|0\.0\.0\.0)/.test(location.hostname);
+  if (link && !local) link.href = `/api/manifest?token=${encodeURIComponent(token)}`;
+  const tema = document.querySelector('meta[name="theme-color"]');
+  if (tema) tema.content = '#191919';
+}
+
+let _colabPromptInstalar = null;
+window.addEventListener('beforeinstallprompt', e => {
+  if (!document.body.classList.contains('is-colaborador')) return;
+  e.preventDefault();
+  _colabPromptInstalar = e;
+  _prepararInstalacao();
+});
+window.addEventListener('appinstalled', () => {
+  _colabPromptInstalar = null;
+  _prepararInstalacao();
+});
+
+function _appInstalado() {
+  return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+}
+function _ehIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+function _prepararInstalacao() {
+  const btn = document.getElementById('colab-instalar');
+  if (btn) btn.hidden = _appInstalado();
+}
+
+async function instalarAppColab() {
+  if (_colabPromptInstalar) {
+    try {
+      await _colabPromptInstalar.prompt();
+      const escolha = await _colabPromptInstalar.userChoice;
+      _colabPromptInstalar = null;
+      if (escolha.outcome === 'accepted') showToast('App da Alpha instalado.');
+      _prepararInstalacao();
+      return;
+    } catch (e) {
+      // Prompt recusado pelo navegador: cai no passo a passo abaixo.
+      console.warn('Instalação nativa indisponível:', e);
+      _colabPromptInstalar = null;
+    }
+  }
+  // Sem prompt nativo (iPhone, ou navegador que não oferece): passo a passo.
+  document.getElementById('ci-passos-ios').hidden = !_ehIOS();
+  document.getElementById('ci-passos-android').hidden = _ehIOS();
+  document.getElementById('colab-instalar-modal').classList.add('open');
+}
+window.instalarAppColab = instalarAppColab;
+
+function fecharInstalarColab() {
+  document.getElementById('colab-instalar-modal').classList.remove('open');
+}
+window.fecharInstalarColab = fecharInstalarColab;
 
 function sairModoColaborador() {
   if (!confirm('Deseja sair?')) return;
-  sessionStorage.removeItem(COLAB_SESSAO_KEY);
-  document.body.classList.remove('is-colaborador');
+  try { sessionStorage.removeItem(COLAB_SESSAO_KEY); } catch {}
   colabAtivo = null;
   history.replaceState({}, '', location.pathname);
-  location.reload();
+  _colabEstado('saiu');
 }
 window.sairModoColaborador = sairModoColaborador;
 
@@ -14177,50 +15106,37 @@ function atualizarSaudacaoColab() {
 }
 
 function _tarefasColaborador() {
-  // Enquanto assigned_to não existe no schema, todo colaborador vê todas as
-  // etapas aplicáveis. Fase 5: filtrar por assigned_to = auth.uid() via RLS.
-  const todas = [];
-  (projetos || []).forEach(p => {
-    (p.tasks || []).filter(t => t.is_applicable !== false).forEach(t => {
-      todas.push({
-        id: t.id,
-        titulo: t.name,
-        projeto: p.cliente || p.codigo,
-        ambiente: t.ambiente || 'Geral',
-        prazo: t.prazo,
-        prioridade: t.prioridade || 'normal',
-        categoria: t.category || '',
-        status: t.status || 'pending',
-        notas: t.notes || '',
-        projetoId: p.id,
-        _t: t
-      });
-    });
-  });
-  return todas;
+  if (!colabAtivo) return [];
+  return _tarefasDoColab(colabAtivo.id).map(({ t, p }) => ({
+    id: t.id,
+    titulo: t.name,
+    projeto: _nomeProjeto(p),
+    origem: p ? `Projeto ${p.cliente || p.codigo}` : 'Tarefa interna',
+    ambiente: t.ambiente || 'Geral',
+    prazo: t.prazo,
+    prioridade: t.prioridade || 'normal',
+    categoria: t.category || '',
+    status: t.status || 'pending',
+    notas: t.notes || '',
+    projetoId: p ? p.id : null,
+    _t: t
+  }));
 }
 
-function _prazoTxt(dataStr) {
-  if (!dataStr) return 'Sem prazo';
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const d = new Date(dataStr + 'T00:00:00');
-  const diff = Math.round((d - hoje) / 86400000);
-  if (diff < 0) return `${Math.abs(diff)} ${Math.abs(diff)===1?'dia':'dias'} de atraso`;
-  if (diff === 0) return 'Hoje';
-  if (diff === 1) return 'Amanhã';
-  if (diff < 7) return `Em ${diff} dias`;
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-}
-
+/* Hoje e Esta semana mostram o que tem prazo no período, o que está em
+   andamento, o que não tem prazo e o que foi concluído no período. */
 function _filtroPeriodo(t) {
   if (colabFiltro === 'tudo') return true;
-  if (!t.prazo) return colabFiltro === 'tudo';
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const d = new Date(t.prazo + 'T00:00:00');
-  const diff = Math.round((d - hoje) / 86400000);
-  if (colabFiltro === 'hoje') return diff <= 0;
-  if (colabFiltro === 'semana') return diff <= 7;
-  return true;
+  const dias = colabFiltro === 'hoje' ? 0 : 7;
+  if (t.status === 'completed') {
+    const c = t._t.completed_at;
+    if (!c) return false;
+    const limite = _hojeZero(); limite.setDate(limite.getDate() - dias);
+    return new Date(c) >= limite;
+  }
+  if (t.status === 'in_progress' || !t.prazo) return true;
+  const diff = Math.round((new Date(t.prazo + 'T00:00:00') - _hojeZero()) / 86400000);
+  return diff <= dias;
 }
 
 function _escolherFoco(tarefas) {
@@ -14230,6 +15146,7 @@ function _escolherFoco(tarefas) {
 }
 
 function renderMeuDiaColab() {
+  if (!colabAtivo) return;
   const tarefas = _tarefasColaborador().filter(_filtroPeriodo);
   const focoTarefa = _escolherFoco(tarefas);
 
@@ -14257,7 +15174,7 @@ function renderMeuDiaColab() {
       <div class="colab-section-label">Foco agora</div>
       <div class="colab-focus-card ${emAndamento ? 'in-progress' : ''}" onclick="abrirTarefaColab('${focoTarefa.id}')">
         ${badge}
-        <div class="colab-focus-project">Projeto ${_esc(focoTarefa.projeto)} · ${_esc(focoTarefa.ambiente)}</div>
+        <div class="colab-focus-project">${_esc(focoTarefa.origem)} · ${_esc(focoTarefa.ambiente)}</div>
         <h2 class="colab-focus-title">${_esc(focoTarefa.titulo)}</h2>
         <div class="colab-focus-meta">
           <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${_prazoTxt(focoTarefa.prazo)}</span>
@@ -14273,11 +15190,13 @@ function renderMeuDiaColab() {
   // Lista agrupada por projeto (exclui a do foco)
   const listaEl = document.getElementById('colab-lista');
   const outras = tarefas.filter(t => !focoTarefa || t.id !== focoTarefa.id);
-  if (outras.length === 0 && !focoTarefa) {
-    listaEl.innerHTML = `
+  if (outras.length === 0) {
+    listaEl.innerHTML = focoTarefa ? '' : `
       <div class="colab-empty">
         <div class="colab-empty-title">Tudo em dia.</div>
-        <div class="colab-empty-text">Sem tarefas por aqui no momento. Bom trabalho.</div>
+        <div class="colab-empty-text">${colabFiltro === 'tudo'
+          ? 'Nenhuma tarefa atribuída a você no momento.'
+          : 'Nada para este período. Veja “Tudo” para as próximas tarefas.'}</div>
       </div>`;
     return;
   }
@@ -14296,7 +15215,7 @@ function renderMeuDiaColab() {
           <div class="colab-project-count">${pend} pendentes de ${arr.length}</div>
         </div>
         ${arr.map(t => `
-          <div class="colab-task" data-status="${t.status}" onclick="abrirTarefaColab('${t.id}')">
+          <div class="colab-task" data-status="${t.status}" role="button" tabindex="0" onclick="abrirTarefaColab('${t.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();abrirTarefaColab('${t.id}')}">
             <div class="colab-task-mark"></div>
             <div class="colab-task-body">
               <div class="colab-task-title">${_esc(t.titulo)}</div>
@@ -14317,8 +15236,10 @@ window.renderMeuDiaColab = renderMeuDiaColab;
 
 function filtrarMeuDia(f) {
   colabFiltro = f;
-  document.querySelectorAll('.colab-filter').forEach(b =>
-    b.classList.toggle('active', b.dataset.colabFilter === f));
+  document.querySelectorAll('.colab-filter').forEach(b => {
+    b.classList.toggle('active', b.dataset.colabFilter === f);
+    b.setAttribute('aria-pressed', b.dataset.colabFilter === f);
+  });
   renderMeuDiaColab();
 }
 window.filtrarMeuDia = filtrarMeuDia;
@@ -14327,12 +15248,12 @@ function abrirTarefaColab(id) {
   const t = _tarefasColaborador().find(x => x.id === id);
   if (!t) return;
   colabTarefaAtual = t;
-  document.getElementById('ct-project').textContent = `Projeto ${t.projeto}`;
+  document.getElementById('ct-project').textContent = t.origem;
   document.getElementById('ct-title').textContent = t.titulo;
   document.getElementById('ct-room').textContent = t.ambiente || '—';
   document.getElementById('ct-deadline').textContent = _prazoTxt(t.prazo);
   document.getElementById('ct-priority').innerHTML = t.prioridade === 'alta'
-    ? '<span class="colab-priority-high">Alta</span>' : 'Normal';
+    ? '<span class="colab-priority-high">Alta</span>' : t.prioridade === 'baixa' ? 'Baixa' : 'Normal';
   document.getElementById('ct-category').textContent = t.categoria || 'Sem categoria';
   const notas = document.getElementById('ct-notes');
   if (t.notas) { notas.textContent = t.notas; notas.hidden = false; } else { notas.hidden = true; }
@@ -14374,43 +15295,25 @@ function fecharAvisoColab() {
 window.fecharAvisoColab = fecharAvisoColab;
 
 async function alterarStatusColab(taskId, novoStatus) {
-  // Guardrail "só uma em andamento por vez" fica desligado até a Fase 5, quando
-  // production_tasks ganhar assigned_to. Hoje o colaborador enxerga todas as
-  // etapas do sistema, então o guardrail acha qualquer coisa em andamento no
-  // banco (do gestor ou de outros) e bloqueia. Volta quando a coluna existir.
-  // TODO(fase-5): _tarefasColaborador() já filtra por assigned_to = auth.uid();
-  //   reativar o bloco abaixo trocando a fonte de dados.
-  /*
+  // Uma tarefa em andamento por vez, contando só as tarefas deste colaborador.
   if (novoStatus === 'in_progress') {
     const jaAndamento = _tarefasColaborador().find(t => t.status === 'in_progress' && t.id !== taskId);
     if (jaAndamento) {
+      fecharTarefaColab();
       document.getElementById('colab-warn-name').textContent = `"${jaAndamento.titulo}"`;
       document.getElementById('colab-warn-modal').classList.add('open');
       return;
     }
   }
-  */
-  // Reutiliza a função do gestor — mesmo banco, mesmo status.
-  const t = _tarefasColaborador().find(x => x.id === taskId);
-  if (!t) return;
   fecharTarefaColab();
-  try {
-    await alterarStatusTarefa(t.projetoId, t.id, novoStatus);
-  } catch (e) {
-    console.warn('Falha ao alterar status como colaborador:', e);
-    showToast('Não foi possível salvar. Tente de novo.');
-    return;
-  }
-  renderMeuDiaColab();
+  const ok = await _atualizarTarefa(taskId, { status: novoStatus });
+  if (!ok) return;
   const msg = { in_progress: 'Tarefa iniciada', completed: 'Concluída. Bom trabalho.', pending: 'Voltou para pendente' }[novoStatus];
   if (msg) showToast(msg);
 }
 window.alterarStatusColab = alterarStatusColab;
 
 function colabFalarGestor() {
-  // Sem tabela de gestor ainda: usa o telefone do próprio colab pra levar
-  // o WhatsApp aberto — o colab digita quem é. Fase 5: usar telefone real
-  // do gestor logado em profiles.
   const txt = encodeURIComponent(`Oi, sou ${colabAtivo?.nome || 'colaborador'} do time Alpha. Preciso falar sobre uma tarefa.`);
   window.open(`https://wa.me/?text=${txt}`, '_blank', 'noopener');
 }
@@ -14423,30 +15326,24 @@ window.colabFalarGestor = colabFalarGestor;
    ============================================================================ */
 
 /* ---- BASE FIXA DA CONTRATADA ------------------------------------------------
-   SUBSTITUA pelos dados reais da empresa. Enquanto qualquer valor tiver
-   colchetes, o documento sai marcado como MINUTA e não deve ser assinado. */
+   Dados do Contrato 2.0 Alpha. Se algum valor voltar a ter colchetes, o
+   documento sai marcado como MINUTA e não deve ser assinado. */
 const CONTRATADA = {
-  nomeFantasia: 'Alpha Móveis Planejados',
-  razaoSocial: '[RAZÃO SOCIAL DA CONTRATADA]',
-  cnpj: '[CNPJ DA CONTRATADA]',
-  sede: '[ENDEREÇO COMPLETO DA SEDE]',
-  representante: '[NOME DO REPRESENTANTE LEGAL]',
-  qualificacao: '[nacionalidade, estado civil, profissão]',
-  representanteCpf: '[CPF DO REPRESENTANTE]',
-  representanteEndereco: '[ENDEREÇO DO REPRESENTANTE]',
-  instagram: '[@INSTAGRAM DA EMPRESA]',
-  foro: '[CIDADE/UF DA COMARCA]'
+  nomeFantasia: 'Alpha Planejados',
+  razaoSocial: 'ALPHA PLANEJADOS LTDA',
+  cnpj: '36.720.446/0001-38',
+  endereco: 'Rua CC, 332 – Arvoredo – Contagem/MG',
+  telefones: '(31) 99772-7693 / (31) 98790-6990',
+  foro: 'Contagem/MG'
 };
 
-/* ---- CONDIÇÕES PADRÃO DAS CLÁUSULAS -----------------------------------------
-   Texto sugerido. Revise com o advogado da empresa antes do primeiro uso.
-   Os números abaixo são decisão comercial: ajuste aqui, não no texto. */
+/* ---- CONDIÇÕES DAS CLÁUSULAS -----------------------------------------------
+   Números do Contrato 2.0 Alpha. Ajuste aqui, não no texto. */
 const CONTRATO_BASE = {
-  garantia: '1 (um) ano',              // garantia de fabricação e montagem
-  multaRescisao: '10% (dez por cento)', // rescisão imotivada após início da produção
-  multaAtraso: '2% (dois por cento)',   // teto do CDC, art. 52, §1º
-  jurosAtraso: '1% (um por cento) ao mês',
-  vias: '2 (duas)'
+  garantiaMontagem: '5 (cinco) anos',    // montagem e instalação
+  garantiaComponentes: '1 (um) ano',     // ferragens, componentes eletrônicos e serviços diversos
+  multaAtraso: '2%',
+  jurosAtraso: '1% ao mês'
 };
 
 const CONTRATO_LOGO_SVG = "<svg class=\"doc-logo\" viewBox=\"70 38 458 130\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"Alpha Móveis Planejados\"><path class=\"m\" d=\"M193.94,43.16l-43.41,75.19-19-15.95-19,15.95-43.41-75.19v12.18l.12.21h-.12v107.17l41.76-35.04,20.65,35.77h0s0,0,0,0h0s0,0,0,0l20.65-35.77,41.76,35.04V55.55h-.12l.12-.21v-12.18ZM75.21,149.66v-83.77l32.58,56.43-32.58,27.34ZM131.53,151.26l-15.91-27.56,15.91-13.35,15.91,13.35-15.91,27.56ZM187.86,149.66l-32.58-27.34,32.58-56.43v83.77Z\"/><path class=\"w\" d=\"M240.95,73.26h7.28l13.28,33.09h-7.28l-2.13-5.25h-15.03l-2.08,5.25h-7.28l13.24-33.09ZM249.65,94.96l-5.06-12.62-5.01,12.62h10.07Z\"/><path class=\"w\" d=\"M262.93,106.35v-35.46h6.48v35.46h-6.48Z\"/><path class=\"w\" d=\"M274.14,115.81v-33.09h6.48v3.21c1.23-2.51,3.5-3.92,7.28-3.92,6.38,0,10.59,4.3,10.59,12.53s-4.82,12.53-10.73,12.53c-3.74,0-5.91-1.61-7.14-4.07v12.81h-6.48ZM286.24,88.01c-3.69,0-5.63,2.22-5.63,6.52s1.94,6.52,5.63,6.52c3.45,0,5.53-2.27,5.53-6.52s-1.56-6.52-5.53-6.52Z\"/><path class=\"w\" d=\"M302.27,106.35v-35.46h6.48v15.03c1.56-2.46,4.11-3.92,7.9-3.92,6.57,0,9.98,2.88,9.98,11.3v13.05h-6.48v-12.43c0-3.69-1.09-5.91-5.44-5.91-3.88,0-5.96,2.22-5.96,6.52v11.82h-6.48Z\"/><path class=\"w\" d=\"M342.07,87.35c-2.32,0-5.48.24-5.48,3.55h-5.82c0-6.48,4.35-8.89,11.39-8.89,8.08,0,12.06,2.27,12.06,10.4v13.95h-6.43v-3.17c-.94,2.32-3.12,3.88-8.13,3.88-5.72,0-10.21-1.56-10.21-7.52,0-4.87,3.78-6.71,9.93-7.33l8.42-.76v-.09c0-3.64-3.36-4.02-5.72-4.02ZM340.61,96.66c-2.65.24-4.44.9-4.44,2.79,0,1.51,1.47,2.27,4.54,2.27,4.68,0,6.9-1.84,7.09-3.4v-2.36l-7.19.71Z\"/><path class=\"w\" d=\"M370.77,73.26h2.36l15.93,29.64,15.93-29.64h2.36v33.09h-2.36v-28.08l-15.08,28.08h-1.7l-15.08-28.08v28.08h-2.36v-33.09Z\"/><path class=\"w\" d=\"M424.01,82.01c8.7,0,12.91,4.3,12.91,12.53s-4.21,12.53-12.91,12.53-12.86-4.3-12.86-12.53,4.16-12.53,12.86-12.53ZM424.01,104.7c6.95,0,10.31-3.5,10.31-10.16s-3.36-10.16-10.31-10.16-10.26,3.5-10.26,10.16,3.31,10.16,10.26,10.16ZM426.09,68.39l1.94,1.37-6.38,8.65-1.56-1.09,6-8.94Z\"/><path class=\"w\" d=\"M437.39,82.71h2.6l9.12,20.66,9.08-20.66h2.6l-10.4,23.64h-2.6l-10.4-23.64Z\"/><path class=\"w\" d=\"M485.85,95.43h-21.98c.33,6.9,4.16,9.27,10.54,9.27,5.11,0,8.79-2.93,8.79-6.43l2.36.05c0,5.2-3.92,8.75-11.2,8.75-8.79,0-13.1-4.35-13.1-12.58s4.35-12.48,12.25-12.48c8.79,0,12.34,4.49,12.34,12.48v.95ZM483.2,93.07c-.43-6.43-4.16-8.7-9.6-8.7-5.11,0-9.13,2.93-9.69,8.7h19.29Z\"/><path class=\"w\" d=\"M490.81,73.16c1.66,0,2.36.76,2.36,2.36s-.71,2.36-2.36,2.36-2.36-.8-2.36-2.36.71-2.36,2.36-2.36ZM489.63,82.71h2.36v23.64h-2.36v-23.64Z\"/><path class=\"w\" d=\"M506.41,82.01c7.75,0,11.58,2.6,11.58,8.75h-2.36c0-4.92-3.59-6.38-9.22-6.38-6.67,0-7.9,2.03-7.9,3.88,0,1.99,1.84,3.55,8.75,5.06,7.04,1.56,10.92,2.51,10.92,7.33s-3.64,6.43-10.5,6.43c-8.27,0-11.91-2.6-11.91-8.75h2.36c0,4.77,4.16,6.38,9.5,6.38,6,0,7.94-1.61,7.94-3.92,0-3.5-3.36-3.64-9.36-5.01-5.15-1.18-10.31-2.93-10.31-7.57,0-4.35,4.44-6.19,10.5-6.19Z\"/></svg>";
@@ -14459,10 +15356,8 @@ function _ctHojeISO() {
 function _ctPadrao() {
   return {
     nome: '',
-    nacionalidade: 'brasileiro(a)',
-    estadoCivil: '',
-    cpf: '',
-    email: '',
+    cpf: '',        // CPF ou CNPJ
+    telefone: '',
     endereco: '',
     ambientes: [
       { titulo: 'COZINHA PLANEJADA', descricao: 'Armários inferiores e superiores em MDF, com portas e frentes de gaveta conforme projeto, medidas e acabamentos aprovados pelo CONTRATANTE.' }
@@ -14554,20 +15449,23 @@ function _ctBaseIncompleta() {
   return Object.values(CONTRATADA).some(v => String(v).includes('['));
 }
 
-/* ---- Template do documento ------------------------------------------------- */
+/* ---- Template do documento -------------------------------------------------
+   Texto do Contrato 2.0 Alpha. Os dados variáveis entram nos lugares que o
+   modelo deixa em branco; ambientes e quadro financeiro entram como parte do
+   projeto e da proposta que o próprio contrato declara integrantes. */
 function _corpoContratoHtml() {
   const d = contratoData;
   const valor = _ctValorNumero();
   const prazoN = parseInt(d.prazo, 10);
   const dataTxt = _ctDataExtenso(d.data);
-  const handleOk = !CONTRATADA.instagram.includes('[');
+  const dataCurta = d.data ? d.data.split('-').reverse().join('/') : '____/____/________';
 
   const valorTxt = valor
     ? `<strong>${_ctMoeda(valor)}</strong> (${_ctExtensoReais(valor)})`
     : '<span class="doc-pend">[valor total]</span>';
   const prazoTxt = prazoN > 0
-    ? `<strong>${prazoN} (${_ctExtensoInt(prazoN)}) dias úteis</strong>`
-    : '<span class="doc-pend">[prazo em dias úteis]</span>';
+    ? `<strong>${prazoN} (${_ctExtensoInt(prazoN)})</strong>`
+    : '<span class="doc-pend">[prazo]</span>';
 
   const ambientes = d.ambientes.filter(a => (a.titulo || '').trim() || (a.descricao || '').trim());
   const ambientesHtml = ambientes.length
@@ -14587,12 +15485,12 @@ function _corpoContratoHtml() {
   return `
     <header class="doc-band">
       ${CONTRATO_LOGO_SVG}
-      ${handleOk ? `<span class="doc-handle">${_esc(CONTRATADA.instagram)}</span>` : ''}
+      <span class="doc-handle">${_esc(CONTRATADA.telefones)}</span>
     </header>
 
     <div class="doc-corpo">
       <div class="doc-titulo-bloco">
-        <h1 class="doc-titulo">Contrato de<br>móveis planejados</h1>
+        <h1 class="doc-titulo">Contrato de fornecimento,<br>fabricação e instalação<br>de móveis planejados</h1>
         <div class="doc-emissao"><b>Data de emissão</b>${dataTxt ? _esc(dataTxt) : '<span class="doc-pend">[data]</span>'}</div>
       </div>
 
@@ -14602,82 +15500,94 @@ function _corpoContratoHtml() {
         Os dados da contratada ainda não foram configurados no sistema. Os trechos destacados precisam ser preenchidos antes do envio.
       </div>` : ''}
 
-      ${clausula('', 'Identificação das partes', `
-        <p><strong>CONTRATANTE:</strong> ${_ctCampo(d.nome, 'nome completo')}, ${_ctCampo(d.nacionalidade, 'nacionalidade')}, ${_ctCampo(d.estadoCivil, 'estado civil')}, inscrito(a) no CPF sob o nº ${_ctCampo(d.cpf, 'CPF')}, e-mail ${_ctCampo(d.email, 'e-mail')}, residente e domiciliado(a) em ${_ctCampo(d.endereco, 'endereço completo')}.</p>
-        <p><strong>CONTRATADA:</strong> ${_ctBase(CONTRATADA.razaoSocial)}, nome fantasia ${_esc(CONTRATADA.nomeFantasia)}, inscrita no CNPJ sob o nº ${_ctBase(CONTRATADA.cnpj)}, com sede em ${_ctBase(CONTRATADA.sede)}, neste ato representada por ${_ctBase(CONTRATADA.representante)}, ${_ctBase(CONTRATADA.qualificacao)}, inscrito(a) no CPF sob o nº ${_ctBase(CONTRATADA.representanteCpf)}, residente em ${_ctBase(CONTRATADA.representanteEndereco)}.</p>
-        <p>As partes acima identificadas têm, entre si, justo e acertado o presente contrato, que se regerá pelas cláusulas e condições seguintes.</p>
+      ${clausula('01', 'Das partes', `
+        <p><strong>CONTRATADA:</strong> ${_ctBase(CONTRATADA.razaoSocial)}, CNPJ ${_ctBase(CONTRATADA.cnpj)}, com endereço na ${_ctBase(CONTRATADA.endereco)}, telefones ${_ctBase(CONTRATADA.telefones)}.</p>
+        <p><strong>CONTRATANTE:</strong> ${_ctCampo(d.nome, 'nome completo')}, CPF/CNPJ ${_ctCampo(d.cpf, 'CPF/CNPJ')}, endereço ${_ctCampo(d.endereco, 'endereço')}, telefone ${_ctCampo(d.telefone, 'telefone')}.</p>
       `)}
 
-      ${clausula('01', 'Objeto', `
-        <p>O presente contrato tem por objeto a fabricação, o fornecimento e a instalação, pela CONTRATADA, dos móveis planejados descritos na Cláusula 05, conforme projeto, medidas e acabamentos previamente apresentados e aprovados pelo CONTRATANTE.</p>
-      `)}
-
-      ${clausula('02', 'Obrigações do contratante', `
-        <ol class="doc-lista">
-          <li>Efetuar os pagamentos nos valores, prazos e condições estabelecidos na Cláusula 07.</li>
-          <li>Aprovar o projeto final antes do início da produção. Alterações solicitadas após a aprovação poderão gerar custo adicional e novo prazo, a serem acordados por escrito.</li>
-          <li>Garantir o acesso da equipe da CONTRATADA ao local da instalação nas datas combinadas, com o ambiente limpo, desocupado e com as obras civis, elétricas, hidráulicas, de gesso e de pintura concluídas.</li>
-          <li>Informar previamente a localização de tubulações e fiações embutidas nas paredes, pisos e tetos onde haverá fixação dos móveis.</li>
-        </ol>
-      `)}
-
-      ${clausula('03', 'Obrigações da contratada', `
-        <ol class="doc-lista">
-          <li>Fabricar os móveis conforme o projeto aprovado, com materiais de primeira qualidade e mão de obra especializada.</li>
-          <li>Entregar e instalar os móveis dentro do prazo da Cláusula 06, salvo atrasos causados pelo CONTRATANTE, por terceiros por ele contratados, ou por caso fortuito e força maior.</li>
-          <li>Entregar os ambientes limpos ao final da instalação, com a retirada das sobras de material e embalagens.</li>
-          <li>Manter o CONTRATANTE informado sobre o andamento da produção e da instalação.</li>
-        </ol>
-      `)}
-
-      ${clausula('04', 'Garantias', `
-        <p>A CONTRATADA garante os móveis contra defeitos de fabricação e de montagem pelo prazo de ${_esc(CONTRATO_BASE.garantia)}, contado da data de conclusão da instalação. Ferragens, puxadores, corrediças e demais componentes de terceiros seguem a garantia dos respectivos fabricantes.</p>
-        <p>A garantia não cobre danos causados por mau uso, excesso de peso, umidade, infiltrações, exposição direta ao sol, limpeza com produtos inadequados ou intervenções e modificações feitas por terceiros.</p>
-      `)}
-
-      ${clausula('05', 'Serviço a entregar', `
-        <p>A CONTRATADA fornecerá e instalará os seguintes ambientes:</p>
+      ${clausula('02', 'Do objeto e do escopo', `
+        <p>O presente contrato tem por objeto o fornecimento, fabricação e instalação de móveis planejados personalizados, conforme projeto aprovado pelo CONTRATANTE e especificações constantes da proposta comercial e/ou anexos integrantes deste instrumento.</p>
+        <p>O escopo contratado compreende exclusivamente os móveis e serviços expressamente descritos no projeto aprovado. Eletrodomésticos, objetos decorativos, obras civis, instalações elétricas, hidráulicas, gás e demais serviços de terceiros não estão incluídos, salvo quando expressamente indicados na proposta.</p>
+        <h3 class="doc-sub">Ambientes contratados</h3>
         ${ambientesHtml}
-        <p>Itens não descritos acima não integram o objeto deste contrato e, se solicitados, serão orçados à parte.</p>
       `, true)}
 
-      ${clausula('06', 'Prazo', `
-        <p>A CONTRATADA se compromete a concluir a entrega e a instalação em até ${prazoTxt}, contados a partir da aprovação do projeto final e da confirmação do pagamento da entrada, o que ocorrer por último.</p>
-        <p>O prazo fica suspenso enquanto houver pendência de responsabilidade do CONTRATANTE, como obras inacabadas, ambiente indisponível ou alteração de projeto.</p>
+      ${clausula('03', 'Da aprovação do projeto e alterações', `
+        <p>A aprovação do projeto pelo CONTRATANTE confirma as dimensões, quantidade e disposição dos módulos, divisões internas, portas, gavetas, ferragens, materiais, cores, acabamentos e demais especificações nele apresentadas, passando o projeto aprovado a ser a referência para a fabricação.</p>
+        <p>Qualquer alteração solicitada após a aprovação deverá ser previamente analisada pela CONTRATADA e poderá gerar alteração de preço e prazo. A execução de alteração somente ocorrerá após sua aprovação e formalização por escrito.</p>
+        <p>Acordos, solicitações ou alterações realizados verbalmente não modificam o escopo contratado enquanto não forem formalizados por escrito.</p>
       `)}
 
-      ${clausula('07', 'Pagamento', `
-        <p>Pelo objeto deste contrato, o CONTRATANTE pagará à CONTRATADA o valor total de ${valorTxt}, nas seguintes condições: ${_ctCampo(d.pagamento, 'condições de pagamento')}</p>
-        <p>Os pagamentos poderão ser realizados via PIX, na chave ${_ctCampo(d.pix, 'chave PIX')}.</p>
-        <p>O atraso no pagamento de qualquer parcela sujeitará o CONTRATANTE à multa de ${_esc(CONTRATO_BASE.multaAtraso)} sobre o valor em atraso, acrescida de juros de ${_esc(CONTRATO_BASE.jurosAtraso)}.</p>
+      ${clausula('04', 'Da medição, produção e prazo', `
+        <p>Após a formalização da contratação, a CONTRATADA realizará a medição técnica do ambiente quando aplicável. O prazo de produção terá início a partir do primeiro dia útil subsequente à conclusão da medição técnica e ao cumprimento das condições comerciais necessárias ao início da produção.</p>
+        <p>O prazo estimado de entrega/produção será de ${prazoTxt} dias úteis, conforme proposta comercial. O cronograma poderá ser reprogramado quando houver atraso de pagamento, alteração de projeto, indisponibilidade do ambiente, obras ou serviços de terceiros, ausência de condições técnicas para montagem, informações incorretas fornecidas pelo CONTRATANTE ou caso fortuito/força maior.</p>
+        <p>Após o início da fabricação, eventual necessidade de substituição ou reparo de componentes poderá demandar prazo adicional para conclusão da montagem.</p>
       `)}
 
-      ${clausula('08', 'Multa', `
-        <p>Em caso de rescisão imotivada por qualquer das partes após o início da produção, a parte que der causa pagará à outra multa de ${_esc(CONTRATO_BASE.multaRescisao)} sobre o valor total do contrato, sem prejuízo do ressarcimento dos materiais já adquiridos e da produção já executada, devidamente comprovados.</p>
+      ${clausula('05', 'Da entrega e montagem', `
+        <p>A montagem será realizada pela CONTRATADA no local previamente informado e dentro do cronograma acordado. O CONTRATANTE deverá disponibilizar o ambiente livre de obras e em condições adequadas para a instalação.</p>
+        <p>O CONTRATANTE é responsável por informar a existência e localização de instalações elétricas, hidráulicas, gás, aquecimento, refrigeração e demais interferências existentes no local, bem como fornecer corretamente as medidas e modelos dos equipamentos que serão embutidos.</p>
+        <p>A CONTRATADA não será responsável por danos ou impossibilidade de instalação decorrentes de paredes, pisos ou estruturas inadequadas, umidade, infiltrações, desníveis incompatíveis, instalações ocultas não informadas ou intervenções realizadas por terceiros.</p>
+        <p>Peças eventualmente utilizadas para ajustes de montagem e que, ao final, não sejam necessárias poderão ser recolhidas pela CONTRATADA, sem geração de crédito ao CONTRATANTE.</p>
+      `)}
+
+      ${clausula('06', 'Das responsabilidades do contratante', `
+        <p>São responsabilidades do CONTRATANTE: disponibilizar o ambiente nas condições acordadas; permitir o acesso da equipe nos dias e horários programados; fornecer informações técnicas corretas; proteger ou retirar objetos que possam ser danificados durante a montagem; e comunicar previamente qualquer condição do imóvel que possa interferir na execução.</p>
+        <p>Danos aos móveis causados por terceiros que estejam realizando obras, reformas, instalações ou outros serviços no imóvel antes, durante ou após a montagem serão de responsabilidade do CONTRATANTE, ressalvados danos comprovadamente causados pela CONTRATADA.</p>
+      `)}
+
+      ${clausula('07', 'Do preço, pagamento e inadimplemento', `
+        <p>O valor, forma e datas de pagamento serão aqueles definidos na proposta comercial e/ou quadro financeiro integrante deste contrato.</p>
+        <div class="doc-quadro">
+          <div class="doc-quadro-titulo">Quadro financeiro</div>
+          <div class="doc-quadro-linha"><span>Valor total</span><div>${valorTxt}</div></div>
+          <div class="doc-quadro-linha"><span>Condições</span><div>${_ctCampo(d.pagamento, 'condições de pagamento')}</div></div>
+          ${String(d.pix || '').trim() ? `<div class="doc-quadro-linha"><span>Chave PIX</span><div>${_esc(d.pix.trim())}</div></div>` : ''}
+        </div>
+        <p>O atraso no pagamento sujeitará o CONTRATANTE à multa de ${_esc(CONTRATO_BASE.multaAtraso)} sobre o valor em atraso, acrescida de juros de mora de ${_esc(CONTRATO_BASE.jurosAtraso)} e atualização monetária pelo índice previsto na proposta ou, na sua ausência, pelo índice contratualmente adotado pela CONTRATADA.</p>
+        <p>Enquanto houver inadimplência, a CONTRATADA poderá suspender a produção, entrega, montagem ou assistência, reprogramando o cronograma após a regularização dos valores pendentes, sem prejuízo dos encargos previstos neste contrato.</p>
+        <p>A tolerância eventual quanto a atrasos ou descumprimentos não implicará renúncia ou alteração das condições contratadas.</p>
+      `)}
+
+      ${clausula('08', 'Do cancelamento e da rescisão', `
+        <p>Por se tratar de projeto personalizado e produzido conforme especificações do CONTRATANTE, eventual solicitação de cancelamento após a aprovação deverá ser formalizada por escrito e será analisada de acordo com a etapa de execução já realizada.</p>
+        <p>Em caso de cancelamento, poderão ser devidos os valores correspondentes aos serviços já executados, materiais adquiridos, peças produzidas, custos de terceiros e demais despesas não recuperáveis decorrentes da contratação, sem prejuízo de outras obrigações previstas neste instrumento.</p>
+        <p>A rescisão por inadimplemento poderá ocorrer após a comunicação ao CONTRATANTE e não afastará a obrigação de pagamento dos valores já vencidos e dos custos decorrentes da execução da contratação.</p>
+      `)}
+
+      ${clausula('09', 'Da garantia e assistência técnica', `
+        <p>A CONTRATADA prestará assistência técnica para defeitos de fabricação e falhas decorrentes de sua própria montagem, observadas as condições e prazos estabelecidos neste contrato e na proposta comercial.</p>
+        <p>Conforme padrão atualmente utilizado pela CONTRATADA, a garantia da montagem e instalação é de ${_esc(CONTRATO_BASE.garantiaMontagem)}, enquanto ferragens, componentes eletrônicos e serviços diversos possuem garantia de ${_esc(CONTRATO_BASE.garantiaComponentes)}, ressalvadas as condições específicas dos respectivos fabricantes.</p>
+        <p>A garantia não abrange danos decorrentes de mau uso, uso inadequado, água ou umidade excessiva, exposição inadequada ao sol ou calor, desgaste natural, alterações realizadas por terceiros, movimentação ou desmontagem indevida, infestação de insetos ou outras causas externas à fabricação e montagem da CONTRATADA.</p>
+      `)}
+
+      ${clausula('10', 'Disposições gerais e foro', `
+        <p>O projeto aprovado, a proposta comercial e seus anexos integram este contrato para todos os fins. Em caso de divergência, deverá ser considerada a documentação formalmente aprovada pelas partes.</p>
+        <p>A CONTRATADA não se responsabiliza por compromissos assumidos verbalmente que não estejam formalizados nos documentos da contratação.</p>
+        <p>As partes elegem o Foro da Comarca de ${_ctBase(CONTRATADA.foro)} para dirimir questões decorrentes deste contrato, ressalvadas as regras legais aplicáveis à relação contratual.</p>
       `)}
 
       <div class="doc-fecho">
-      ${clausula('09', 'Foro', `
-        <p>Fica eleito o foro da comarca de ${_ctBase(CONTRATADA.foro)} para dirimir quaisquer questões oriundas deste contrato.</p>
-        <p>E, por estarem justas e contratadas, as partes assinam o presente instrumento em ${_esc(CONTRATO_BASE.vias)} vias de igual teor e forma.</p>
-        <p class="doc-local">${_ctBase(CONTRATADA.foro)}, ${dataTxt ? _esc(dataTxt) : '<span class="doc-pend">[data]</span>'}.</p>
+      ${clausula('11', 'Assinaturas', `
+        <p>E, por estarem de acordo, as partes assinam o presente instrumento.</p>
       `)}
 
       <div class="doc-assinaturas">
         <div class="doc-ass">
           <div class="linha"></div>
-          <strong>${_ctCampo(d.nome, 'nome do contratante')}</strong>
-          Contratante<br>CPF ${_ctCampo(d.cpf, 'CPF')}
+          <strong>Contratante</strong>
+          Nome: ${_ctCampo(d.nome, 'nome do contratante')}<br>CPF/CNPJ: ${_ctCampo(d.cpf, 'CPF/CNPJ')}
         </div>
         <div class="doc-ass">
           <div class="linha"></div>
-          <strong>${_ctBase(CONTRATADA.razaoSocial)}</strong>
-          Contratada<br>${_ctBase(CONTRATADA.representante)}
+          <strong>Contratada – ${_ctBase(CONTRATADA.razaoSocial)}</strong>
+          Representante: ______________________________
         </div>
       </div>
+      <p class="doc-data-ass">Data: ${_esc(dataCurta)}</p>
 
       <footer class="doc-rodape">
-        <div>${_esc(CONTRATADA.nomeFantasia)}${CONTRATADA.cnpj.includes('[') ? '' : ` · CNPJ ${_esc(CONTRATADA.cnpj)}`}<br>${dataTxt ? _esc(dataTxt) : ''}</div>
+        <div>${_ctBase(CONTRATADA.razaoSocial)} · CNPJ ${_ctBase(CONTRATADA.cnpj)}<br>${_ctBase(CONTRATADA.endereco)} · ${_ctBase(CONTRATADA.telefones)}</div>
         ${CONTRATO_LOGO_SVG}
       </footer>
       </div>
@@ -14714,8 +15624,8 @@ function _cssContrato() {
   padding: 11mm 0 6mm; margin-bottom: 6mm; border-bottom: .3mm solid var(--d-line);
 }
 .doc-folha .doc-titulo {
-  margin: 0; font-family: 'Archivo', Arial, sans-serif; font-weight: 800; font-size: 26pt;
-  line-height: .98; letter-spacing: -.035em; text-transform: uppercase; color: var(--d-band);
+  margin: 0; font-family: 'Archivo', Arial, sans-serif; font-weight: 800; font-size: 19pt;
+  line-height: 1.02; letter-spacing: -.03em; text-transform: uppercase; color: var(--d-band);
 }
 .doc-folha .doc-emissao { text-align: right; white-space: nowrap; font-family: 'Archivo', Arial, sans-serif; font-size: 8.5pt; color: var(--d-mute); }
 .doc-folha .doc-emissao b { display: block; margin-bottom: 1mm; font-size: 6.8pt; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--d-ink); }
@@ -14751,6 +15661,22 @@ function _cssContrato() {
   letter-spacing: .06em; text-transform: uppercase; color: var(--d-accent); break-after: avoid;
 }
 .doc-folha .doc-ambiente p { margin: 0; white-space: pre-line; }
+.doc-folha .doc-sub {
+  margin: 4mm 0 2.4mm; font-family: 'Archivo', Arial, sans-serif; font-weight: 700; font-size: 7.6pt;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--d-mute); break-after: avoid;
+}
+.doc-folha .doc-quadro {
+  margin: 0 0 3mm; padding: 3mm 4.5mm; background: var(--d-cream);
+  border-left: .8mm solid var(--d-accent); border-radius: 0 1.5mm 1.5mm 0; break-inside: avoid;
+}
+.doc-folha .doc-quadro-titulo {
+  margin-bottom: 1.6mm; font-family: 'Archivo', Arial, sans-serif; font-weight: 700; font-size: 7.6pt;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--d-accent);
+}
+.doc-folha .doc-quadro-linha { display: grid; grid-template-columns: 26mm 1fr; gap: 4mm; padding: 1.2mm 0; border-top: .2mm solid var(--d-line); }
+.doc-folha .doc-quadro-linha:first-of-type { border-top: 0; }
+.doc-folha .doc-quadro-linha span { font-family: 'Archivo', Arial, sans-serif; font-size: 8pt; color: var(--d-mute); padding-top: .4mm; }
+.doc-folha .doc-data-ass { margin: 8mm 0 0; text-align: center; font-family: 'Archivo', Arial, sans-serif; font-size: 9pt; color: var(--d-ink); }
 .doc-folha .doc-local { margin-top: 5mm; text-align: right; }
 /* Última cláusula, assinaturas e rodapé nunca se separam: uma página só com
    as assinaturas, solta do texto que elas assinam, não serve num contrato. */
@@ -14956,7 +15882,7 @@ function _ctResumo() {
   const valor = _ctValorNumero();
   const ambientes = d.ambientes.map(a => (a.titulo || '').trim()).filter(Boolean);
   return [
-    `Contrato de móveis planejados · ${CONTRATADA.nomeFantasia}`,
+    `Contrato de fornecimento, fabricação e instalação de móveis planejados · ${CONTRATADA.nomeFantasia}`,
     `Cliente: ${d.nome.trim() || 'não informado'}`,
     `Valor total: ${valor ? _ctMoeda(valor) : 'não informado'}`,
     `Pagamento: ${d.pagamento.trim() || 'não informado'}`,
@@ -14999,7 +15925,6 @@ window.abrirPropostasEmBreve = abrirPropostasEmBreve;
 
 /* Init — custos e compromissos chegam pelo initSupabase, que os carrega
    depois dos projetos e re-renderiza. Aqui só o primeiro paint. */
-carregarColaboradores();
 verificarTokenColaborador();  // se URL tem ?token=, entra no modo colaborador
 renderProjetosLista();
 renderAmbientes();
