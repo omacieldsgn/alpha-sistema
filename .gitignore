@@ -4,3 +4,8 @@ node_modules
 dist
 .env
 .env.local
+
+# Skills instaladas via `npx skills add` — locais ao dev, não vão para produção
+.agents/
+.claude/
+skills-lock.json

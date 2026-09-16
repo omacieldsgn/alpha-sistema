@@ -4916,6 +4916,613 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
     overflow-y: auto;
   }
 }
+
+/* =============================================================================
+   EQUIPE — CRUD de colaboradores (gestor)
+   ============================================================================= */
+.equipe-aviso {
+  border: 1px solid color-mix(in oklch, var(--accent) 40%, var(--border));
+  background: color-mix(in oklch, var(--accent) 8%, var(--surface));
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-5);
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+}
+.equipe-aviso strong { display: block; color: var(--ink); margin-bottom: 2px; }
+
+.equipe-empty {
+  padding: var(--sp-7) var(--sp-5);
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--ink-muted);
+}
+.equipe-empty h3 { font-family: var(--font-display); margin-bottom: 6px; }
+
+.equipe-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: var(--sp-3);
+  align-items: center;
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  margin-bottom: var(--sp-3);
+  transition: border-color 140ms var(--ease), opacity 140ms var(--ease);
+}
+.equipe-row:hover { border-color: var(--border-strong); }
+.equipe-row.is-inativo { opacity: 0.55; }
+.equipe-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--brand-ink);
+  background: var(--brand);
+  font-size: 1rem;
+}
+.equipe-info { min-width: 0; }
+.equipe-nome {
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.equipe-meta {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.equipe-meta .status-inativo { color: var(--status-atrasado); font-weight: 600; }
+.equipe-acoes { display: flex; gap: var(--sp-1); flex-wrap: wrap; justify-content: flex-end; }
+.equipe-acoes .btn { font-size: 0.75rem; padding: 6px 10px; min-height: 32px; }
+
+@media (max-width: 640px) {
+  .equipe-row { grid-template-columns: 42px minmax(0, 1fr); }
+  .equipe-acoes { grid-column: 1 / -1; justify-content: flex-start; }
+}
+
+.link-box {
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  word-break: break-all;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.link-nota {
+  margin-top: var(--sp-3);
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+
+/* =============================================================================
+   COLABORADOR — Painel Meu Dia (modo escuro, isolado do sistema principal)
+   Ativado quando body.is-colaborador. Nesse modo, sidebar/topbar/bottom-nav
+   somem e a view-meu-dia toma a tela toda.
+   ============================================================================= */
+body.is-colaborador {
+  --c-bg: #131110;
+  --c-bg-2: #191715;
+  --c-bg-3: #23201d;
+  --c-line: #2f2a26;
+  --c-taupe: #6D6250;
+  --c-areia: #BEA78F;
+  --c-gold: #9E7A46;
+  --c-gold-lt: #C9A574;
+  --c-cream: #FFF6EE;
+  --c-cream-dim: #ebe1d5;
+  --c-mute: #8c8378;
+  --c-pending: #6D6250;
+  --c-progress: #C9A574;
+  --c-done: #6b8f5f;
+  --c-priority: #c46b52;
+  background: var(--c-bg);
+}
+body.is-colaborador .sidebar,
+body.is-colaborador .bottom-nav,
+body.is-colaborador .topbar,
+body.is-colaborador .welcome-overlay,
+body.is-colaborador .more-sheet,
+body.is-colaborador .sheet-backdrop { display: none !important; }
+body.is-colaborador .app { grid-template-columns: 1fr; }
+body.is-colaborador .main {
+  padding: 0 !important;
+  max-width: none;
+  background: var(--c-bg);
+}
+body.is-colaborador .view { display: none; }
+body.is-colaborador #view-meu-dia.view.active { display: block; }
+
+.colab-app {
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  padding-bottom: env(safe-area-inset-bottom);
+  position: relative;
+  color: var(--c-cream);
+  font-family: var(--font-ui);
+}
+.colab-app::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 260px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/></svg>");
+  opacity: 0.06;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  z-index: 0;
+}
+
+.colab-header {
+  position: relative;
+  z-index: 1;
+  padding: 24px 24px 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.colab-greeting-block { flex: 1; min-width: 0; }
+.colab-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--c-mute);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.colab-greeting {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--c-cream);
+  letter-spacing: -0.012em;
+  margin: 0;
+}
+.colab-greeting em { font-style: italic; color: var(--c-gold-lt); font-weight: 400; }
+.colab-icon-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: var(--c-cream-dim);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: background 160ms var(--ease);
+}
+.colab-icon-btn:hover { background: var(--c-bg-3); }
+.colab-icon-btn svg { width: 20px; height: 20px; }
+
+.colab-progress {
+  position: relative;
+  z-index: 1;
+  margin: 20px 24px 24px;
+  padding: 16px 18px;
+  background: var(--c-bg-2);
+  border: 1px solid var(--c-bg-3);
+  border-radius: 10px;
+}
+.colab-progress-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.colab-progress-label { font-size: 13px; color: var(--c-cream-dim); }
+.colab-progress-count {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  color: var(--c-cream);
+  font-variant-numeric: tabular-nums;
+}
+.colab-progress-count b { font-weight: 500; color: var(--c-gold-lt); }
+.colab-track {
+  height: 3px;
+  background: var(--c-line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.colab-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--c-gold), var(--c-gold-lt));
+  transition: width 400ms var(--ease);
+}
+
+.colab-filters {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 4px;
+  padding: 0 24px;
+  margin-bottom: 22px;
+}
+.colab-filter {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--c-mute);
+  border-radius: 6px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: background 160ms var(--ease), color 160ms var(--ease);
+  min-height: 40px;
+  font-family: inherit;
+}
+.colab-filter:active { background: var(--c-bg-3); }
+.colab-filter.active {
+  color: var(--c-cream);
+  background: var(--c-bg-3);
+}
+
+.colab-focus {
+  position: relative;
+  z-index: 1;
+  padding: 0 24px;
+  margin-bottom: 36px;
+}
+.colab-section-label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-gold-lt);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+.colab-focus-card {
+  background: linear-gradient(180deg, rgba(158, 122, 70, 0.10), rgba(158, 122, 70, 0.02));
+  border: 1px solid var(--c-gold);
+  border-radius: 14px;
+  padding: 22px 22px 20px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 120ms var(--ease);
+}
+.colab-focus-card:active { transform: scale(0.995); }
+.colab-focus-card.in-progress {
+  background: linear-gradient(180deg, rgba(158, 122, 70, 0.16), rgba(158, 122, 70, 0.04));
+  border-color: var(--c-gold-lt);
+}
+.colab-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(201, 165, 116, 0.14);
+  color: var(--c-gold-lt);
+  border-radius: 20px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.colab-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--c-gold-lt);
+  border-radius: 50%;
+  animation: colabPulse 2.2s ease-in-out infinite;
+}
+@keyframes colabPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.colab-focus-project {
+  font-size: 12px;
+  color: var(--c-gold-lt);
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+.colab-focus-title {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 1.22;
+  color: var(--c-cream);
+  margin: 0 0 14px;
+  letter-spacing: -0.005em;
+  padding-bottom: 2px;
+}
+.colab-focus-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--c-cream-dim);
+  font-size: 13px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.colab-focus-meta svg { width: 14px; height: 14px; opacity: 0.7; }
+.colab-priority-high { color: var(--c-priority); font-weight: 600; }
+
+.colab-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: var(--c-cream);
+  color: var(--c-bg);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: transform 100ms var(--ease);
+  min-height: 44px;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.colab-cta:active { transform: scale(0.97); }
+.colab-cta svg { width: 16px; height: 16px; }
+
+.colab-project-group {
+  position: relative;
+  z-index: 1;
+  padding: 0 24px;
+  margin-bottom: 28px;
+}
+.colab-project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--c-bg-3);
+}
+.colab-project-name {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 17px;
+  color: var(--c-cream);
+  letter-spacing: -0.005em;
+}
+.colab-project-count { font-size: 12px; color: var(--c-mute); font-variant-numeric: tabular-nums; }
+
+.colab-task {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--c-bg-3);
+  cursor: pointer;
+  transition: opacity 200ms var(--ease);
+  min-height: 60px;
+  align-items: center;
+}
+.colab-task:last-child { border-bottom: 0; }
+.colab-task:active { opacity: 0.7; }
+.colab-task-mark {
+  width: 3px;
+  align-self: stretch;
+  border-radius: 2px;
+  background: var(--c-pending);
+  margin: 4px 0;
+}
+.colab-task[data-status="in_progress"] .colab-task-mark { background: var(--c-progress); }
+.colab-task[data-status="completed"] .colab-task-mark { background: var(--c-done); }
+.colab-task-body { flex: 1; min-width: 0; }
+.colab-task-title {
+  font-size: 15px;
+  color: var(--c-cream);
+  margin-bottom: 4px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+.colab-task[data-status="completed"] .colab-task-title {
+  color: var(--c-mute);
+  text-decoration: line-through;
+  text-decoration-color: var(--c-line);
+  text-decoration-thickness: 1px;
+}
+.colab-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--c-mute);
+  flex-wrap: wrap;
+}
+.colab-task-check {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-line);
+  display: grid; place-items: center;
+  transition: border-color 200ms var(--ease), background 200ms var(--ease);
+}
+.colab-task[data-status="completed"] .colab-task-check {
+  background: var(--c-done);
+  border-color: var(--c-done);
+}
+.colab-task-check svg { width: 12px; height: 12px; opacity: 0; color: var(--c-cream); }
+.colab-task[data-status="completed"] .colab-task-check svg { opacity: 1; }
+
+.colab-empty {
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--c-mute);
+  position: relative;
+  z-index: 1;
+}
+.colab-empty-title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  color: var(--c-cream-dim);
+  margin-bottom: 8px;
+}
+.colab-empty-text { font-size: 14px; max-width: 30ch; margin: 0 auto; }
+
+.colab-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, transparent, var(--c-bg) 32%);
+  padding: 24px 24px calc(20px + env(safe-area-inset-bottom));
+  margin-top: 20px;
+}
+.colab-whats {
+  width: 100%;
+  padding: 14px;
+  background: var(--c-bg-2);
+  border: 1px solid var(--c-bg-3);
+  border-radius: 10px;
+  color: var(--c-cream-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 160ms var(--ease);
+  min-height: 48px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.colab-whats:active { background: var(--c-bg-3); color: var(--c-cream); }
+.colab-whats svg { width: 18px; height: 18px; color: #7cb069; }
+
+/* Modais do modo colaborador (bottom sheet) — reutiliza .modal-overlay */
+body.is-colaborador #colab-task-modal .colab-modal,
+body.is-colaborador #colab-warn-modal .colab-warn { color: var(--c-cream); }
+.colab-modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 88dvh;
+  background: var(--c-bg-2);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  padding: 12px 0 calc(24px + env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
+  overflow-y: auto;
+  color: var(--c-cream);
+}
+#colab-task-modal.open .colab-modal { transform: translateY(0); }
+.colab-modal-handle {
+  width: 40px; height: 4px;
+  background: var(--c-line);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.colab-modal-content { padding: 0 24px; }
+.colab-modal-project {
+  font-size: 12px;
+  color: var(--c-gold-lt);
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+.colab-modal-title {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.22;
+  color: var(--c-cream);
+  margin: 0 0 20px;
+  letter-spacing: -0.005em;
+  padding-bottom: 2px;
+}
+.colab-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+  margin-bottom: 24px;
+  padding: 18px 20px;
+  background: var(--c-bg);
+  border-radius: 10px;
+}
+.colab-modal-grid .lbl {
+  font-size: 11px;
+  color: var(--c-mute);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+.colab-modal-grid .val { font-size: 14px; color: var(--c-cream); font-weight: 500; }
+.colab-modal-notes {
+  padding: 16px 18px;
+  background: rgba(190, 167, 143, 0.10);
+  border-left: 2px solid var(--c-gold);
+  border-radius: 0 6px 6px 0;
+  font-size: 14px;
+  color: var(--c-cream-dim);
+  margin-bottom: 24px;
+  line-height: 1.55;
+}
+.colab-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+.colab-action-btn {
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 100ms var(--ease);
+}
+.colab-action-btn:active { transform: scale(0.98); }
+.colab-action-btn svg { width: 16px; height: 16px; }
+.colab-start { background: var(--c-gold); color: var(--c-bg); }
+.colab-start:hover { background: var(--c-gold-lt); }
+.colab-complete { background: var(--c-done); color: var(--c-cream); }
+.colab-reopen {
+  background: var(--c-bg-3);
+  color: var(--c-cream-dim);
+  border: 1px solid var(--c-line);
+}
+.colab-close-btn {
+  background: transparent;
+  color: var(--c-mute);
+  padding: 12px;
+  font-weight: 500;
+}
+
+.colab-warn {
+  background: var(--c-bg-2);
+  border: 1px solid var(--c-gold);
+  padding: 24px;
+  border-radius: 14px;
+  max-width: 340px;
+  margin: 0 20px;
+  color: var(--c-cream);
+}
+.colab-warn h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 20px;
+  margin: 0 0 12px;
+  color: var(--c-cream);
+}
+.colab-warn p { color: var(--c-cream-dim); font-size: 14px; margin-bottom: 20px; }
+#colab-warn-modal.warn { align-items: center; padding: 20px; }
+
+/* Movimento reduzido no modo colaborador */
+@media (prefers-reduced-motion: reduce) {
+  body.is-colaborador * { animation: none !important; transition: none !important; }
+}
 </style>
 </head>
 <body>
@@ -4983,6 +5590,10 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
           <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
           <span class="nav-txt">Meu Dia</span>
         </button>
+        <button class="nav-item" data-view="equipe">
+          <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="nav-txt">Colaboradores</span>
+        </button>
       </div>
 
       <div class="nav-group">
@@ -5040,6 +5651,10 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
       <button class="more-item" data-view="integracao-agenda">
         <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a8 8 0 0 1-14.3 4.9M4 12.5a8 8 0 0 1 14.3-4.9"/><path d="M18 3v5h-5M6 21v-5h5"/></svg>
         <span>Google Agenda</span>
+      </button>
+      <button class="more-item" data-view="equipe">
+        <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Colaboradores</span>
       </button>
       <button class="more-item" data-view="configuracao">
         <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.6 13.5a1.6 1.6 0 0 0 .3 1.8l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.3a1.9 1.9 0 1 1-3.8 0v-.2a1.6 1.6 0 0 0-2.8-1.1l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1a1.6 1.6 0 0 0-1.1-2.7h-.2a1.9 1.9 0 1 1 0-3.8h.2a1.6 1.6 0 0 0 1.1-2.8l-.1-.1a1.9 1.9 0 1 1 2.7-2.7l.1.1a1.6 1.6 0 0 0 2.8-1.1v-.2a1.9 1.9 0 1 1 3.8 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.6 1.6 0 0 0 1.1 2.8h.2a1.9 1.9 0 1 1 0 3.8h-.2a1.6 1.6 0 0 0-1.4.9z"/></svg>
@@ -5442,6 +6057,70 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         <div style="display: flex; gap: var(--sp-3);">
           <button class="btn btn-secondary" onclick="testarConexoes()">Testar conexões</button>
           <button class="btn btn-primary" onclick="salvarConfiguracao()">Salvar credenciais</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================================================================
+         VIEW: EQUIPE — Gestão de colaboradores (apenas gestor)
+         ========================================================================= -->
+    <section class="view" id="view-equipe">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow t-micro">Equipe</div>
+          <h1 class="t-hero">Colaboradores</h1>
+          <p class="lede">Cadastre marceneiros e instaladores, gere link de acesso e compartilhe pelo WhatsApp. Cada link abre o painel do colaborador com as tarefas atribuídas.</p>
+        </div>
+        <div>
+          <button class="btn btn-primary" onclick="abrirNovoColaborador()">+ Novo colaborador</button>
+        </div>
+      </header>
+
+      <div class="equipe-aviso">
+        <strong>Sobre o acesso</strong>
+        Enquanto o login por senha não está implementado, o acesso é por link com token. Quem tem o link, entra. Trate os links como confidenciais e desative colaboradores que saírem do time.
+      </div>
+
+      <div id="equipe-lista"><!-- populado por JS --></div>
+    </section>
+
+    <!-- =========================================================================
+         VIEW: MEU DIA (colaborador) — só aparece via link com token
+         ========================================================================= -->
+    <section class="view" id="view-meu-dia">
+      <div class="colab-app">
+        <header class="colab-header">
+          <div class="colab-greeting-block">
+            <div class="colab-eyebrow" id="colab-date">—</div>
+            <h1 class="colab-greeting" id="colab-greeting">—</h1>
+          </div>
+          <button class="colab-icon-btn" onclick="sairModoColaborador()" title="Sair" aria-label="Sair">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 4h4a1 1 0 011 1v14a1 1 0 01-1 1h-4M10 17l-5-5 5-5M5 12h12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </header>
+
+        <div class="colab-progress">
+          <div class="colab-progress-row">
+            <span class="colab-progress-label">Progresso do dia</span>
+            <span class="colab-progress-count"><b id="colab-done">0</b> de <span id="colab-total">0</span> concluídas</span>
+          </div>
+          <div class="colab-track"><div class="colab-fill" id="colab-fill" style="width:0%"></div></div>
+        </div>
+
+        <div class="colab-filters" role="group" aria-label="Filtrar por período">
+          <button class="colab-filter active" data-colab-filter="hoje" onclick="filtrarMeuDia('hoje')">Hoje</button>
+          <button class="colab-filter" data-colab-filter="semana" onclick="filtrarMeuDia('semana')">Esta semana</button>
+          <button class="colab-filter" data-colab-filter="tudo" onclick="filtrarMeuDia('tudo')">Tudo</button>
+        </div>
+
+        <section class="colab-focus" id="colab-focus"><!-- populado por JS --></section>
+        <div id="colab-lista"><!-- populado por JS --></div>
+
+        <div class="colab-footer">
+          <button class="colab-whats" onclick="colabFalarGestor()">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            <span id="colab-gestor-label">Falar com o gestor</span>
+          </button>
         </div>
       </div>
     </section>
@@ -6317,6 +6996,93 @@ body[data-role="marceneiro"] .gestor-only { display: none !important; }
         <button class="btn btn-secondary" onclick="gerarPdfRelatorio()">Gerar PDF</button>
         <button class="btn btn-primary" onclick="enviarRelatorioWhatsApp()">Enviar no WhatsApp</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal — Novo/Editar colaborador -->
+<div class="modal-backdrop" id="modal-colaborador">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 480px;">
+    <div class="modal-header">
+      <div class="icon">👤</div>
+      <div>
+        <h3 id="modal-colab-title">Novo colaborador</h3>
+        <p>Nome e telefone bastam. O link de acesso é gerado depois de salvar.</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="colab-id">
+      <div class="field-row" style="display: grid; grid-template-columns: 1fr; gap: var(--sp-3);">
+        <div class="field">
+          <label class="field-label" for="colab-nome">Nome completo</label>
+          <input type="text" class="input" id="colab-nome" placeholder="Ex: Jhonata Felipe" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="field-label" for="colab-telefone">WhatsApp (com DDD)</label>
+          <input type="tel" class="input" id="colab-telefone" placeholder="(31) 99999-9999">
+          <div class="field-hint">Usado só para enviar o link de acesso pra ele.</div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="colab-funcao">Função (opcional)</label>
+          <input type="text" class="input" id="colab-funcao" placeholder="Marceneiro, Instalador, Ajudante…">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModalColaborador()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarColaborador()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal — Detalhe da tarefa (modo colaborador) -->
+<div class="modal-overlay" id="colab-task-modal" onclick="if(event.target===this) fecharTarefaColab()">
+  <div class="colab-modal">
+    <div class="colab-modal-handle" aria-hidden="true"></div>
+    <div class="colab-modal-content">
+      <div class="colab-modal-project" id="ct-project">—</div>
+      <h2 class="colab-modal-title" id="ct-title">—</h2>
+      <div class="colab-modal-grid">
+        <div><div class="lbl">Cômodo</div><div class="val" id="ct-room">—</div></div>
+        <div><div class="lbl">Prazo</div><div class="val" id="ct-deadline">—</div></div>
+        <div><div class="lbl">Prioridade</div><div class="val" id="ct-priority">—</div></div>
+        <div><div class="lbl">Categoria</div><div class="val" id="ct-category">—</div></div>
+      </div>
+      <div class="colab-modal-notes" id="ct-notes" hidden></div>
+      <div class="colab-modal-actions" id="ct-actions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal — "Já tem uma em andamento" (guardrail) -->
+<div class="modal-overlay warn" id="colab-warn-modal" onclick="if(event.target===this) fecharAvisoColab()">
+  <div class="colab-warn">
+    <h3>Já tem uma em andamento</h3>
+    <p>Você já iniciou <b id="colab-warn-name">outra tarefa</b>. Termine ou pause ela antes de começar essa.</p>
+    <button class="colab-action-btn colab-start" onclick="fecharAvisoColab()" style="width:100%;">Entendi</button>
+  </div>
+</div>
+
+<!-- Modal — Link de acesso do colaborador -->
+<div class="modal-backdrop" id="modal-link">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 520px;">
+    <div class="modal-header">
+      <div class="icon">🔗</div>
+      <div>
+        <h3>Link de acesso</h3>
+        <p id="modal-link-para">Envie este link para o colaborador. Ele abre direto no painel dele, sem senha.</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="link-box"><code id="link-valor">—</code></div>
+      <div style="display:flex; gap:var(--sp-2); margin-top:var(--sp-3); flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="copiarLink()" style="flex:1;">Copiar link</button>
+        <button class="btn btn-primary" onclick="enviarLinkWhatsApp()" style="flex:1;">Enviar no WhatsApp</button>
+      </div>
+      <p class="link-nota">Se o colaborador perder o link, você pode gerar de novo aqui a qualquer momento. Se ele sair do time, desative na lista pra invalidar o acesso.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModalLink()">Fechar</button>
     </div>
   </div>
 </div>
@@ -7241,6 +8007,11 @@ async function carregarProjetosDoBanco() {
     renderChao();
     renderDashboard();
     atualizarContadorProjetos();
+    // Se o colaborador está logado, atualiza o painel dele com as tarefas
+    // que acabaram de chegar do Supabase.
+    if (typeof colabAtivo !== 'undefined' && colabAtivo) {
+      try { renderMeuDiaColab(); } catch (e) { console.warn(e); }
+    }
   }
 }
 
@@ -11838,7 +12609,9 @@ const viewLabels = {
   'projeto-detalhe': 'Detalhe do Projeto',
   'agenda': 'Agenda',
   'custos': 'Financeiro',
-  'chao': 'Meu Dia'
+  'chao': 'Meu Dia',
+  'equipe': 'Colaboradores',
+  'meu-dia': 'Meu Dia (colaborador)'
 };
 let viewHistory = [];
 let currentView = 'painel';
@@ -11880,6 +12653,17 @@ function switchView(name, opts = {}) {
     inicializarAgenda();
   } else if (name === 'custos') {
     renderCustosView();
+  } else if (name === 'equipe') {
+    carregarColaboradores();
+    renderEquipe();
+  } else if (name === 'meu-dia') {
+    // Só faz sentido ver esta view em modo colaborador. Fora dele, redireciona.
+    if (!document.body.classList.contains('is-colaborador')) {
+      showToast('Meu Dia do colaborador só abre via link de acesso.');
+      switchView('painel', { skipHistory: true });
+      return;
+    }
+    renderMeuDiaColab();
   }
 
   // Browser history integration — so device back button works
@@ -12784,13 +13568,513 @@ function fecharWelcome() {
 }
 window.fecharWelcome = fecharWelcome;
 
+/* ============================================================================
+   COLABORADORES + PAINEL DO COLABORADOR (Meu Dia)
+   Temporário até a Fase 5 (Auth): guarda colaboradores em localStorage e
+   controla acesso por token na URL. Não é seguro; é preview funcional.
+   Migração pra Supabase Auth + tabela profiles mantém a mesma UI.
+   ============================================================================ */
+const COLABS_KEY = 'alpha-colaboradores-v1';
+const COLAB_SESSAO_KEY = 'alpha-colaborador-sessao';
+let colaboradores = [];
+let colabAtivo = null;       // objeto do colaborador logado (modo colaborador)
+let colabFiltro = 'hoje';
+let colabTarefaAtual = null;
+let linkColabAtual = '';     // URL gerada, usada por copiar/whatsapp
+let telefoneColabAtual = '';
+
+function carregarColaboradores() {
+  try {
+    colaboradores = JSON.parse(localStorage.getItem(COLABS_KEY) || '[]');
+  } catch { colaboradores = []; }
+}
+function salvarColaboradoresLS() {
+  localStorage.setItem(COLABS_KEY, JSON.stringify(colaboradores));
+}
+function _colabIniciais(nome) {
+  return String(nome || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+}
+function _colabTelDigitado(t) {
+  return String(t || '').replace(/\D/g, '');
+}
+function _colabTelWa(t) {
+  const num = _colabTelDigitado(t);
+  if (!num) return '';
+  return num.length <= 11 ? '55' + num : num;
+}
+function _colabTelFormatado(t) {
+  const n = _colabTelDigitado(t);
+  if (n.length === 11) return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
+  if (n.length === 10) return `(${n.slice(0,2)}) ${n.slice(2,6)}-${n.slice(6)}`;
+  return t || '';
+}
+function _colabToken() {
+  // Token curto o suficiente pra caber num link do WhatsApp
+  return (crypto.randomUUID?.() || (Date.now().toString(36) + Math.random().toString(36).slice(2))).replace(/-/g, '');
+}
+
+function renderEquipe() {
+  const el = document.getElementById('equipe-lista');
+  if (!el) return;
+  if (colaboradores.length === 0) {
+    el.innerHTML = `
+      <div class="equipe-empty">
+        <h3>Nenhum colaborador ainda</h3>
+        <p>Cadastre o primeiro membro do time. Depois é só gerar o link e enviar pelo WhatsApp.</p>
+      </div>`;
+    return;
+  }
+  el.innerHTML = colaboradores.map(c => {
+    const inativa = c.ativo === false ? 'is-inativo' : '';
+    const statusTxt = c.ativo === false ? '<span class="status-inativo">Inativo</span>' : 'Ativo';
+    const funcao = c.funcao ? `<span>${_esc(c.funcao)}</span>` : '';
+    const tel = c.telefone ? `<span>${_esc(_colabTelFormatado(c.telefone))}</span>` : '';
+    return `
+      <div class="equipe-row ${inativa}">
+        <div class="equipe-avatar">${_colabIniciais(c.nome)}</div>
+        <div class="equipe-info">
+          <div class="equipe-nome">${_esc(c.nome)}</div>
+          <div class="equipe-meta">${statusTxt}${funcao}${tel}</div>
+        </div>
+        <div class="equipe-acoes">
+          <button class="btn btn-secondary" onclick="mostrarLinkColaborador('${c.id}')">Link</button>
+          <button class="btn btn-ghost" onclick="abrirEditarColaborador('${c.id}')">Editar</button>
+          <button class="btn btn-ghost" onclick="alternarAtivoColab('${c.id}')">${c.ativo === false ? 'Reativar' : 'Desativar'}</button>
+          <button class="btn btn-ghost btn-perigo" onclick="excluirColaborador('${c.id}')">Excluir</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+window.renderEquipe = renderEquipe;
+
+function abrirNovoColaborador() {
+  document.getElementById('modal-colab-title').textContent = 'Novo colaborador';
+  document.getElementById('colab-id').value = '';
+  document.getElementById('colab-nome').value = '';
+  document.getElementById('colab-telefone').value = '';
+  document.getElementById('colab-funcao').value = '';
+  document.getElementById('modal-colaborador').classList.add('open');
+  setTimeout(() => document.getElementById('colab-nome').focus(), 100);
+}
+window.abrirNovoColaborador = abrirNovoColaborador;
+
+function abrirEditarColaborador(id) {
+  const c = colaboradores.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('modal-colab-title').textContent = 'Editar colaborador';
+  document.getElementById('colab-id').value = c.id;
+  document.getElementById('colab-nome').value = c.nome || '';
+  document.getElementById('colab-telefone').value = c.telefone || '';
+  document.getElementById('colab-funcao').value = c.funcao || '';
+  document.getElementById('modal-colaborador').classList.add('open');
+}
+window.abrirEditarColaborador = abrirEditarColaborador;
+
+function fecharModalColaborador() {
+  document.getElementById('modal-colaborador').classList.remove('open');
+}
+window.fecharModalColaborador = fecharModalColaborador;
+
+function salvarColaborador() {
+  const id = document.getElementById('colab-id').value;
+  const nome = document.getElementById('colab-nome').value.trim();
+  const telefone = document.getElementById('colab-telefone').value.trim();
+  const funcao = document.getElementById('colab-funcao').value.trim();
+  if (!nome) { showToast('Informe o nome do colaborador.'); return; }
+  if (id) {
+    const c = colaboradores.find(x => x.id === id);
+    if (c) { c.nome = nome; c.telefone = telefone; c.funcao = funcao; }
+    showToast('Colaborador atualizado.');
+  } else {
+    colaboradores.push({
+      id: 'colab-' + _colabToken().slice(0, 12),
+      nome, telefone, funcao,
+      ativo: true,
+      token: _colabToken(),
+      criadoEm: new Date().toISOString()
+    });
+    showToast('Colaborador cadastrado.');
+  }
+  salvarColaboradoresLS();
+  renderEquipe();
+  fecharModalColaborador();
+}
+window.salvarColaborador = salvarColaborador;
+
+function alternarAtivoColab(id) {
+  const c = colaboradores.find(x => x.id === id);
+  if (!c) return;
+  c.ativo = c.ativo === false;
+  salvarColaboradoresLS();
+  renderEquipe();
+  showToast(c.ativo ? 'Colaborador reativado.' : 'Colaborador desativado. Link antigo não funciona mais.');
+}
+window.alternarAtivoColab = alternarAtivoColab;
+
+function excluirColaborador(id) {
+  const c = colaboradores.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Excluir ${c.nome}? Isso também invalida o link de acesso dele.`)) return;
+  colaboradores = colaboradores.filter(x => x.id !== id);
+  salvarColaboradoresLS();
+  renderEquipe();
+  showToast('Colaborador excluído.');
+}
+window.excluirColaborador = excluirColaborador;
+
+function _linkColaborador(c) {
+  const origem = location.origin && location.origin !== 'null' ? location.origin : location.href.split('#')[0].split('?')[0];
+  return `${origem}/?token=${c.token}#meu-dia`;
+}
+
+function mostrarLinkColaborador(id) {
+  const c = colaboradores.find(x => x.id === id);
+  if (!c) return;
+  if (c.ativo === false) {
+    if (!confirm('Este colaborador está desativado. Reativar antes de compartilhar o link?')) return;
+    c.ativo = true; salvarColaboradoresLS(); renderEquipe();
+  }
+  linkColabAtual = _linkColaborador(c);
+  telefoneColabAtual = c.telefone;
+  document.getElementById('modal-link-para').textContent = `Envie este link para ${c.nome}. Ele abre direto no painel dele, sem senha.`;
+  document.getElementById('link-valor').textContent = linkColabAtual;
+  document.getElementById('modal-link').classList.add('open');
+}
+window.mostrarLinkColaborador = mostrarLinkColaborador;
+
+function fecharModalLink() { document.getElementById('modal-link').classList.remove('open'); }
+window.fecharModalLink = fecharModalLink;
+
+async function copiarLink() {
+  try {
+    await navigator.clipboard.writeText(linkColabAtual);
+    showToast('Link copiado.');
+  } catch {
+    // Fallback antigo
+    const t = document.createElement('textarea');
+    t.value = linkColabAtual;
+    document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+    showToast('Link copiado.');
+  }
+}
+window.copiarLink = copiarLink;
+
+function enviarLinkWhatsApp() {
+  const num = _colabTelWa(telefoneColabAtual);
+  const texto = encodeURIComponent(`Aqui está seu acesso ao sistema Alpha Móveis:\n\n${linkColabAtual}\n\nSalve este link — é a sua entrada.`);
+  const url = num ? `https://wa.me/${num}?text=${texto}` : `https://wa.me/?text=${texto}`;
+  window.open(url, '_blank', 'noopener');
+  if (!num) showToast('Sem telefone cadastrado. Abrimos o WhatsApp sem destinatário.');
+}
+window.enviarLinkWhatsApp = enviarLinkWhatsApp;
+
+/* ---- Modo colaborador (roteamento por token) ---------------------------- */
+function verificarTokenColaborador() {
+  // Um: token no query string. Dois: sessão persistida (o colaborador voltou).
+  const params = new URLSearchParams(location.search);
+  const token = params.get('token') || sessionStorage.getItem(COLAB_SESSAO_KEY);
+  if (!token) return false;
+
+  carregarColaboradores();
+  const c = colaboradores.find(x => x.token === token && x.ativo !== false);
+  if (!c) {
+    // Token inválido: limpa e volta pra experiência do gestor.
+    sessionStorage.removeItem(COLAB_SESSAO_KEY);
+    if (params.get('token')) {
+      alert('Este link expirou ou foi desativado. Peça um novo link ao gestor.');
+      history.replaceState({}, '', location.pathname);
+    }
+    return false;
+  }
+  sessionStorage.setItem(COLAB_SESSAO_KEY, c.token);
+  entrarModoColaborador(c);
+  return true;
+}
+
+function entrarModoColaborador(c) {
+  colabAtivo = c;
+  document.body.classList.add('is-colaborador');
+  atualizarSaudacaoColab();
+  document.getElementById('colab-gestor-label').textContent = 'Falar com o gestor';
+  // Foco na view Meu Dia. switchView normal, mas com body.is-colaborador o CSS
+  // esconde tudo o resto.
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-meu-dia').classList.add('active');
+  renderMeuDiaColab();
+  history.replaceState({ view: 'meu-dia' }, '', location.pathname + '#meu-dia');
+}
+
+function sairModoColaborador() {
+  if (!confirm('Deseja sair?')) return;
+  sessionStorage.removeItem(COLAB_SESSAO_KEY);
+  document.body.classList.remove('is-colaborador');
+  colabAtivo = null;
+  history.replaceState({}, '', location.pathname);
+  location.reload();
+}
+window.sairModoColaborador = sairModoColaborador;
+
+function atualizarSaudacaoColab() {
+  const h = new Date().getHours();
+  const saud = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  const nome = (colabAtivo?.nome || '').trim();
+  const primeiro = nome.split(/\s+/).slice(0, 2).join(' ') || 'você';
+  document.getElementById('colab-greeting').innerHTML = `${saud},<br><em>${_esc(primeiro)}</em>.`;
+  const now = new Date();
+  const dia = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+  document.getElementById('colab-date').textContent = dia.charAt(0).toUpperCase() + dia.slice(1);
+}
+
+function _tarefasColaborador() {
+  // Enquanto assigned_to não existe no schema, todo colaborador vê todas as
+  // etapas aplicáveis. Fase 5: filtrar por assigned_to = auth.uid() via RLS.
+  const todas = [];
+  (projetos || []).forEach(p => {
+    (p.tasks || []).filter(t => t.is_applicable !== false).forEach(t => {
+      todas.push({
+        id: t.id,
+        titulo: t.name,
+        projeto: p.cliente || p.codigo,
+        ambiente: t.ambiente || 'Geral',
+        prazo: t.prazo,
+        prioridade: t.prioridade || 'normal',
+        categoria: t.category || '',
+        status: t.status || 'pending',
+        notas: t.notes || '',
+        projetoId: p.id,
+        _t: t
+      });
+    });
+  });
+  return todas;
+}
+
+function _prazoTxt(dataStr) {
+  if (!dataStr) return 'Sem prazo';
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const d = new Date(dataStr + 'T00:00:00');
+  const diff = Math.round((d - hoje) / 86400000);
+  if (diff < 0) return `${Math.abs(diff)} ${Math.abs(diff)===1?'dia':'dias'} de atraso`;
+  if (diff === 0) return 'Hoje';
+  if (diff === 1) return 'Amanhã';
+  if (diff < 7) return `Em ${diff} dias`;
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+
+function _filtroPeriodo(t) {
+  if (colabFiltro === 'tudo') return true;
+  if (!t.prazo) return colabFiltro === 'tudo';
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const d = new Date(t.prazo + 'T00:00:00');
+  const diff = Math.round((d - hoje) / 86400000);
+  if (colabFiltro === 'hoje') return diff <= 0;
+  if (colabFiltro === 'semana') return diff <= 7;
+  return true;
+}
+
+function _escolherFoco(tarefas) {
+  return tarefas.find(t => t.status === 'in_progress')
+      || tarefas.find(t => t.status === 'pending' && t.prioridade === 'alta')
+      || tarefas.find(t => t.status === 'pending');
+}
+
+function renderMeuDiaColab() {
+  const tarefas = _tarefasColaborador().filter(_filtroPeriodo);
+  const focoTarefa = _escolherFoco(tarefas);
+
+  // Progresso
+  const total = tarefas.length;
+  const done = tarefas.filter(t => t.status === 'completed').length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('colab-done').textContent = done;
+  document.getElementById('colab-total').textContent = total;
+  document.getElementById('colab-fill').style.width = pct + '%';
+
+  // Foco agora
+  const focoEl = document.getElementById('colab-focus');
+  if (!focoTarefa) {
+    focoEl.innerHTML = '';
+  } else {
+    const emAndamento = focoTarefa.status === 'in_progress';
+    const badge = emAndamento ? '<div class="colab-badge">Em andamento</div>' : '';
+    const cta = emAndamento ? 'Marcar como concluída' : 'Começar agora';
+    const acao = emAndamento
+      ? `alterarStatusColab('${focoTarefa.id}', 'completed')`
+      : `alterarStatusColab('${focoTarefa.id}', 'in_progress')`;
+    const prioTag = focoTarefa.prioridade === 'alta' ? '<span class="colab-priority-high">Alta</span>' : '';
+    focoEl.innerHTML = `
+      <div class="colab-section-label">Foco agora</div>
+      <div class="colab-focus-card ${emAndamento ? 'in-progress' : ''}" onclick="abrirTarefaColab('${focoTarefa.id}')">
+        ${badge}
+        <div class="colab-focus-project">Projeto ${_esc(focoTarefa.projeto)} · ${_esc(focoTarefa.ambiente)}</div>
+        <h2 class="colab-focus-title">${_esc(focoTarefa.titulo)}</h2>
+        <div class="colab-focus-meta">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${_prazoTxt(focoTarefa.prazo)}</span>
+          ${prioTag}
+        </div>
+        <button class="colab-cta" onclick="event.stopPropagation(); ${acao}">
+          ${cta}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>`;
+  }
+
+  // Lista agrupada por projeto (exclui a do foco)
+  const listaEl = document.getElementById('colab-lista');
+  const outras = tarefas.filter(t => !focoTarefa || t.id !== focoTarefa.id);
+  if (outras.length === 0 && !focoTarefa) {
+    listaEl.innerHTML = `
+      <div class="colab-empty">
+        <div class="colab-empty-title">Tudo em dia.</div>
+        <div class="colab-empty-text">Sem tarefas por aqui no momento. Bom trabalho.</div>
+      </div>`;
+    return;
+  }
+  const porProjeto = new Map();
+  outras.forEach(t => {
+    const k = t.projeto || 'Sem projeto';
+    if (!porProjeto.has(k)) porProjeto.set(k, []);
+    porProjeto.get(k).push(t);
+  });
+  listaEl.innerHTML = [...porProjeto.entries()].map(([proj, arr]) => {
+    const pend = arr.filter(t => t.status !== 'completed').length;
+    return `
+      <section class="colab-project-group">
+        <div class="colab-project-header">
+          <div class="colab-project-name">${_esc(proj)}</div>
+          <div class="colab-project-count">${pend} pendentes de ${arr.length}</div>
+        </div>
+        ${arr.map(t => `
+          <div class="colab-task" data-status="${t.status}" onclick="abrirTarefaColab('${t.id}')">
+            <div class="colab-task-mark"></div>
+            <div class="colab-task-body">
+              <div class="colab-task-title">${_esc(t.titulo)}</div>
+              <div class="colab-task-meta">
+                <span>${_esc(t.ambiente)}</span>
+                <span>${_prazoTxt(t.prazo)}</span>
+                ${t.prioridade === 'alta' ? '<span class="colab-priority-high">Alta</span>' : ''}
+              </div>
+            </div>
+            <div class="colab-task-check" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>`).join('')}
+      </section>`;
+  }).join('');
+}
+window.renderMeuDiaColab = renderMeuDiaColab;
+
+function filtrarMeuDia(f) {
+  colabFiltro = f;
+  document.querySelectorAll('.colab-filter').forEach(b =>
+    b.classList.toggle('active', b.dataset.colabFilter === f));
+  renderMeuDiaColab();
+}
+window.filtrarMeuDia = filtrarMeuDia;
+
+function abrirTarefaColab(id) {
+  const t = _tarefasColaborador().find(x => x.id === id);
+  if (!t) return;
+  colabTarefaAtual = t;
+  document.getElementById('ct-project').textContent = `Projeto ${t.projeto}`;
+  document.getElementById('ct-title').textContent = t.titulo;
+  document.getElementById('ct-room').textContent = t.ambiente || '—';
+  document.getElementById('ct-deadline').textContent = _prazoTxt(t.prazo);
+  document.getElementById('ct-priority').innerHTML = t.prioridade === 'alta'
+    ? '<span class="colab-priority-high">Alta</span>' : 'Normal';
+  document.getElementById('ct-category').textContent = t.categoria || 'Sem categoria';
+  const notas = document.getElementById('ct-notes');
+  if (t.notas) { notas.textContent = t.notas; notas.hidden = false; } else { notas.hidden = true; }
+
+  let actions = '';
+  if (t.status === 'pending' || t.status === 'blocked') {
+    actions = `
+      <button class="colab-action-btn colab-start" onclick="alterarStatusColab('${id}', 'in_progress')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Começar agora
+      </button>
+      <button class="colab-action-btn colab-close-btn" onclick="fecharTarefaColab()">Fechar</button>`;
+  } else if (t.status === 'in_progress') {
+    actions = `
+      <button class="colab-action-btn colab-complete" onclick="alterarStatusColab('${id}', 'completed')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Marcar como concluída
+      </button>
+      <button class="colab-action-btn colab-reopen" onclick="alterarStatusColab('${id}', 'pending')">Pausar (voltar para Pendente)</button>
+      <button class="colab-action-btn colab-close-btn" onclick="fecharTarefaColab()">Fechar</button>`;
+  } else {
+    actions = `
+      <button class="colab-action-btn colab-reopen" onclick="alterarStatusColab('${id}', 'pending')">Reabrir tarefa</button>
+      <button class="colab-action-btn colab-close-btn" onclick="fecharTarefaColab()">Fechar</button>`;
+  }
+  document.getElementById('ct-actions').innerHTML = actions;
+  document.getElementById('colab-task-modal').classList.add('open');
+}
+window.abrirTarefaColab = abrirTarefaColab;
+
+function fecharTarefaColab() {
+  document.getElementById('colab-task-modal').classList.remove('open');
+}
+window.fecharTarefaColab = fecharTarefaColab;
+
+function fecharAvisoColab() {
+  document.getElementById('colab-warn-modal').classList.remove('open');
+}
+window.fecharAvisoColab = fecharAvisoColab;
+
+async function alterarStatusColab(taskId, novoStatus) {
+  // Guardrail "só uma em andamento por vez" fica desligado até a Fase 5, quando
+  // production_tasks ganhar assigned_to. Hoje o colaborador enxerga todas as
+  // etapas do sistema, então o guardrail acha qualquer coisa em andamento no
+  // banco (do gestor ou de outros) e bloqueia. Volta quando a coluna existir.
+  // TODO(fase-5): _tarefasColaborador() já filtra por assigned_to = auth.uid();
+  //   reativar o bloco abaixo trocando a fonte de dados.
+  /*
+  if (novoStatus === 'in_progress') {
+    const jaAndamento = _tarefasColaborador().find(t => t.status === 'in_progress' && t.id !== taskId);
+    if (jaAndamento) {
+      document.getElementById('colab-warn-name').textContent = `"${jaAndamento.titulo}"`;
+      document.getElementById('colab-warn-modal').classList.add('open');
+      return;
+    }
+  }
+  */
+  // Reutiliza a função do gestor — mesmo banco, mesmo status.
+  const t = _tarefasColaborador().find(x => x.id === taskId);
+  if (!t) return;
+  fecharTarefaColab();
+  try {
+    await alterarStatusTarefa(t.projetoId, t.id, novoStatus);
+  } catch (e) {
+    console.warn('Falha ao alterar status como colaborador:', e);
+    showToast('Não foi possível salvar. Tente de novo.');
+    return;
+  }
+  renderMeuDiaColab();
+  const msg = { in_progress: 'Tarefa iniciada', completed: 'Concluída. Bom trabalho.', pending: 'Voltou para pendente' }[novoStatus];
+  if (msg) showToast(msg);
+}
+window.alterarStatusColab = alterarStatusColab;
+
+function colabFalarGestor() {
+  // Sem tabela de gestor ainda: usa o telefone do próprio colab pra levar
+  // o WhatsApp aberto — o colab digita quem é. Fase 5: usar telefone real
+  // do gestor logado em profiles.
+  const txt = encodeURIComponent(`Oi, sou ${colabAtivo?.nome || 'colaborador'} do time Alpha. Preciso falar sobre uma tarefa.`);
+  window.open(`https://wa.me/?text=${txt}`, '_blank', 'noopener');
+}
+window.colabFalarGestor = colabFalarGestor;
+
 /* Init — custos e compromissos chegam pelo initSupabase, que os carrega
    depois dos projetos e re-renderiza. Aqui só o primeiro paint. */
+carregarColaboradores();
+verificarTokenColaborador();  // se URL tem ?token=, entra no modo colaborador
 renderProjetosLista();
 renderAmbientes();
 renderCustosView();
 renderChao();
 renderDashboard();
+renderEquipe();
 
 // Carregar tema salvo
 const savedTheme = localStorage.getItem('alpha-theme') || 'light';
